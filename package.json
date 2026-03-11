@@ -2,7 +2,6 @@
   "name": "zxckys",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,9 +10,13 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
     "react": "^19.2.0",
     "react-bootstrap": "^2.10.10",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
