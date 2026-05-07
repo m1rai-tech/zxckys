@@ -3,12 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES, getCategory } from '../lib/categories';
-import { getAutoBrandOptions, getAutoModelOptions } from '../data/autoCatalog';
-import { getAutoBodyOptions } from '../data/autoBodyCatalog';
 import { supabase } from '../lib/supabase';
 import { IconClose, IconPlus, IconImage, IconCheck, IconLocation } from '../components/Icons';
-
-const BODY_OPTIONS = getAutoBodyOptions();
 
 const CITIES = ['Київ','Львів','Одеса','Харків','Дніпро','Запоріжжя','Вінниця','Полтава','Чернігів','Тернопіль','Івано-Франківськ','Ужгород','Луцьк','Рівне','Чернівці','Хмельницький','Житомир','Суми','Черкаси','Кропивницький','Миколаїв','Херсон'];
 
@@ -50,7 +46,7 @@ export default function CreateListing({ edit = false }) {
         const { data: ex } = await supabase.from('listing_extras').select('*').eq('listing_id', id);
         if (ex) {
           const map = {};
-          ex.forEach(e => { map[e.key] = e.value; });
+          ex.forEach((e) => { map[e.key] = e.value; });
           setExtras(map);
         }
       })();
@@ -61,22 +57,30 @@ export default function CreateListing({ edit = false }) {
 
   const uploadFiles = async (files) => {
     if (!user || files.length === 0) return;
-    setUploading(true); setErr('');
+    setUploading(true);
+    setErr('');
     const remaining = Math.max(0, 12 - photos.length);
     const toUpload = files.slice(0, remaining);
-    const results = await Promise.all(toUpload.map(async (f) => {
-      const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
-      const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
-      const path = `${user.id}/${safe}`;
-      const { error } = await supabase.storage.from('listing-media').upload(path, f, { cacheControl: '3600', upsert: false });
-      if (error) { console.error('upload error', error); return null; }
-      const { data } = supabase.storage.from('listing-media').getPublicUrl(path);
-      return data.publicUrl;
-    }));
+
+    const results = await Promise.all(
+      toUpload.map(async (f) => {
+        const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
+        const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+        const path = `${user.id}/${safe}`;
+        const { error } = await supabase.storage.from('listing-media').upload(path, f, { cacheControl: '3600', upsert: false });
+        if (error) return null;
+        const { data } = supabase.storage.from('listing-media').getPublicUrl(path);
+        return data.publicUrl;
+      })
+    );
+
     const successful = results.filter(u => !!u);
-    if (successful.length) setPhotos(prev => [...prev, ...successful].slice(0, 12));
-    if (successful.length < toUpload.length)
-      setErr(`Не вдалося завантажити ${toUpload.length - successful.length} фото.`);
+    if (successful.length) {
+      setPhotos((prev) => [...prev, ...successful].slice(0, 12));
+    }
+    if (successful.length < toUpload.length) {
+      setErr(`Не вдалося завантажити ${toUpload.length - successful.length} фото. Перевірте розмір та формат.`);
+    }
     setUploading(false);
   };
 
@@ -96,16 +100,20 @@ export default function CreateListing({ edit = false }) {
   const submit = async (e) => {
     e?.preventDefault();
     if (!user) return;
+    if (!isFree && !negotiable && Number(price) < 0) { setErr('Ціна не може бути від\'ємною'); return; }
     setErr('');
     if (!title.trim()) { setErr('Введіть назву оголошення'); return; }
     if (!category) { setErr('Оберіть категорію'); return; }
     if (!location) { setErr('Оберіть місто'); return; }
     setSaving(true);
+
     const payload = {
       user_id: user.id, title, description,
       price: isFree || negotiable ? null : (price ? Number(price) : null),
-      is_free: isFree, category, location, photos, delivery, show_phone: showPhone,
+      is_free: isFree, category, location, photos,
+      delivery, show_phone: showPhone,
     };
+
     let listingId = id;
     if (edit && id) {
       const { error } = await supabase.from('listings').update(payload).eq('id', id);
@@ -115,11 +123,13 @@ export default function CreateListing({ edit = false }) {
       if (error) { setErr(error.message); setSaving(false); return; }
       listingId = data.id;
     }
+
     if (listingId) {
       await supabase.from('listing_extras').delete().eq('listing_id', listingId);
-      const rows = Object.entries(extras).filter(([, v]) => v).map(([key, value]) => ({ listing_id: listingId, key, value }));
+      const rows = Object.entries(extras).filter(([_, v]) => v).map(([key, value]) => ({ listing_id: listingId, key, value }));
       if (rows.length) await supabase.from('listing_extras').insert(rows);
     }
+
     setSaving(false);
     nav(`/listing/${listingId}`);
   };
@@ -137,6 +147,7 @@ export default function CreateListing({ edit = false }) {
           <h1>{edit ? 'Редагування оголошення' : 'Нове оголошення'}</h1>
           <p>Заповніть інформацію — це займе декілька хвилин</p>
         </div>
+
         {err && <div className="alert alert-error" style={{ maxWidth: 1200, margin: '0 auto 16px' }}>{err}</div>}
 
         <div className="create-grid">
@@ -144,12 +155,19 @@ export default function CreateListing({ edit = false }) {
             <section className="create-section">
               <div className="section-head">
                 <span className="section-num">1</span>
-                <div><div className="section-title-2">Фотографії</div><div className="section-sub">До 12 фото. Перше фото буде головним.</div></div>
+                <div>
+                  <div className="section-title-2">Фотографії</div>
+                  <div className="section-sub">До 12 фото. Перше фото буде головним. Перетягніть, щоб змінити порядок.</div>
+                </div>
               </div>
+
               {photos.length === 0 ? (
-                <label className={`upload-zone ${dragOver ? 'drag' : ''}`}
+                <label
+                  className={`upload-zone ${dragOver?'drag':''}`}
                   onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)} onDrop={onDrop}>
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={onDrop}
+                >
                   <div className="upload-icon"><IconImage size={32}/></div>
                   <div className="upload-title">{uploading ? 'Завантаження...' : 'Перетягніть фото сюди'}</div>
                   <div className="upload-sub">або натисніть, щоб обрати файли (до 12)</div>
@@ -159,13 +177,15 @@ export default function CreateListing({ edit = false }) {
               ) : (
                 <div className="photo-grid-2">
                   {photos.map((p, i) => (
-                    <div key={p} className={`photo-item-2 ${i === 0 ? 'main' : ''}`}>
+                    <div key={p} className={`photo-item-2 ${i===0?'main':''}`}>
                       <img src={p} alt={`Фото ${i+1}`} loading="lazy"/>
                       {i === 0 && <span className="main-badge">Головне</span>}
                       <div className="photo-overlay">
-                        {i > 0 && <button type="button" onClick={() => movePhoto(i, i-1)} className="overlay-btn">←</button>}
-                        {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i+1)} className="overlay-btn">→</button>}
-                        <button type="button" onClick={() => setPhotos(prev => prev.filter((_,j)=>j!==i))} className="overlay-btn danger"><IconClose size={14}/></button>
+                        {i > 0 && <button type="button" onClick={() => movePhoto(i, i-1)} className="overlay-btn" title="Вліво">←</button>}
+                        {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i+1)} className="overlay-btn" title="Вправо">→</button>}
+                        <button type="button" onClick={() => setPhotos(prev => prev.filter((_,j)=>j!==i))} className="overlay-btn danger" title="Видалити">
+                          <IconClose size={14}/>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -184,28 +204,38 @@ export default function CreateListing({ edit = false }) {
             <section className="create-section">
               <div className="section-head">
                 <span className="section-num">2</span>
-                <div><div className="section-title-2">Основна інформація</div><div className="section-sub">Що ви продаєте?</div></div>
+                <div>
+                  <div className="section-title-2">Основна інформація</div>
+                  <div className="section-sub">Що ви продаєте?</div>
+                </div>
               </div>
+
               <div className="field">
                 <label>Назва оголошення *</label>
-                <input className="input" required value={title} onChange={e=>setTitle(e.target.value)} placeholder="Наприклад: iPhone 13 Pro 256 GB" maxLength={80}/>
+                <input className="input" required value={title} onChange={e=>setTitle(e.target.value)}
+                  placeholder="Наприклад: iPhone 13 Pro 256 GB" maxLength={80}/>
                 <div className="hint">{title.length}/80 символів</div>
               </div>
+
               <div className="field">
                 <label>Категорія *</label>
                 <div className="cat-picker">
                   {CATEGORIES.map(c => (
-                    <button key={c.slug} type="button" className={`cat-tile ${category===c.slug?'selected':''}`} onClick={() => setCategory(c.slug)}>
-                      <c.Icon size={22}/><span>{c.name}</span>
+                    <button key={c.slug} type="button"
+                      className={`cat-tile ${category===c.slug?'selected':''}`}
+                      onClick={() => setCategory(c.slug)}>
+                      <c.Icon size={22}/>
+                      <span>{c.name}</span>
                       {category===c.slug && <IconCheck size={14} className="cat-check"/>}
                     </button>
                   ))}
                 </div>
               </div>
+
               <div className="field">
                 <label>Опис</label>
                 <textarea className="textarea" value={description} onChange={e=>setDescription(e.target.value)}
-                  placeholder="Розкажіть детально про товар..." rows={6} maxLength={3000}/>
+                  placeholder="Розкажіть детально про товар: стан, комплектацію, особливості..." rows={6} maxLength={3000}/>
                 <div className="hint">{description.length}/3000 символів</div>
               </div>
             </section>
@@ -213,24 +243,43 @@ export default function CreateListing({ edit = false }) {
             <section className="create-section">
               <div className="section-head">
                 <span className="section-num">3</span>
-                <div><div className="section-title-2">Ціна</div><div className="section-sub">Оберіть тип ціни</div></div>
+                <div>
+                  <div className="section-title-2">Ціна</div>
+                  <div className="section-sub">Оберіть тип ціни</div>
+                </div>
               </div>
+
               <div className="price-options">
-                <button type="button" className={`price-opt ${!isFree&&!negotiable?'selected':''}`} onClick={() => { setIsFree(false); setNegotiable(false); }}>
-                  <div className="price-opt-title">Фіксована</div><div className="price-opt-sub">Точна ціна</div>
+                <button type="button" className={`price-opt ${!isFree && !negotiable?'selected':''}`}
+                  onClick={() => { setIsFree(false); setNegotiable(false); }}>
+                  <div className="price-opt-title">Фіксована</div>
+                  <div className="price-opt-sub">Точна ціна</div>
                 </button>
-                <button type="button" className={`price-opt ${negotiable?'selected':''}`} onClick={() => { setNegotiable(true); setIsFree(false); }}>
-                  <div className="price-opt-title">Договірна</div><div className="price-opt-sub">Обговорюється</div>
+                <button type="button" className={`price-opt ${negotiable?'selected':''}`}
+                  onClick={() => { setNegotiable(true); setIsFree(false); }}>
+                  <div className="price-opt-title">Договірна</div>
+                  <div className="price-opt-sub">Обговорюється</div>
                 </button>
-                <button type="button" className={`price-opt ${isFree?'selected':''}`} onClick={() => { setIsFree(true); setNegotiable(false); }}>
-                  <div className="price-opt-title">Безкоштовно</div><div className="price-opt-sub">Віддам даром</div>
+                <button type="button" className={`price-opt ${isFree?'selected':''}`}
+                  onClick={() => { setIsFree(true); setNegotiable(false); }}>
+                  <div className="price-opt-title">Безкоштовно</div>
+                  <div className="price-opt-sub">Віддам даром</div>
                 </button>
               </div>
+
               {!isFree && !negotiable && (
                 <div className="field" style={{ marginTop: 16 }}>
                   <label>Сума, грн *</label>
                   <div className="price-input">
-                    <input className="input" type="number" min="0" value={price} onChange={e=>setPrice(e.target.value)} placeholder="0"/>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      value={price}
+                      onChange={(e) => { const val = e.target.value; if (val === '' || Number(val) >= 0) setPrice(val); }}
+                      onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
+                      placeholder="0"
+                    />
                     <span className="price-currency">грн</span>
                   </div>
                 </div>
@@ -240,8 +289,12 @@ export default function CreateListing({ edit = false }) {
             <section className="create-section">
               <div className="section-head">
                 <span className="section-num">4</span>
-                <div><div className="section-title-2">Локація і доставка</div><div className="section-sub">Де знаходиться товар?</div></div>
+                <div>
+                  <div className="section-title-2">Локація і доставка</div>
+                  <div className="section-sub">Де знаходиться товар?</div>
+                </div>
               </div>
+
               <div className="field">
                 <label>Місто *</label>
                 <select className="select" value={location} onChange={e=>setLocation(e.target.value)}>
@@ -249,9 +302,13 @@ export default function CreateListing({ edit = false }) {
                   {CITIES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
+
               <label className="toggle-row">
                 <input type="checkbox" checked={delivery} onChange={e=>setDelivery(e.target.checked)}/>
-                <div><div className="toggle-title">Доступна доставка</div><div className="toggle-sub">Відправлю Новою поштою або іншим перевізником</div></div>
+                <div>
+                  <div className="toggle-title">Доступна доставка</div>
+                  <div className="toggle-sub">Відправлю покупцеві Новою поштою або іншим перевізником</div>
+                </div>
               </label>
             </section>
 
@@ -259,68 +316,28 @@ export default function CreateListing({ edit = false }) {
               <section className="create-section">
                 <div className="section-head">
                   <span className="section-num">5</span>
-                  <div><div className="section-title-2">Характеристики</div><div className="section-sub">Допоможе покупцю швидше прийняти рішення</div></div>
+                  <div>
+                    <div className="section-title-2">Характеристики</div>
+                    <div className="section-sub">Допоможе покупцю швидше прийняти рішення</div>
+                  </div>
                 </div>
+
                 <div className="attrs-grid">
-                  {cat.attrs.map(a => {
-                    const val = extras[a.key] || '';
-                    const set = v => setExtras(prev => ({ ...prev, [a.key]: v }));
-                    if (a.type === 'auto-make') {
-                      const brands = getAutoBrandOptions();
-                      return (
-                        <div key={a.key} className="field" style={{ margin: 0 }}>
-                          <label>{a.label}</label>
-                          <select className="select" value={val}
-                            onChange={e => setExtras(prev => ({ ...prev, make: e.target.value, model: '' }))}>
-                            <option value="">Оберіть марку</option>
-                            {brands.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                          </select>
-                        </div>
-                      );
-                    }
-                    if (a.type === 'auto-model') {
-                      const models = getAutoModelOptions(extras['make'] || '');
-                      return (
-                        <div key={a.key} className="field" style={{ margin: 0 }}>
-                          <label>{a.label}</label>
-                          <select className="select" value={val} onChange={e => set(e.target.value)}
-                            disabled={!extras['make']}>
-                            <option value="">{extras['make'] ? 'Оберіть модель' : 'Спочатку оберіть марку'}</option>
-                            {models.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                          </select>
-                        </div>
-                      );
-                    }
-                    if (a.type === 'auto-body') {
-                      return (
-                        <div key={a.key} className="field" style={{ margin: 0 }}>
-                          <label>{a.label}</label>
-                          <select className="select" value={val} onChange={e => set(e.target.value)}>
-                            <option value="">Оберіть кузов</option>
-                            {BODY_OPTIONS.map(o => <option key={o}>{o}</option>)}
-                          </select>
-                        </div>
-                      );
-                    }
-                    if (a.type === 'select') {
-                      return (
-                        <div key={a.key} className="field" style={{ margin: 0 }}>
-                          <label>{a.label}</label>
-                          <select className="select" value={val} onChange={e => set(e.target.value)}>
-                            <option value="">—</option>
-                            {a.options?.map(o => <option key={o}>{o}</option>)}
-                          </select>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={a.key} className="field" style={{ margin: 0 }}>
-                        <label>{a.label}</label>
-                        <input className="input" type={a.type === 'number' ? 'number' : 'text'}
-                          value={val} onChange={e => set(e.target.value)}/>
-                      </div>
-                    );
-                  })}
+                  {cat.attrs.map(a => (
+                    <div key={a.key} className="field" style={{ margin: 0 }}>
+                      <label>{a.label}</label>
+                      {a.type === 'select' ? (
+                        <select className="select" value={extras[a.key] || ''}
+                          onChange={e=>setExtras({ ...extras, [a.key]: e.target.value })}>
+                          <option value="">—</option>
+                          {a.options?.map(o => <option key={o}>{o}</option>)}
+                        </select>
+                      ) : (
+                        <input className="input" value={extras[a.key] || ''}
+                          onChange={e=>setExtras({ ...extras, [a.key]: e.target.value })}/>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
@@ -328,13 +345,22 @@ export default function CreateListing({ edit = false }) {
             <section className="create-section">
               <div className="section-head">
                 <span className="section-num">{cat && cat.attrs.length>0 ? 6 : 5}</span>
-                <div><div className="section-title-2">Контакти</div><div className="section-sub">Як з вами зв'язатися</div></div>
+                <div>
+                  <div className="section-title-2">Контакти</div>
+                  <div className="section-sub">Як з вами зв'язатися</div>
+                </div>
               </div>
+
               <label className="toggle-row">
                 <input type="checkbox" checked={showPhone} onChange={e=>setShowPhone(e.target.checked)}/>
-                <div><div className="toggle-title">Показувати номер телефону</div><div className="toggle-sub">Покупці зможуть подзвонити вам напряму</div></div>
+                <div>
+                  <div className="toggle-title">Показувати номер телефону</div>
+                  <div className="toggle-sub">Покупці зможуть подзвонити вам напряму</div>
+                </div>
               </label>
-              <div className="hint" style={{ marginTop: 8 }}>Чат буде доступний завжди, незалежно від цього налаштування</div>
+              <div className="hint" style={{ marginTop: 8 }}>
+                Чат буде доступний завжди, незалежно від цього налаштування
+              </div>
             </section>
 
             <div className="mobile-submit">
@@ -349,21 +375,29 @@ export default function CreateListing({ edit = false }) {
               <div className="preview-label">Прев'ю оголошення</div>
               <div className="preview-listing">
                 <div className="preview-img">
-                  {photos[0] ? <img src={photos[0]} alt=""/> : <div className="preview-img-empty"><IconImage size={32}/></div>}
+                  {photos[0] ? <img src={photos[0]} alt=""/> : (
+                    <div className="preview-img-empty"><IconImage size={32}/></div>
+                  )}
                 </div>
                 <div className="preview-body">
                   <div className={`preview-price ${isFree?'free':''}`}>{fmtPrice()}</div>
                   <div className="preview-title">{title || 'Назва оголошення'}</div>
                   <div className="preview-meta">
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IconLocation size={12}/> {location || 'Місто'}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <IconLocation size={12}/> {location || 'Місто'}
+                    </span>
                     {delivery && <span className="tag" style={{ padding: '2px 8px', fontSize: 11 }}>Доставка</span>}
                   </div>
                 </div>
               </div>
+
               <button type="button" onClick={() => submit()} className="btn btn-primary btn-block btn-lg" disabled={saving} style={{ marginTop: 16 }}>
                 {saving ? 'Збереження...' : (edit ? 'Зберегти зміни' : 'Опублікувати')}
               </button>
-              <button type="button" onClick={() => nav(-1)} className="btn btn-ghost btn-block" style={{ marginTop: 8 }}>Скасувати</button>
+              <button type="button" onClick={() => nav(-1)} className="btn btn-ghost btn-block" style={{ marginTop: 8 }}>
+                Скасувати
+              </button>
+
               <div className="preview-tips">
                 <div className="tip-title">Поради для гарного оголошення</div>
                 <ul>
@@ -395,8 +429,8 @@ export default function CreateListing({ edit = false }) {
         .upload-icon { width: 56px; height: 56px; border-radius: 14px; background: #fff; color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 1px solid var(--border); }
         .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
         .upload-sub { font-size: 13px; color: var(--text-muted); }
-        .photo-grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-        .photo-item-2 { position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); isolation: isolate; }
+        .photo-grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; width: 100%; }
+        .photo-item-2 { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); isolation: isolate; }
         .photo-item-2.main { border: 2px solid var(--accent); }
         .photo-item-2 > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
         .main-badge { position: absolute; top: 6px; left: 6px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; z-index: 2; }
@@ -404,7 +438,7 @@ export default function CreateListing({ edit = false }) {
         .photo-item-2:hover .photo-overlay { opacity: 1; }
         .overlay-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.95); color: #111; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
         .overlay-btn.danger { background: var(--danger); color: #fff; }
-        .photo-add-2 { width: 100%; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed var(--border-strong); border-radius: 10px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: all .15s; text-align: center; padding: 8px; }
+        .photo-add-2 { width: 100%; aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed var(--border-strong); border-radius: 10px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: all .15s; text-align: center; padding: 8px; }
         .photo-add-2:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
         .cat-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
         .cat-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; color: var(--text); font-size: 12px; font-weight: 500; transition: all .15s; text-align: center; }
@@ -445,8 +479,17 @@ export default function CreateListing({ edit = false }) {
         .tip-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
         .preview-tips ul { padding-left: 18px; color: var(--text-muted); font-size: 12px; line-height: 1.7; }
         .mobile-submit { display: none; }
-        @media (max-width: 900px) { .create-grid { grid-template-columns: 1fr; } .create-preview { display: none; } .mobile-submit { display: block; padding: 8px 0 24px; } .create-section { padding: 18px; } }
-        @media (max-width: 540px) { .price-options { grid-template-columns: 1fr; } .cat-picker { grid-template-columns: repeat(2, 1fr); } .create-head h1 { font-size: 22px; } }
+        @media (max-width: 900px) {
+          .create-grid { grid-template-columns: 1fr; }
+          .create-preview { display: none; }
+          .mobile-submit { display: block; padding: 8px 0 24px; }
+          .create-section { padding: 18px; }
+        }
+        @media (max-width: 540px) {
+          .price-options { grid-template-columns: 1fr; }
+          .cat-picker { grid-template-columns: repeat(2, 1fr); }
+          .create-head h1 { font-size: 22px; }
+        }
       `}</style>
     </Layout>
   );

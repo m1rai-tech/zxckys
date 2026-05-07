@@ -10,3 +10,5 @@ export function Empty({ title, text, icon, action }) {
     </div>
   );
 }
+
+export default Empty;

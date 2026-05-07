@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES, IconGrid } from '../lib/categories';
 import {
@@ -13,6 +13,7 @@ const CITIES = ['Вся Україна', 'Київ', 'Львів', 'Одеса',
 export function Layout({ children, full }) {
   const { user, profile, signOut } = useAuth();
   const nav = useNavigate();
+  const loc = useLocation();
   const [q, setQ] = useState('');
   const [city, setCity] = useState(localStorage.getItem('olxua_city') || 'Вся Україна');
   const [showCities, setShowCities] = useState(false);
@@ -46,12 +47,16 @@ export function Layout({ children, full }) {
 
           <form onSubmit={onSearch} className="search-wrap">
             <IconSearch size={18}/>
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Пошук оголошень..."/>
+            <input
+              value={q} onChange={e => setQ(e.target.value)}
+              placeholder="Пошук оголошень..."
+            />
           </form>
 
           <div style={{ position: 'relative' }}>
             <button className="btn btn-ghost" onClick={() => setShowCities(s => !s)}>
-              <IconLocation size={16}/> {city} <IconChevronDown size={14}/>
+              <IconLocation size={16}/> {city}
+              <IconChevronDown size={14}/>
             </button>
             {showCities && (
               <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 6, minWidth: 200, zIndex: 50, boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
@@ -94,6 +99,12 @@ export function Layout({ children, full }) {
                     <Link to="/settings" className="sidebar-link" onClick={() => setShowUser(false)}>
                       <IconSettings size={18}/> Налаштування
                     </Link>
+                    {(profile?.role === 'admin' || profile?.role === 'moderator') && (
+                      <Link to="/admin" className="sidebar-link" onClick={() => setShowUser(false)}
+                        style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                        <IconSettings size={18}/> Адмін-панель
+                      </Link>
+                    )}
                     <div className="sidebar-divider"/>
                     <button className="sidebar-link" style={{ width: '100%', color: 'var(--danger)' }}
                       onClick={async () => { await signOut(); setShowUser(false); nav('/'); }}>
@@ -118,15 +129,15 @@ export function Layout({ children, full }) {
         <div className="main">
           <aside className="sidebar">
             <div className="sidebar-title">Навігація</div>
-            <NavLink to="/" end className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <NavLink to="/" end className={({isActive}) => `sidebar-link ${isActive?'active':''}`}>
               <IconHome size={18}/> Головна
             </NavLink>
-            <NavLink to="/favorites" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <NavLink to="/favorites" className={({isActive}) => `sidebar-link ${isActive?'active':''}`}>
               <IconHeart size={18}/> Улюблене
               {favCount > 0 && <span style={{ marginLeft: 'auto', background: 'var(--accent-soft)', color: 'var(--accent)', padding: '0 8px', borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{favCount}</span>}
             </NavLink>
             {user && (
-              <NavLink to="/chat" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+              <NavLink to="/chat" className={({isActive}) => `sidebar-link ${isActive?'active':''}`}>
                 <IconMessage size={18}/> Повідомлення
               </NavLink>
             )}
@@ -134,7 +145,7 @@ export function Layout({ children, full }) {
             <div className="sidebar-title">Категорії</div>
             {CATEGORIES.map(c => (
               <NavLink key={c.slug} to={`/c/${c.slug}`}
-                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                className={({isActive}) => `sidebar-link ${isActive || loc.pathname === `/c/${c.slug}` ?'active':''}`}>
                 <c.Icon size={18}/> {c.name}
               </NavLink>
             ))}

@@ -10,6 +10,7 @@ import { MyProfile, SellerProfile } from './pages/Profile';
 import Settings from './pages/Settings';
 import Favorites from './pages/Favorites';
 import Chat from './pages/Chat';
+import Admin from './pages/Admin';
 import { isConfigured } from './lib/supabase';
 
 function ConfigWarning() {
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/settings" element={<Settings/>}/>
           <Route path="/favorites" element={<Favorites/>}/>
           <Route path="/chat" element={<Chat/>}/>
+          <Route path="/admin" element={<Admin/>}/>
           <Route path="*" element={<Home/>}/>
         </Routes>
       </AuthProvider>

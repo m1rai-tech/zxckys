@@ -28,14 +28,14 @@ export function AuthProvider({ children }) {
     return () => { sub.subscription.unsubscribe(); };
   }, []);
 
-  const signUp = async (email, password, name, phone) => {
+  const signUp = async (email, password, name, phone, city) => {
     const { data, error } = await supabase.auth.signUp({
-      email, password, options: { data: { name, phone } },
+      email, password, options: { data: { name, phone, city } },
     });
     if (error) return { error: error.message };
     if (data.user) {
       await supabase.from('profiles').upsert({
-        id: data.user.id, name, phone, email,
+        id: data.user.id, name, phone, email, city,
       }, { onConflict: 'id' });
     }
     return {};
@@ -47,12 +47,21 @@ export function AuthProvider({ children }) {
     return {};
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) return { error: error.message };
+    return {};
+  };
+
   const signOut = async () => { await supabase.auth.signOut(); };
 
   const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
   return (
-    <AuthCtx.Provider value={{ user, profile, loading, signUp, signIn, signOut, refreshProfile }}>
+    <AuthCtx.Provider value={{ user, profile, loading, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
       {children}
     </AuthCtx.Provider>
   );

@@ -33,7 +33,7 @@ export function ListingCard({ listing }) {
 
   return (
     <Link to={`/listing/${listing.id}`} className="listing-card">
-      <button className={`fav-btn ${fav ? 'active' : ''}`} onClick={handleFav} aria-label="В обране">
+      <button className={`fav-btn ${fav?'active':''}`} onClick={handleFav} aria-label="В обране">
         <IconHeart size={16} fill={fav}/>
       </button>
       <div className="img">
@@ -42,7 +42,7 @@ export function ListingCard({ listing }) {
         )}
       </div>
       <div className="body">
-        <div className={`price ${listing.is_free ? 'price-free' : ''}`}>{fmtPrice(listing)}</div>
+        <div className={`price ${listing.is_free?'price-free':''}`}>{fmtPrice(listing)}</div>
         <div className="title">{listing.title}</div>
         <div className="meta">
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -54,3 +54,5 @@ export function ListingCard({ listing }) {
     </Link>
   );
 }
+
+export default ListingCard;
