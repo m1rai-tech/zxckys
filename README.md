@@ -1,6 +1,5 @@
 <div align="center">
   <br/>
-  <img src="public/logo.svg" width="64" alt="logo" />
   <h1>zxckys</h1>
   <p>Дошка оголошень · React 19 + Supabase + Vite</p>
   <br/>
