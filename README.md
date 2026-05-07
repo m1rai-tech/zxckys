@@ -11,271 +11,173 @@
 
 ### 🎓 Студентський маркетплейс · Івано-Франківськ
 
-<br/>
-
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-BaaS-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat-square&logo=vercel&logoColor=white)](https://zxckys.vercel.app)
-[![ESLint](https://img.shields.io/badge/ESLint-enabled-4B32C3?style=flat-square&logo=eslint&logoColor=white)](https://eslint.org/)
-
-**Маркетплейс для студентів — купуй, продавай, обмінюйся.**
-
-[🌐 Production](https://zxckys.vercel.app) · [💬 Чат у реальному часі](#чат) · [🚀 Швидкий старт](#запуск)
-
+<div align="center">
+  <br/>
+  <img src="public/logo.svg" width="64" alt="logo" />
+  <h1>zxckys</h1>
+  <p>Дошка оголошень · React 19 + Supabase + Vite</p>
+  <br/>
 </div>
-
----
-
-## Про проєкт
-
-**zxckys** — повноцінний студентський маркетплейс із підтримкою оголошень, реал-тайм чату, профілів, відгуків і гнучких фільтрів. Побудований на сучасному стеку React + Vite + Supabase з Row Level Security і Realtime-підпискою.
-
-Це не demo — тут є повний marketplace flow від створення оголошення до завершення угоди з відгуком.
 
 ---
 
 ## Скріншоти
 
-**Головна сторінка**
-![Home](https://github.com/user-attachments/assets/0bb5fe28-c0af-46d4-b29c-edd1ff0e9499)
-
-<br/>
-
-<table>
-<tr>
-<td width="50%">
-
-**Категорія**
-![Category](https://github.com/user-attachments/assets/28dca10b-f931-4e19-a44d-380f30a4c3cd)
-
-</td>
-<td width="50%">
-
-**Оголошення**
-![Listing](https://github.com/user-attachments/assets/0a993a88-51da-4205-ad5f-a468a47be953)
-
-</td>
-</tr>
-<tr>
-<td width="50%">
+**Головна**
+![Home](https://github.com/user-attachments/assets/e8dccb34-1aa4-4e8c-b7be-aa072b789f81)
 
 **Чат**
-![Chat](https://github.com/user-attachments/assets/5b378ab8-98c3-4188-be18-691d3c64c0d8)
+![Chat](https://github.com/user-attachments/assets/1bef4c60-daea-4570-a5c9-b1a3f9f8c0eb)
 
-</td>
-<td width="50%">
-
-**Обране**
-![Favorites](https://github.com/user-attachments/assets/da3be665-9f9c-4079-bb17-da0ce34db6c5)
-
-</td>
-</tr>
-<tr>
-<td width="50%">
+**Вибране**
+![Favorites](https://github.com/user-attachments/assets/930332c9-9af6-4bc0-b7bf-1e7dcab2bb00)
 
 **Нове оголошення**
-![Create Listing](https://github.com/user-attachments/assets/916bb6bf-be0c-480f-9d19-4faae2c666ca)
-
-</td>
-<td width="50%">
+![Create](https://github.com/user-attachments/assets/c45b147e-5435-4181-9d91-0c0c4a59f07b)
 
 **Профіль**
-![Profile](https://github.com/user-attachments/assets/5d5d92c7-8ac8-4150-9e02-3cdd03c2eff0)
-
-</td>
-</tr>
-</table>
-
----
-
-## Можливості
-
-### 📦 Оголошення
-- Створення оголошень із фото
-- Категорії: техніка, авто, одяг, геймінг, конспекти, послуги, робота, безкоштовно
-- Category-specific атрибути та фільтри
-- Редагування та видалення власних оголошень
-- Seller profile preview і схожі оголошення
-
-### 💬 Чат
-- Supabase Realtime — оновлення діалогів і повідомлень в реальному часі
-- Вкладення фото в повідомлення
-- Unread state
-- Deal flow: `open → awaiting_confirmation → completed`
-- Відгуки після завершення угоди
-- Мобільний сценарій: `список → діалог`
-
-### 👤 Профіль
-- Supabase Auth
-- Редагування display name, bio, phone, avatar
-- Seller rating і completed deals
-- Публічний seller profile
-
-### 🔍 Пошук і навігація
-- Пошук по назві, опису і тегах
-- Фільтри за ціною, рейтингом, доставкою, містом
-- Окремі маршрути для listings / seller / chat / favorites / settings
+![Profile](https://github.com/user-attachments/assets/89c58f49-4885-4134-9e3a-5c2fc010478f)
 
 ---
 
 ## Стек
 
-| Шар | Технологія |
-|-----|-----------|
-| UI | React 19, Heroicons |
-| Збірка | Vite 7 |
-| Роутинг | React Router DOM 7 |
-| Auth | Supabase Auth |
-| База даних | Supabase PostgreSQL + RLS |
-| Файли | Supabase Storage |
-| Реал-тайм | Supabase Realtime |
-| Лінтер | ESLint |
+| | |
+|---|---|
+| **Frontend** | React 19, React Router 7, Vite 7 |
+| **Backend** | Supabase — PostgreSQL, Auth, Storage, Realtime |
+| **Стилі** | Vanilla CSS (CSS-змінні, без UI-фреймворків) |
+| **Іконки** | Heroicons + кастомні SVG |
+| **Деплой** | Vercel |
 
 ---
 
-## Архітектура
+## Функціонал
 
-```text
-src/
-├── components/
-│   └── routing/
-│       ├── AdminRoute.jsx
-│       └── ProtectedRoute.jsx
-├── constants/
-│   ├── cities.js
-│   └── roles.js
-├── hooks/
-│   ├── useAuth.js
-│   ├── useFavorites.js
-│   └── useNavigation.js
-├── lib/
-│   ├── routes.js
-│   └── supabase.js
-├── pages/
-│   └── MarketplacePage.jsx
-├── services/
-│   ├── authService.js
-│   ├── chatService.js
-│   ├── listingsService.js
-│   └── profileService.js
-├── App.jsx
-└── main.jsx
-```
-
-Auth, favorites і navigation винесені в hooks. Supabase CRUD — у services. Роутинг через `Routes / Route / Navigate` із `ProtectedRoute` і `AdminRoute`.
+- 📋 **Оголошення** — створення, редагування, фото, атрибути під кожну категорію
+- 🗂️ **Категорії** — Техніка, Авто, Одяг, Робота, Послуги, Книги, Геймінг, Безкоштовно
+- 💬 **Чат** — переписка покупця і продавця в реальному часі, вкладення
+- ⭐ **Відгуки** — рейтинг після завершення угоди
+- ❤️ **Вибране** — збереження цікавих оголошень
+- 🔍 **Пошук** — по всіх активних оголошеннях
+- 👤 **Профіль** — аватар, рейтинг, публічна сторінка продавця
+- 🛡️ **Ролі** — `user` / `moderator` / `admin`, панель модерації
 
 ---
 
-## Маршрути
+## Структура проекту
 
 ```
-/                     → головна
-/category/:categoryId → категорія
-/listing/:listingId   → сторінка оголошення
-/seller/:sellerId     → профіль продавця
-/favorites            → обране
-/chat                 → чат
-/settings             → налаштування профілю
-/profile/:profileId   → публічний профіль
-/create               → нове оголошення
-/admin                → адмін-панель
+zxckys/
+├── src/
+│   ├── components/      # Header, Footer, Layout, ListingCard, CategoryBar…
+│   ├── pages/           # Home, Auth, Chat, Admin, Settings, Profile…
+│   ├── contexts/        # AuthContext
+│   ├── hooks/           # useFavorites
+│   ├── lib/             # supabase.js · routes.js · validation.js
+│   ├── data/            # categories · autoCatalog · autoBodyCatalog
+│   └── constants/       # roles.js · cities.js
+├── db/
+│   ├── schema/          # 001_supabase_base.sql
+│   └── migrations/      # SQL-міграції у хронологічному порядку
+├── scripts/
+│   ├── run-supabase-migrations.js
+│   └── serve-dist.js
+├── public/              # logo.svg · logo.png
+└── vercel.json
 ```
-
----
-
-## База даних
-
-Основні сутності: `listings`, `listing_extras`, `profiles`, `conversations`, `messages`, `reviews`.
-
-Таблиця `profiles` включає: `role`, `is_banned`, `is_verified`, `rating`, `completed_deals`.
-
-Для деталей — SQL у `db/migrations/` і snapshot у `db/schema/`.
 
 ---
 
 ## Запуск
 
-### Вимоги
-
-- Node.js 18+
-- npm 9+
-- Supabase project
-
-### 1. Клонування
+### 1. Встановлення
 
 ```bash
-git clone https://github.com/m1rai-tech/zxckys.git
+git clone <repo-url>
 cd zxckys
-```
-
-### 2. Встановлення залежностей
-
-```bash
 npm install
 ```
 
-### 3. Змінні середовища
+### 2. Змінні середовища
 
-Створіть `.env` у корені проєкту:
+Створіть `.env` в корені проекту:
 
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
 ```
 
-### 4. Міграції
+Ключі: **Supabase Dashboard → Settings → API**.
+
+> Якщо `.env` відсутній — застосунок покаже сторінку-підказку замість краша.
+
+### 3. База даних
+
+Відкрийте **Supabase → SQL Editor** і виконайте по черзі:
+
+```
+db/schema/001_supabase_base.sql
+db/migrations/20260409195000_create_supabase_chat_tables.sql
+db/migrations/20260409201500_add_listings_moderation_policy.sql
+db/migrations/20260409214000_create_listing_media_and_extras.sql
+db/migrations/20260414120000_add_listings_crud_policies.sql
+db/migrations/20260414133000_create_public_profiles.sql
+db/migrations/20260414143000_add_message_attachments.sql
+db/migrations/20260421150000_add_conversation_status_and_reviews.sql
+db/migrations/20260422161000_add_completed_conversation_delete_policy.sql
+db/migrations/20260422170500_add_reviews_to_supabase_realtime.sql
+db/migrations/20260423170000_add_profile_role_and_flags.sql
+db/migrations/20260424191000_use_profile_roles_for_listing_delete.sql
+db/migrations/20260424200000_add_profile_avatar_upload.sql
+```
+
+Або через скрипт (потрібен прямий доступ до БД):
 
 ```bash
 npm run supabase:setup
 ```
 
-### 5. Dev server
+### 4. Запуск
 
 ```bash
-npm run dev
-# http://localhost:5173
+npm run dev        # dev-сервер → http://localhost:5173
+npm run build      # продакшн-білд
+npm run preview    # перегляд білду локально
 ```
 
 ---
 
-## Скрипти
+## Схема бази даних
 
-| Команда | Призначення |
-|---------|------------|
-| `npm run dev` | Локальний Vite dev server |
-| `npm run build` | Production build |
-| `npm run preview` | Локальний preview build |
-| `npm run lint` | ESLint |
-| `npm run supabase:setup` | Запуск SQL-міграцій |
+| Таблиця | Призначення |
+|---|---|
+| `profiles` | Профілі користувачів — ім'я, аватар, рейтинг, роль |
+| `listings` | Оголошення |
+| `listing_media` | Медіафайли до оголошень |
+| `conversations` | Чат-сесії між покупцем і продавцем |
+| `messages` | Повідомлення у чаті |
+| `reviews` | Відгуки після завершення угоди |
 
----
-
-## Що далі
-
-- [ ] Винести `useListings`, `useChat`, `useProfile`
-- [ ] Перенести роль із фронтенд-логіки на `profiles.role`
-- [ ] Додати `favorites` у базу замість localStorage
-- [ ] Дотиснути UI-систему: `Button`, `Input`, `Modal`, `Badge`, `EmptyState`, `Loader`
-- [ ] Базові тести на critical flows
+Усі таблиці захищені через **Row Level Security** — кожен бачить і редагує тільки своє.
 
 ---
 
-## Автори
+## Ролі
 
-<table>
-<tr>
-<td align="center">
-<a href="https://github.com/m1rai-tech"><b>m1rai-tech</b></a>
-</td>
-<td align="center">
-<a href="https://github.com/ihorvpalamarchuk-hue"><b>ihorvpalamarchuk-hue</b></a>
-</td>
-</tr>
-</table>
+| Роль | Доступ |
+|---|---|
+| `user` | Публікує оголошення, пише в чат |
+| `moderator` | + видалення чужих оголошень, бан користувачів |
+| `admin` | Повний доступ, керування ролями |
+
+Роль призначається через Supabase Dashboard або панель `/admin`.
 
 ---
 
-<div align="center">
-<sub>Зроблено в Івано-Франківську ☕</sub>
-</div>
+## Деплой на Vercel
+
+1. Запуш репо на GitHub
+2. Імпортуй проект у [vercel.com](https://vercel.com)
+3. Додай `VITE_SUPABASE_URL` і `VITE_SUPABASE_ANON_KEY` у Environment Variables
+4. Deploy — `vercel.json` вже налаштований, більше нічого не потрібно
