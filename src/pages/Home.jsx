@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ListingCard } from '../components/ListingCard';
 import { Empty } from '../components/Empty';
 import { supabase } from '../lib/supabase';
 import { IconPlus } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
+import { CATEGORIES } from '../lib/categories';
 
 export default function Home() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -23,12 +25,13 @@ export default function Home() {
 
   return (
     <Layout>
+      {/* Банер */}
       <div style={{
         background: 'var(--accent-soft)',
         border: '1px solid #c8e0d4',
         borderRadius: 'var(--radius-lg)',
         padding: '20px 24px',
-        marginBottom: 24,
+        marginBottom: 20,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -48,6 +51,46 @@ export default function Home() {
         </Link>
       </div>
 
+      {/* Категорії — тільки на мобільному (на ПК є сайдбар) */}
+      <div className="mobile-categories" style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
+          Категорії
+        </h2>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 8,
+        }}>
+          {CATEGORIES.map(c => (
+            <Link key={c.slug} to={`/c/${c.slug}`} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '14px 8px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              textDecoration: 'none',
+              color: 'var(--text)',
+              fontSize: 12,
+              fontWeight: 500,
+              textAlign: 'center',
+              transition: 'border-color .15s, background .15s',
+              minHeight: 72,
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-soft)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
+            >
+              <c.Icon size={24} style={{ color: 'var(--accent)' }}/>
+              <span style={{ lineHeight: 1.3 }}>{c.name}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Свіжі оголошення */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -58,7 +101,7 @@ export default function Home() {
           Свіжі оголошення
         </h2>
         <Link to="/search" style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 14 }}>
-          Усі оголошення →
+          Усі →
         </Link>
       </div>
 
@@ -88,6 +131,10 @@ export default function Home() {
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        .mobile-categories { display: none; }
+        @media (max-width: 900px) {
+          .mobile-categories { display: block; }
+        }
       `}</style>
     </Layout>
   );

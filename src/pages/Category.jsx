@@ -6,10 +6,54 @@ import { Empty } from '../components/Empty';
 import { CATEGORIES, getCategory } from '../lib/categories';
 import { supabase } from '../lib/supabase';
 
+function FilterField({ attr, value, onChange }) {
+  if (attr.filter === 'select') {
+    return (
+      <div className="field" style={{ margin: 0 }}>
+        <label>{attr.label}</label>
+        <select className="select" value={value || ''} onChange={e => onChange(attr.key, e.target.value)}>
+          <option value="">Всі</option>
+          {attr.options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
+    );
+  }
+
+  if (attr.filter === 'range') {
+    const from = value?.from || '';
+    const to = value?.to || '';
+    return (
+      <div className="field" style={{ margin: 0 }}>
+        <label>{attr.label}</label>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input className="input" type="number" placeholder="від" value={from}
+            onChange={e => onChange(attr.key, { from: e.target.value, to })}
+            style={{ flex: 1 }}/>
+          <input className="input" type="number" placeholder="до" value={to}
+            onChange={e => onChange(attr.key, { from, to: e.target.value })}
+            style={{ flex: 1 }}/>
+        </div>
+      </div>
+    );
+  }
+
+  if (attr.filter === 'text') {
+    return (
+      <div className="field" style={{ margin: 0 }}>
+        <label>{attr.label}</label>
+        <input className="input" placeholder={attr.placeholder || 'Пошук...'} value={value || ''}
+          onChange={e => onChange(attr.key, e.target.value)}/>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function Category() {
   const { slug } = useParams();
   const cat = getCategory(slug);
-  const [listings, setListings] = useState([]);
+  const [allListings, setAllListings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [priceFrom, setPriceFrom] = useState('');
@@ -17,11 +61,25 @@ export default function Category() {
   const [location, setLocation] = useState('');
   const [delivery, setDelivery] = useState(false);
   const [sort, setSort] = useState('new');
+  const [attrFilters, setAttrFilters] = useState({});
+
+  const filterableAttrs = cat?.attrs.filter(a => a.filter) || [];
+  const hasAttrFilters = filterableAttrs.length > 0;
+
+  const hasActiveAttrFilters = Object.values(attrFilters).some(v => {
+    if (!v) return false;
+    if (typeof v === 'object') return v.from || v.to;
+    return true;
+  });
+
+  useEffect(() => {
+    setAttrFilters({});
+  }, [slug]);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      let q = supabase.from('listings').select('*').eq('status', 'active');
+      let q = supabase.from('listings').select('*, listing_extras(*)').eq('status', 'active');
       if (slug) q = q.eq('category', slug);
       if (priceFrom) q = q.gte('price', Number(priceFrom));
       if (priceTo) q = q.lte('price', Number(priceTo));
@@ -30,11 +88,49 @@ export default function Category() {
       if (sort === 'cheap') q = q.order('price', { ascending: true });
       else if (sort === 'expensive') q = q.order('price', { ascending: false });
       else q = q.order('created_at', { ascending: false });
-      const { data } = await q.limit(60);
-      setListings(data || []);
+      const { data } = await q.limit(200);
+      setAllListings(data || []);
       setLoading(false);
     })();
   }, [slug, priceFrom, priceTo, location, delivery, sort]);
+
+  const setAttrFilter = (key, val) => {
+    setAttrFilters(prev => ({ ...prev, [key]: val }));
+  };
+
+  const resetAttrFilters = () => setAttrFilters({});
+
+  const filteredListings = hasActiveAttrFilters
+    ? allListings.filter(listing => {
+        const extras = listing.listing_extras || [];
+        return filterableAttrs.every(attr => {
+          const fv = attrFilters[attr.key];
+          if (!fv) return true;
+
+          if (attr.filter === 'range') {
+            if (!fv.from && !fv.to) return true;
+            const entry = extras.find(e => e.key === attr.key);
+            if (!entry?.value) return false;
+            const num = Number(entry.value);
+            if (fv.from && num < Number(fv.from)) return false;
+            if (fv.to && num > Number(fv.to)) return false;
+            return true;
+          }
+
+          if (attr.filter === 'select') {
+            const entry = extras.find(e => e.key === attr.key);
+            return entry?.value === fv;
+          }
+
+          if (attr.filter === 'text') {
+            const entry = extras.find(e => e.key === attr.key);
+            return entry?.value?.toLowerCase().includes(fv.toLowerCase());
+          }
+
+          return true;
+        });
+      })
+    : allListings;
 
   if (!cat) return <Layout><Empty title="Категорія не знайдена"/></Layout>;
 
@@ -43,7 +139,7 @@ export default function Category() {
       <div className="page-header">
         <div>
           <div className="page-title">{cat.name}</div>
-          <div className="page-subtitle">{listings.length} оголошень</div>
+          <div className="page-subtitle">{filteredListings.length} оголошень</div>
         </div>
       </div>
 
@@ -74,15 +170,40 @@ export default function Category() {
             <label htmlFor="delivery" style={{ margin: 0 }}>Лише з доставкою</label>
           </div>
         </div>
+
+        {hasAttrFilters && (
+          <>
+            <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }}/>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Характеристики
+              </span>
+              {hasActiveAttrFilters && (
+                <button onClick={resetAttrFilters}
+                  style={{ fontSize: 12, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                  Скинути
+                </button>
+              )}
+            </div>
+            <div className="filters-row">
+              {filterableAttrs.map(attr => (
+                <FilterField key={attr.key} attr={attr} value={attrFilters[attr.key]} onChange={setAttrFilter}/>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {loading ? (
         <div className="text-muted">Завантаження...</div>
-      ) : listings.length === 0 ? (
-        <Empty title="Немає оголошень" text="Спробуйте змінити фільтри"/>
+      ) : filteredListings.length === 0 ? (
+        <Empty title="Немає оголошень" text="Спробуйте змінити фільтри"
+          action={hasActiveAttrFilters && (
+            <button className="btn btn-ghost" onClick={resetAttrFilters}>Скинути фільтри</button>
+          )}/>
       ) : (
         <div className="listings-grid">
-          {listings.map(l => <ListingCard key={l.id} listing={l}/>)}
+          {filteredListings.map(l => <ListingCard key={l.id} listing={l}/>)}
         </div>
       )}
     </Layout>

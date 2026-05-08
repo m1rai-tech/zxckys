@@ -43,7 +43,9 @@ export function Layout({ children, full }) {
     <div className="app">
       <header className="header">
         <div className="header-inner">
-          <Link to="/" className="logo">zxckys</Link>
+          <Link to="/" className="logo zx-terminal">
+            <span className="zx-prompt">▸</span>zxckys<span className="zx-cursor"/>
+          </Link>
 
           <form onSubmit={onSearch} className="search-wrap">
             <IconSearch size={18}/>
@@ -53,7 +55,7 @@ export function Layout({ children, full }) {
             />
           </form>
 
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }} className="hdr-city">
             <button className="btn btn-ghost" onClick={() => setShowCities(s => !s)}>
               <IconLocation size={16}/> {city}
               <IconChevronDown size={14}/>
@@ -70,14 +72,14 @@ export function Layout({ children, full }) {
 
           {user ? (
             <>
-              <Link to="/create" className="btn btn-primary">
+              <Link to="/create" className="btn btn-primary hdr-post">
                 <IconPlus size={16}/> Подати оголошення
               </Link>
-              <Link to="/favorites" className="icon-btn" title="Улюблене">
+              <Link to="/favorites" className="icon-btn hdr-fav" title="Улюблене">
                 <IconHeart size={20}/>
                 {favCount > 0 && <span className="badge">{favCount}</span>}
               </Link>
-              <Link to="/chat" className="icon-btn" title="Повідомлення">
+              <Link to="/chat" className="icon-btn hdr-msg" title="Повідомлення">
                 <IconMessage size={20}/>
               </Link>
               <div style={{ position: 'relative' }}>
@@ -115,10 +117,10 @@ export function Layout({ children, full }) {
               </div>
             </>
           ) : (
-            <>
+            <div className="hdr-auth-desktop" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <Link to="/login" className="btn btn-ghost">Увійти</Link>
               <Link to="/register" className="btn btn-primary">Реєстрація</Link>
-            </>
+            </div>
           )}
         </div>
       </header>
@@ -153,6 +155,39 @@ export function Layout({ children, full }) {
           <main className="content">{children}</main>
         </div>
       )}
+
+      <nav className="bottom-nav">
+        <NavLink to="/" end className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
+          <IconHome size={22}/>
+          <span>Головна</span>
+        </NavLink>
+        <NavLink to="/favorites" className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
+          <div style={{ position: 'relative' }}>
+            <IconHeart size={22}/>
+            {favCount > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: 'var(--accent)', color: '#fff', fontSize: 9, minWidth: 14, height: 14, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', fontWeight: 700 }}>{favCount}</span>}
+          </div>
+          <span>Обране</span>
+        </NavLink>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Link to={user ? '/create' : '/login'} className="nav-post-btn">
+            <IconPlus size={22}/>
+          </Link>
+        </div>
+        <NavLink to="/chat" className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
+          <IconMessage size={22}/>
+          <span>Чати</span>
+        </NavLink>
+        <NavLink to={user ? '/me' : '/login'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
+          {user ? (
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent)', overflow: 'hidden' }}>
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : initials}
+            </div>
+          ) : (
+            <IconUser size={22}/>
+          )}
+          <span>{user ? 'Профіль' : 'Увійти'}</span>
+        </NavLink>
+      </nav>
     </div>
   );
 }

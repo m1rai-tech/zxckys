@@ -96,6 +96,9 @@ export default function Chat() {
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
+  const [mobileView, setMobileView] = useState(() => window.innerWidth <= 640 ? (params.get('c') ? 'chat' : 'list') : 'list');
+
   const messagesEnd = useRef(null);
   const messagesContainerRef = useRef(null);
   const prevMessagesLength = useRef(0);
@@ -103,6 +106,12 @@ export default function Chat() {
   const activeRef = useRef(null);
 
   useEffect(() => { activeRef.current = active; }, [active]);
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
 
   const [checked, setChecked] = useState(false);
   useEffect(() => {
@@ -204,6 +213,7 @@ export default function Chat() {
     setActive(c);
     setParams({ c: c.id });
     setUnreadCounts(prev => ({ ...prev, [c.id]: 0 }));
+    if (isMobile) setMobileView('chat');
   };
 
   // Messages for active chat
@@ -343,6 +353,7 @@ export default function Chat() {
     setActive(null);
     setParams({});
     loadConversations();
+    if (isMobile) setMobileView('list');
   };
 
   const otherUser = (c) => c.buyer_id === user?.id ? c.seller : c.buyer;
@@ -360,10 +371,11 @@ export default function Chat() {
 
   return (
     <Layout>
-      <div style={{ display: 'flex', height: 'calc(100vh - 88px - 48px)', gap: 16 }}>
+      <div className="chat-outer" style={{ display: 'flex', height: 'calc(100vh - 88px - 48px)', gap: 16 }}>
 
         {/* Conversations list */}
-        <div style={{ width: 320, borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', overflow: 'hidden', flexShrink: 0 }}>
+        {(!isMobile || mobileView === 'list') && (
+        <div style={{ width: isMobile ? '100%' : 320, borderRadius: isMobile ? 0 : 'var(--radius-lg)', border: isMobile ? 'none' : '1px solid var(--border)', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', overflow: 'hidden', flexShrink: 0 }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
             <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Повідомлення</h2>
           </div>
@@ -414,14 +426,24 @@ export default function Chat() {
             })}
           </div>
         </div>
+        )}
 
         {/* Chat window */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+        {(!isMobile || mobileView === 'chat') && (
+        <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : undefined, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: isMobile ? 'none' : '1px solid var(--border)', borderRadius: isMobile ? 0 : 'var(--radius-lg)', overflow: 'hidden' }}>
           {active ? (
             <>
               {/* Chat header */}
               <div style={{ borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
                 <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {isMobile && (
+                    <button onClick={() => setMobileView('list')}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 4px 4px 0', display: 'flex', alignItems: 'center', color: 'var(--text-muted)', flexShrink: 0 }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6"/>
+                      </svg>
+                    </button>
+                  )}
                   <div
                     onClick={() => otherUser(active)?.id && nav(`/u/${otherUser(active).id}`)}
                     style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--bg-soft)', flexShrink: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 17, color: 'var(--text-muted)', cursor: 'pointer', border: '1px solid var(--border)' }}
@@ -621,6 +643,7 @@ export default function Chat() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Fullscreen image */}
