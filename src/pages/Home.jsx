@@ -25,7 +25,6 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Банер */}
       <div style={{
         background: 'var(--accent-soft)',
         border: '1px solid #c8e0d4',
@@ -51,7 +50,6 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* Категорії — тільки на мобільному (на ПК є сайдбар) */}
       <div className="mobile-categories" style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
           Категорії
@@ -90,7 +88,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Свіжі оголошення */}
       <div style={{
         display: 'flex',
         alignItems: 'center',

@@ -23,13 +23,11 @@ export default function ListingDetails() {
   const [lightbox, setLightbox] = useState(false);
   const [fav, setFav] = useState(false);
 
-  // Sold flow
   const [soldModal, setSoldModal] = useState(false);
   const [buyers, setBuyers] = useState([]);
   const [selectedBuyer, setSelectedBuyer] = useState(null);
-  const [confirmingBuyer, setConfirmingBuyer] = useState(null); // buyer to confirm
+  const [confirmingBuyer, setConfirmingBuyer] = useState(null);
 
-  // Review flow
   const [reviewModal, setReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -56,7 +54,6 @@ export default function ListingDetails() {
     })();
   }, [id]);
 
-  // Load existing review for current user as buyer
   useEffect(() => {
     if (!listing || !user || listing.status !== 'sold' || listing.buyer_id !== user.id) return;
     (async () => {
@@ -99,7 +96,6 @@ export default function ListingDetails() {
     nav('/');
   };
 
-  // Open sold modal — load buyers from conversations
   const openSoldModal = async () => {
     const { data } = await supabase.from('conversations')
       .select('buyer_id, buyer:profiles!conversations_buyer_id_fkey(id,name,avatar_url)')
@@ -129,7 +125,6 @@ export default function ListingDetails() {
     const update = { status: 'sold', buyer_id: buyerId || null };
     setListing({ ...listing, ...update });
     await supabase.from('listings').update(update).eq('id', listing.id);
-    // Increment seller's deals_count
     if (seller) {
       await supabase.from('profiles').update({ deals_count: (seller.deals_count || 0) + 1 }).eq('id', seller.id);
       setSeller({ ...seller, deals_count: (seller.deals_count || 0) + 1 });
@@ -146,7 +141,6 @@ export default function ListingDetails() {
       rating: reviewRating,
       comment: reviewComment.trim() || null,
     });
-    // Recalculate seller rating
     const { data: allReviews } = await supabase.from('reviews').select('rating').eq('seller_id', listing.user_id);
     if (allReviews?.length) {
       const avg = allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length;
@@ -293,7 +287,6 @@ export default function ListingDetails() {
               )}
             </div>
 
-            {/* Review card for buyer */}
             {isBuyer && !existingReview && !reviewDone && (
               <div className="ld-review-prompt">
                 <div className="ld-review-prompt-title">Угода відбулась?</div>
@@ -355,7 +348,6 @@ export default function ListingDetails() {
         </div>
       </div>
 
-      {/* Lightbox */}
       {lightbox && photos[photoIdx] && (
         <div className="lightbox" onClick={() => setLightbox(false)}>
           <button className="close"><IconClose/></button>
@@ -371,7 +363,6 @@ export default function ListingDetails() {
         </div>
       )}
 
-      {/* Sold modal */}
       {soldModal && (
         <div className="ld-modal-overlay" onClick={() => setSoldModal(false)}>
           <div className="ld-modal" onClick={e => e.stopPropagation()}>
@@ -426,7 +417,6 @@ export default function ListingDetails() {
         </div>
       )}
 
-      {/* Review modal */}
       {reviewModal && (
         <div className="ld-modal-overlay" onClick={() => setReviewModal(false)}>
           <div className="ld-modal" onClick={e => e.stopPropagation()}>
@@ -438,7 +428,6 @@ export default function ListingDetails() {
               <p>Розкажіть про свій досвід покупки: <strong>{listing.title}</strong></p>
             </div>
 
-            {/* Stars */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: 6, margin: '8px 0 20px' }}>
               {[1,2,3,4,5].map(i => (
                 <button key={i} type="button"

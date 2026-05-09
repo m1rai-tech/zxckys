@@ -130,7 +130,6 @@ export default function Chat() {
     const filtered = (data || []).filter(c => !(c.hidden_for || []).includes(user.id));
     setConversations(filtered);
 
-    // Fetch unread counts — preserve zero for the currently active chat
     const ids = filtered.map(c => c.id);
     if (ids.length) {
       const { data: unread } = await supabase
@@ -141,15 +140,12 @@ export default function Chat() {
         .in('conversation_id', ids);
       const counts = {};
       (unread || []).forEach(m => { counts[m.conversation_id] = (counts[m.conversation_id] || 0) + 1; });
-      // Merge: keep existing zero for conversations the user already has open
       setUnreadCounts(prev => {
         const next = { ...counts };
-        // Any chat that was already 0 in prev state (user read it) stays 0
         Object.keys(prev).forEach(id => { if (prev[id] === 0) next[id] = 0; });
         return next;
       });
 
-      // Fetch last message timestamps to sort by activity
       const { data: lastMsgs } = await supabase
         .from('messages')
         .select('conversation_id, created_at')
@@ -163,7 +159,6 @@ export default function Chat() {
     return filtered;
   };
 
-  // Initial load — also sets active from URL
   useEffect(() => {
     (async () => {
       const filtered = await loadConversations();
@@ -174,7 +169,6 @@ export default function Chat() {
     })();
   }, [user]);
 
-  // Global subscription — new messages in any of user's conversations
   useEffect(() => {
     if (!user || !conversations.length) return;
     const ids = conversations.map(c => c.id);
@@ -184,10 +178,8 @@ export default function Chat() {
         const { conversation_id, sender_id, created_at } = payload.new;
         if (!ids.includes(conversation_id)) return;
 
-        // Move conversation to top
         setLastMsgAt(prev => ({ ...prev, [conversation_id]: created_at }));
 
-        // Sound + unread for incoming messages
         if (sender_id !== user.id) {
           playNotificationSound();
           if (conversation_id !== activeRef.current?.id) {
@@ -199,16 +191,13 @@ export default function Chat() {
     return () => { supabase.removeChannel(ch); };
   }, [user, conversations]);
 
-  // Sync active with URL when conversations list is available
   useEffect(() => {
     if (!activeId || !conversations.length) return;
     const found = conversations.find(c => c.id === activeId);
     if (found && active?.id !== activeId) setActive(found);
-    // Always zero out the count for the open chat
     setUnreadCounts(prev => ({ ...prev, [activeId]: 0 }));
   }, [activeId, conversations]);
 
-  // Open a conversation
   const openChat = (c) => {
     setActive(c);
     setParams({ c: c.id });
@@ -216,7 +205,6 @@ export default function Chat() {
     if (isMobile) setMobileView('chat');
   };
 
-  // Messages for active chat
   useEffect(() => {
     if (!active) return;
     (async () => {
@@ -236,7 +224,6 @@ export default function Chat() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${active.id}` },
         async (payload) => {
           setMessages(m => [...m, payload.new]);
-          // Mark as read immediately if it's from the other person
           if (payload.new.sender_id !== user?.id) {
             await supabase.from('messages').update({ is_read: true }).eq('id', payload.new.id);
             setUnreadCounts(prev => ({ ...prev, [active.id]: 0 }));
@@ -250,7 +237,6 @@ export default function Chat() {
     return () => { supabase.removeChannel(ch); };
   }, [active, user]);
 
-  // Scroll logic
   useEffect(() => {
     if (messages.length > prevMessagesLength.current) {
       const forceScroll = justSentRef.current;
@@ -266,7 +252,6 @@ export default function Chat() {
 
   useEffect(() => { prevMessagesLength.current = 0; }, [active?.id]);
 
-  // Load fresh listing data + check review when chat opens
   useEffect(() => {
     if (!active?.listing?.id) { setActiveListing(null); setReviewPanel(false); setReviewDone(false); return; }
     setReviewRating(0); setReviewComment(''); setReviewDone(false);
@@ -292,7 +277,6 @@ export default function Chat() {
     const update = { status: 'sold', buyer_id: active.buyer_id };
     await supabase.from('listings').update(update).eq('id', activeListing.id);
     setActiveListing(prev => ({ ...prev, ...update }));
-    // Increment seller deals_count
     const { data: sp } = await supabase.from('profiles').select('deals_count').eq('id', active.seller_id).maybeSingle();
     await supabase.from('profiles').update({ deals_count: (sp?.deals_count || 0) + 1 }).eq('id', active.seller_id);
   };
@@ -359,7 +343,6 @@ export default function Chat() {
   const otherUser = (c) => c.buyer_id === user?.id ? c.seller : c.buyer;
   const isPinned = active && user && (active.pinned_by || []).includes(user.id);
 
-  // Sort: pinned first, then by last message time desc
   const sortedConversations = [...conversations].sort((a, b) => {
     const ap = (a.pinned_by || []).includes(user?.id);
     const bp = (b.pinned_by || []).includes(user?.id);
@@ -373,7 +356,6 @@ export default function Chat() {
     <Layout>
       <div className="chat-outer" style={{ display: 'flex', height: 'calc(100vh - 88px - 48px)', gap: 16 }}>
 
-        {/* Conversations list */}
         {(!isMobile || mobileView === 'list') && (
         <div style={{ width: isMobile ? '100%' : 320, borderRadius: isMobile ? 0 : 'var(--radius-lg)', border: isMobile ? 'none' : '1px solid var(--border)', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', overflow: 'hidden', flexShrink: 0 }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
@@ -428,12 +410,10 @@ export default function Chat() {
         </div>
         )}
 
-        {/* Chat window */}
         {(!isMobile || mobileView === 'chat') && (
         <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : undefined, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', border: isMobile ? 'none' : '1px solid var(--border)', borderRadius: isMobile ? 0 : 'var(--radius-lg)', overflow: 'hidden' }}>
           {active ? (
             <>
-              {/* Chat header */}
               <div style={{ borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
                 <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
                   {isMobile && (
@@ -482,7 +462,6 @@ export default function Chat() {
                   </div>
                 </div>
 
-                {/* Listing bar */}
                 <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid var(--border)', transition: 'background 0.15s', cursor: 'pointer' }}
                   onClick={() => nav(`/listing/${active.listing?.id}`)}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-soft)'}
@@ -512,7 +491,6 @@ export default function Chat() {
                 </div>
               </div>
 
-              {/* Messages */}
               <div ref={messagesContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column' }}>
                 {messages.length === 0 && (
                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
@@ -565,7 +543,6 @@ export default function Chat() {
                 <div ref={messagesEnd}/>
               </div>
 
-              {/* Review panel — shown to buyer after sale */}
               {reviewPanel && !reviewDone && (
                 <div style={{ borderTop: '1px solid #bbf7d0', background: '#f0fdf4', padding: '12px 20px', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -615,7 +592,6 @@ export default function Chat() {
                 </div>
               )}
 
-              {/* Input */}
               <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg-card)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-soft)', borderRadius: 24, padding: '4px 4px 4px 12px', border: '1px solid var(--border)' }}>
                   <label style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', flexShrink: 0 }} title="Надіслати фото">
@@ -646,14 +622,12 @@ export default function Chat() {
         )}
       </div>
 
-      {/* Fullscreen image */}
       {fullImage && (
         <div onClick={() => setFullImage(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
           <img src={fullImage} style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 8, boxShadow: '0 0 40px rgba(0,0,0,0.5)' }}/>
         </div>
       )}
 
-      {/* Sold confirmation modal */}
       {soldModal && (
         <div onClick={() => setSoldModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(2px)' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '28px 28px 24px', maxWidth: 380, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid var(--border)' }}>
@@ -673,7 +647,6 @@ export default function Chat() {
         </div>
       )}
 
-      {/* Delete modal */}
       {showDeleteModal && (
         <div onClick={() => setShowDeleteModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(2px)' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '28px 32px', maxWidth: 420, width: '90%', boxShadow: '0 20px 50px rgba(0,0,0,0.25)', border: '1px solid var(--border)' }}>
