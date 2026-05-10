@@ -135,10 +135,11 @@ export default function CreateListing({ edit = false }) {
   };
 
   const fmtPrice = () => {
-    if (isFree) return 'Безкоштовно';
-    if (negotiable || !price) return 'Договірна';
-    return `${Number(price).toLocaleString('uk-UA')} грн`;
-  };
+  if (isFree) return 'Безкоштовно';
+  if (negotiable) return 'Договірна';
+  if (!price) return 'Вкажіть ціну';
+  return `${Number(price).toLocaleString('uk-UA')} грн`;
+};
 
   return (
     <Layout full>

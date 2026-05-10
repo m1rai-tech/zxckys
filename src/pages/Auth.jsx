@@ -78,8 +78,8 @@ export function Login() {
         <div className="auth-card-2">
           <div className="auth-head">
             <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>zxckys</Link>
-            <h1>З поверненням 👋</h1>
-            <p>Увійдіть, щоб продовжити</p>
+            <h1>Вхід в акаунт</h1>
+            <p>Введіть свої дані, щоб продовжити</p>
           </div>
 
           {err && <div className="alert alert-error">{err}</div>}
@@ -150,8 +150,8 @@ export function Register() {
         <div className="auth-card-2">
           <div className="auth-head">
             <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>zxckys</Link>
-            <h1>Створіть акаунт</h1>
-            <p>Тисячі покупців чекають на ваші оголошення</p>
+            <h1>Реєстрація</h1>
+            <p>Створіть акаунт для розміщення оголошень</p>
           </div>
 
           {err && <div className="alert alert-error">{err}</div>}

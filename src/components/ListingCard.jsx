@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IconHeart, IconImage, IconLocation } from './Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
+import { useAuth } from '../contexts/AuthContext';
 
 const fmtPrice = (l) => {
   if (l.is_free) return 'Безкоштовно';
@@ -21,11 +22,14 @@ const fmtDate = (iso) => {
 };
 
 export function ListingCard({ listing }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [fav, setFav] = useState(false);
   useEffect(() => { setFav(isFavorite(listing.id)); }, [listing.id]);
 
   const handleFav = (e) => {
     e.preventDefault(); e.stopPropagation();
+    if (!user) { navigate('/login'); return; }
     setFav(toggleFavorite(listing.id));
   };
 

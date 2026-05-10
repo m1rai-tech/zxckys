@@ -63,7 +63,10 @@ export function MyProfile() {
       </div>
 
       {listings.length === 0 ? (
-        <Empty title="Архів порожній" text="Перемістіть оголошення в архів"/>
+        <Empty 
+          title={tab === 'active' ? "Немає активних оголошень" : tab === 'sold' ? "Немає проданих оголошень" : "Архів порожній"} 
+          text={tab === 'active' ? "Створіть нове оголошення, щоб воно з'явилося тут" : tab === 'sold' ? "Тут з'являться ваші продані товари" : "Перемістіть оголошення в архів"}
+        />
       ) : (
         <div className="listings-grid">
           {listings.map(l => <ListingCard key={l.id} listing={l}/>)}

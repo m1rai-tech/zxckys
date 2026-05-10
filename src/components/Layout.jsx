@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { CATEGORIES, IconGrid } from '../lib/categories';
+import { CATEGORIES } from '../lib/categories';
 import {
   IconSearch, IconHeart, IconMessage, IconUser, IconPlus,
   IconLogout, IconHome, IconSettings, IconChevronDown, IconLocation
 } from './Icons';
 import { getFavorites } from '../lib/favorites';
 
-const CITIES = ['Вся Україна', 'Київ', 'Львів', 'Одеса', 'Харків', 'Дніпро', 'Запоріжжя', 'Вінниця', 'Полтава', 'Чернігів', 'Тернопіль', 'Івано-Франківськ'];
+const CITIES = [
+  'Вся Україна', 'Київ', 'Харків', 'Одеса', 'Дніпро', 'Львів',
+  'Вінниця', 'Запоріжжя', 'Полтава', 'Черкаси', 'Чернівці',
+  'Чернігів', 'Херсон', 'Хмельницький', 'Тернопіль', 'Суми',
+  'Рівне', 'Миколаїв', 'Луцьк', 'Кропивницький', 'Івано-Франківськ', 'Житомир',
+];
 
 export function Layout({ children, full }) {
   const { user, profile, signOut } = useAuth();
@@ -34,8 +39,23 @@ export function Layout({ children, full }) {
 
   const onSearch = (e) => {
     e.preventDefault();
-    nav(`/search?q=${encodeURIComponent(q)}`);
+    const params = new URLSearchParams();
+    if (q.trim()) params.set('q', q.trim());
+    if (city !== 'Вся Україна') params.set('city', city);
+    nav(`/search?${params.toString()}`);
   };
+
+ const handleCitySelect = (c) => {
+  setCity(c);
+  setShowCities(false);
+  window.dispatchEvent(new CustomEvent('city-changed', { detail: c })); 
+  if (loc.pathname === '/search') {
+    const params = new URLSearchParams(loc.search);
+    if (c !== 'Вся Україна') params.set('city', c);
+    else params.delete('city');
+    nav(`/search?${params.toString()}`);
+  }
+};
 
   const initials = (profile?.name || user?.email || 'U').slice(0, 1).toUpperCase();
 
@@ -47,32 +67,48 @@ export function Layout({ children, full }) {
             <span className="zx-prompt">▸</span>zxckys<span className="zx-cursor"/>
           </Link>
 
-          <form onSubmit={onSearch} className="search-wrap">
+          <form onSubmit={onSearch} className="search-wrap" style={{ flex: 1, minWidth: 0 }}>
             <IconSearch size={18}/>
             <input
               value={q} onChange={e => setQ(e.target.value)}
               placeholder="Пошук оголошень..."
+              style={{ minWidth: 0, flex: 1 }}
             />
           </form>
 
-          <div style={{ position: 'relative' }} className="hdr-city">
-            <button className="btn btn-ghost" onClick={() => setShowCities(s => !s)}>
-              <IconLocation size={16}/> {city}
-              <IconChevronDown size={14}/>
-            </button>
+          <div style={{ position: 'relative', flexShrink: 0 }} className="hdr-city">
+  <button
+    className="btn btn-ghost"
+    onClick={() => setShowCities(s => !s)}
+    style={{ whiteSpace: 'nowrap', width: 205, justifyContent: 'flex-start', gap: 6 }}
+  >
+    <IconLocation size={16}/>
+    <span style={{ flex: 1, textAlign: 'left' }}>{city}</span>
+    <IconChevronDown size={14}/>
+  </button>
             {showCities && (
-              <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 6, minWidth: 200, zIndex: 50, boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
-                {CITIES.map(c => (
-                  <button key={c} className="sidebar-link" style={{ width: '100%' }}
-                    onClick={() => { setCity(c); setShowCities(false); }}>{c}</button>
-                ))}
-              </div>
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowCities(false)}/>
+                <div style={{
+                  position: 'absolute', top: '110%', right: 0,
+                  background: '#fff', border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius)', padding: 6,
+                  minWidth: 200, zIndex: 50,
+                  boxShadow: '0 6px 24px rgba(0,0,0,0.06)',
+                  maxHeight: 320, overflowY: 'auto',
+                }}>
+                  {CITIES.map(c => (
+                    <button key={c} className="sidebar-link" style={{ width: '100%' }}
+                      onClick={() => handleCitySelect(c)}>{c}</button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
           {user ? (
             <>
-              <Link to="/create" className="btn btn-primary hdr-post">
+              <Link to="/create" className="btn btn-primary hdr-post" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
                 <IconPlus size={16}/> Подати оголошення
               </Link>
               <Link to="/favorites" className="icon-btn hdr-fav" title="Улюблене">
@@ -87,37 +123,43 @@ export function Layout({ children, full }) {
                   {profile?.avatar_url ? <img src={profile.avatar_url} alt=""/> : initials}
                 </button>
                 {showUser && (
-                  <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 6, minWidth: 220, zIndex: 50, boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
-                    <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{profile?.name || 'Користувач'}</div>
-                      <div className="text-xs text-muted">{user.email}</div>
-                    </div>
-                    <Link to="/me" className="sidebar-link" onClick={() => setShowUser(false)}>
-                      <IconUser size={18}/> Мій профіль
-                    </Link>
-                    <Link to="/my-listings" className="sidebar-link" onClick={() => setShowUser(false)}>
-                      <IconGrid size={18}/> Мої оголошення
-                    </Link>
-                    <Link to="/settings" className="sidebar-link" onClick={() => setShowUser(false)}>
-                      <IconSettings size={18}/> Налаштування
-                    </Link>
-                    {(profile?.role === 'admin' || profile?.role === 'moderator') && (
-                      <Link to="/admin" className="sidebar-link" onClick={() => setShowUser(false)}
-                        style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                        <IconSettings size={18}/> Адмін-панель
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowUser(false)}/>
+                    <div style={{
+                      position: 'absolute', top: '110%', right: 0,
+                      background: '#fff', border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius)', padding: 6,
+                      minWidth: 220, zIndex: 50,
+                      boxShadow: '0 6px 24px rgba(0,0,0,0.06)',
+                    }}>
+                      <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{profile?.name || 'Користувач'}</div>
+                        <div className="text-xs text-muted">{user.email}</div>
+                      </div>
+                      <Link to="/me" className="sidebar-link" onClick={() => setShowUser(false)}>
+                        <IconUser size={18}/> Мій профіль
                       </Link>
-                    )}
-                    <div className="sidebar-divider"/>
-                    <button className="sidebar-link" style={{ width: '100%', color: 'var(--danger)' }}
-                      onClick={async () => { await signOut(); setShowUser(false); nav('/'); }}>
-                      <IconLogout size={18}/> Вийти
-                    </button>
-                  </div>
+                      <Link to="/settings" className="sidebar-link" onClick={() => setShowUser(false)}>
+                        <IconSettings size={18}/> Налаштування
+                      </Link>
+                      {(profile?.role === 'admin' || profile?.role === 'moderator') && (
+                        <Link to="/admin" className="sidebar-link" onClick={() => setShowUser(false)}
+                          style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                          <IconSettings size={18}/> Адмін-панель
+                        </Link>
+                      )}
+                      <div className="sidebar-divider"/>
+                      <button className="sidebar-link" style={{ width: '100%', color: 'var(--danger)' }}
+                        onClick={async () => { await signOut(); setShowUser(false); nav('/'); }}>
+                        <IconLogout size={18}/> Вийти
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             </>
           ) : (
-            <div className="hdr-auth-desktop" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div className="hdr-auth-desktop" style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
               <Link to="/login" className="btn btn-ghost">Увійти</Link>
               <Link to="/register" className="btn btn-primary">Реєстрація</Link>
             </div>
