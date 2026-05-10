@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 import { IconTrash, IconImage, IconStar } from '../components/Icons';
 
 export default function Admin() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const nav = useNavigate();
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState({ listings: 0, users: 0, conversations: 0, reviews: 0 });
@@ -19,9 +19,10 @@ export default function Admin() {
   const isAdmin = profile?.role === 'admin' || profile?.role === 'moderator';
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { nav('/login'); return; }
     if (profile && !isAdmin) { nav('/'); return; }
-  }, [user, profile, isAdmin, nav]);
+  }, [user, profile, isAdmin, nav, authLoading]);
 
   const loadStats = async () => {
     const [l, u, c, r] = await Promise.all([
@@ -77,6 +78,7 @@ export default function Admin() {
     loadListings();
   };
 
+  if (authLoading || (user && !profile)) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
   if (!isAdmin) return <Layout><div className="text-muted">Доступ заборонено</div></Layout>;
 
   return (

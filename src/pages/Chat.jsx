@@ -73,7 +73,7 @@ function getDayLabel(dateStr) {
 }
 
 export default function Chat() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const nav = useNavigate();
   const [params, setParams] = useSearchParams();
   const activeId = params.get('c');
@@ -113,12 +113,10 @@ export default function Chat() {
     return () => window.removeEventListener('resize', h);
   }, []);
 
-  const [checked, setChecked] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setChecked(true), 500);
-    return () => clearTimeout(t);
-  }, []);
-  useEffect(() => { if (checked && !user) nav('/login'); }, [user, checked, nav]);
+    if (loading) return;
+    if (!user) nav('/login');
+  }, [user, loading, nav]);
 
   const loadConversations = async () => {
     if (!user) return;
@@ -368,6 +366,8 @@ export default function Chat() {
     const bt = lastMsgAt[b.id] || b.created_at;
     return new Date(bt) - new Date(at);
   });
+
+  if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
 
   return (
     <Layout>

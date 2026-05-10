@@ -9,7 +9,7 @@ import { IconClose, IconPlus, IconImage, IconCheck, IconLocation } from '../comp
 const CITIES = ['Київ','Львів','Одеса','Харків','Дніпро','Запоріжжя','Вінниця','Полтава','Чернігів','Тернопіль','Івано-Франківськ','Ужгород','Луцьк','Рівне','Чернівці','Хмельницький','Житомир','Суми','Черкаси','Кропивницький','Миколаїв','Херсон'];
 
 export default function CreateListing({ edit = false }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const nav = useNavigate();
   const { id } = useParams();
 
@@ -29,7 +29,10 @@ export default function CreateListing({ edit = false }) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
-  useEffect(() => { if (!user) nav('/login'); }, [user, nav]);
+  useEffect(() => {
+    if (loading) return;
+    if (!user) nav('/login');
+  }, [user, nav, loading]);
 
   useEffect(() => {
     if (edit && id) {
@@ -140,6 +143,8 @@ export default function CreateListing({ edit = false }) {
   if (!price) return 'Вкажіть ціну';
   return `${Number(price).toLocaleString('uk-UA')} грн`;
 };
+
+  if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
 
   return (
     <Layout full>

@@ -8,18 +8,19 @@ import { useAuth } from '../contexts/AuthContext';
 import { IconStar, IconCalendar, IconLocation, IconSettings, IconPlus } from '../components/Icons';
 
 export function MyProfile() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const nav = useNavigate();
   const [tab, setTab] = useState('active');
   const [listings, setListings] = useState([]);
 
   useEffect(() => {
+    if (loading) return;
     if (!user) { nav('/login'); return; }
     (async () => {
       const { data } = await supabase.from('listings').select('*').eq('user_id', user.id).eq('status', tab).order('created_at', { ascending: false });
       setListings(data || []);
     })();
-  }, [user, tab, nav]);
+  }, [user, tab, nav, loading]);
 
   if (!profile) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
 

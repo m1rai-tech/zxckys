@@ -8,7 +8,7 @@ import { IconUser, IconSettings, IconCheck, IconClose, IconImage } from '../comp
 const CITIES = ['Київ','Львів','Одеса','Харків','Дніпро','Запоріжжя','Вінниця','Полтава','Чернігів','Тернопіль','Івано-Франківськ','Ужгород','Луцьк','Рівне','Чернівці','Хмельницький','Житомир','Суми','Черкаси','Кропивницький','Миколаїв','Херсон'];
 
 export default function Settings() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, loading } = useAuth();
   const nav = useNavigate();
   const [tab, setTab] = useState('profile');
 
@@ -28,7 +28,10 @@ export default function Settings() {
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
-  useEffect(() => { if (!user) nav('/login'); }, [user, nav]);
+  useEffect(() => {
+    if (loading) return;
+    if (!user) nav('/login');
+  }, [user, nav, loading]);
 
   useEffect(() => {
     if (profile) {
@@ -97,6 +100,7 @@ export default function Settings() {
 
   const initials = (name || user?.email || 'U').slice(0,1).toUpperCase();
 
+  if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
   if (!profile) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
 
   return (
