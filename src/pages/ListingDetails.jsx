@@ -306,8 +306,8 @@ export default function ListingDetails() {
         .ld-crumb-current { color: var(--text); font-weight: 500; }
         .ld-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
         .ld-gallery { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
-        .ld-main-photo { aspect-ratio: 4/3; background: var(--bg-soft); position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; overflow: hidden; }
-        .ld-main-photo img { width: 100%; height: 100%; object-fit: contain; }
+        .ld-main-photo { aspect-ratio: 4/3; max-height: 520px; background: var(--bg-soft); position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; overflow: hidden; }
+        .ld-main-photo img { width: 100%; height: 100%; max-width: 100%; object-fit: contain; display: block; }
         .ld-no-photo { color: var(--text-faint); display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .ld-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.95); color: #111; border: 1px solid var(--border); font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 2; transition: all .15s; }
         .ld-arrow:hover { background: #fff; transform: translateY(-50%) scale(1.05); }
@@ -359,6 +359,17 @@ export default function ListingDetails() {
           .ld-sidebar { position: static; }
           .ld-title { font-size: 20px; }
           .ld-price { font-size: 28px; }
+        }
+        @media (max-width: 640px) {
+          .ld-page { padding: 0 0 16px; }
+          .ld-breadcrumbs { padding: 12px 16px 8px; }
+          .ld-gallery { border-radius: 0; border-left: none; border-right: none; }
+          .ld-main-photo { aspect-ratio: unset; height: 260px; max-height: 260px; }
+          .ld-main-photo img { object-fit: cover; }
+          .ld-block { border-radius: 0; border-left: none; border-right: none; }
+          .ld-price-card { border-radius: 0; border-left: none; border-right: none; }
+          .ld-seller-card { border-radius: 0; border-left: none; border-right: none; }
+          .ld-tips-card { border-radius: 0; border-left: none; border-right: none; }
         }
       `}</style>
     </Layout>
