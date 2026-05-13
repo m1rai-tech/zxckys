@@ -19,7 +19,6 @@ function playNotificationSound() {
     gain.gain.setValueAtTime(0.001, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-
     [[880, 0, 0.12], [1100, 0.1, 0.25]].forEach(([freq, start, end]) => {
       const osc = ctx.createOscillator();
       osc.type = 'sine';
@@ -28,7 +27,6 @@ function playNotificationSound() {
       osc.start(ctx.currentTime + start);
       osc.stop(ctx.currentTime + end);
     });
-
     setTimeout(() => ctx.close(), 600);
   } catch (_) {}
 }
@@ -89,12 +87,15 @@ export default function Chat() {
 
   const [activeListing, setActiveListing] = useState(null);
   const [soldModal, setSoldModal] = useState(false);
-  const [reviewPanel, setReviewPanel] = useState(false);
-  const [reviewDone, setReviewDone] = useState(false);
+
+  // Review flow
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
+  const [confirmingReceipt, setConfirmingReceipt] = useState(false);
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
   const [mobileView, setMobileView] = useState(() => window.innerWidth <= 640 ? (params.get('c') ? 'chat' : 'list') : 'list');
@@ -128,7 +129,6 @@ export default function Chat() {
     const filtered = (data || []).filter(c => !(c.hidden_for || []).includes(user.id));
     setConversations(filtered);
 
-    // Fetch unread counts — preserve zero for the currently active chat
     const ids = filtered.map(c => c.id);
     if (ids.length) {
       const { data: unread } = await supabase
@@ -139,15 +139,12 @@ export default function Chat() {
         .in('conversation_id', ids);
       const counts = {};
       (unread || []).forEach(m => { counts[m.conversation_id] = (counts[m.conversation_id] || 0) + 1; });
-      // Merge: keep existing zero for conversations the user already has open
       setUnreadCounts(prev => {
         const next = { ...counts };
-        // Any chat that was already 0 in prev state (user read it) stays 0
         Object.keys(prev).forEach(id => { if (prev[id] === 0) next[id] = 0; });
         return next;
       });
 
-      // Fetch last message timestamps to sort by activity
       const { data: lastMsgs } = await supabase
         .from('messages')
         .select('conversation_id, created_at')
@@ -161,7 +158,6 @@ export default function Chat() {
     return filtered;
   };
 
-  // Initial load — also sets active from URL
   useEffect(() => {
     (async () => {
       const filtered = await loadConversations();
@@ -176,16 +172,11 @@ export default function Chat() {
   useEffect(() => {
     if (!user || !conversations.length) return;
     const ids = conversations.map(c => c.id);
-
     const ch = supabase.channel('inbox')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const { conversation_id, sender_id, created_at } = payload.new;
         if (!ids.includes(conversation_id)) return;
-
-        // Move conversation to top
         setLastMsgAt(prev => ({ ...prev, [conversation_id]: created_at }));
-
-        // Sound + unread for incoming messages
         if (sender_id !== user.id) {
           playNotificationSound();
           if (conversation_id !== activeRef.current?.id) {
@@ -197,16 +188,13 @@ export default function Chat() {
     return () => { supabase.removeChannel(ch); };
   }, [user, conversations]);
 
-  // Sync active with URL when conversations list is available
   useEffect(() => {
     if (!activeId || !conversations.length) return;
     const found = conversations.find(c => c.id === activeId);
     if (found && active?.id !== activeId) setActive(found);
-    // Always zero out the count for the open chat
     setUnreadCounts(prev => ({ ...prev, [activeId]: 0 }));
   }, [activeId, conversations]);
 
-  // Open a conversation
   const openChat = (c) => {
     setActive(c);
     setParams({ c: c.id });
@@ -234,7 +222,6 @@ export default function Chat() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${active.id}` },
         async (payload) => {
           setMessages(m => [...m, payload.new]);
-          // Mark as read immediately if it's from the other person
           if (payload.new.sender_id !== user?.id) {
             await supabase.from('messages').update({ is_read: true }).eq('id', payload.new.id);
             setUnreadCounts(prev => ({ ...prev, [active.id]: 0 }));
@@ -244,9 +231,14 @@ export default function Chat() {
         (payload) => {
           setMessages(m => m.map(msg => msg.id === payload.new.id ? payload.new : msg));
         })
+      // Reload conversation status in real-time (e.g. seller marks as shipped)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations', filter: `id=eq.${active.id}` },
+        (payload) => {
+          setActive(prev => prev ? { ...prev, ...payload.new } : prev);
+        })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [active, user]);
+  }, [active?.id, user]);
 
   // Scroll logic
   useEffect(() => {
@@ -264,35 +256,91 @@ export default function Chat() {
 
   useEffect(() => { prevMessagesLength.current = 0; }, [active?.id]);
 
-  // Load fresh listing data + check review when chat opens
+  // Load listing data + check existing review when chat opens
   useEffect(() => {
-    if (!active?.listing?.id) { setActiveListing(null); setReviewPanel(false); setReviewDone(false); return; }
+    if (!active?.listing?.id) { setActiveListing(null); setReviewDone(false); return; }
     setReviewRating(0); setReviewComment(''); setReviewDone(false);
     (async () => {
       const { data: l } = await supabase.from('listings').select('*').eq('id', active.listing.id).maybeSingle();
       setActiveListing(l);
-      if (l?.status === 'sold' && l?.buyer_id === user?.id) {
+      if (l?.buyer_id === user?.id) {
         const { data: rev } = await supabase.from('reviews')
           .select('id').eq('listing_id', l.id).eq('reviewer_id', user.id).maybeSingle();
-        setReviewPanel(!rev);
-      } else {
-        setReviewPanel(false);
+        if (rev) setReviewDone(true);
       }
     })();
   }, [active?.id, user?.id]);
 
+  // Auto-rating: if 7 days have passed since shipping without buyer confirmation
+  useEffect(() => {
+    if (!active || !user || !activeListing || !isBuyer) return;
+    if (active.status !== 'awaiting_confirmation' || !active.shipped_at || reviewDone) return;
+    const deadline = new Date(new Date(active.shipped_at).getTime() + 7 * 24 * 60 * 60 * 1000);
+    if (new Date() <= deadline) return;
+    (async () => {
+      const { data: existingRev } = await supabase.from('reviews')
+        .select('id').eq('listing_id', activeListing.id).eq('reviewer_id', user.id).maybeSingle();
+      if (existingRev) { setReviewDone(true); return; }
+      await Promise.all([
+        supabase.from('reviews').insert({
+          seller_id: active.seller_id,
+          reviewer_id: user.id,
+          listing_id: activeListing.id,
+          rating: 5,
+          comment: null,
+        }),
+        supabase.from('conversations').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', active.id),
+      ]);
+      await supabase.from('messages').insert({
+        conversation_id: active.id,
+        sender_id: user.id,
+        text: '⭐⭐⭐⭐⭐ Оцінку виставлено автоматично (7 днів без підтвердження).',
+        is_system: true,
+      });
+      setActive(prev => prev ? { ...prev, status: 'completed' } : prev);
+      setReviewDone(true);
+    })();
+  }, [active?.id, active?.status, active?.shipped_at, activeListing?.id]);
+
   const isSeller = active && user?.id === active.seller_id;
   const isBuyer = active && user?.id === active.buyer_id;
 
+  // Seller confirms sale — marks shipped, sends system message
   const confirmSold = async () => {
     if (!active || !activeListing) return;
     setSoldModal(false);
-    const update = { status: 'sold', buyer_id: active.buyer_id };
-    await supabase.from('listings').update(update).eq('id', activeListing.id);
-    setActiveListing(prev => ({ ...prev, ...update }));
-    // Increment seller deals_count
-    const { data: sp } = await supabase.from('profiles').select('deals_count').eq('id', active.seller_id).maybeSingle();
-    await supabase.from('profiles').update({ deals_count: (sp?.deals_count || 0) + 1 }).eq('id', active.seller_id);
+    const now = new Date().toISOString();
+    await Promise.all([
+      supabase.from('listings').update({ status: 'sold', buyer_id: active.buyer_id }).eq('id', activeListing.id),
+      supabase.from('conversations').update({ status: 'awaiting_confirmation', shipped_at: now }).eq('id', active.id),
+    ]);
+    setActiveListing(prev => prev ? { ...prev, status: 'sold', buyer_id: active.buyer_id } : prev);
+    setActive(prev => prev ? { ...prev, status: 'awaiting_confirmation', shipped_at: now } : prev);
+    await supabase.from('messages').insert({
+      conversation_id: active.id,
+      sender_id: user.id,
+      text: '📦 Продавець відправив товар. Покупцю необхідно підтвердити отримання.',
+      is_system: true,
+    });
+  };
+
+  // Buyer confirms receipt — opens review modal
+  const confirmReceived = async () => {
+    if (!active || !user) return;
+    setConfirmingReceipt(true);
+    const now = new Date().toISOString();
+    await Promise.all([
+      supabase.from('conversations').update({ status: 'completed', completed_at: now }).eq('id', active.id),
+      supabase.from('messages').insert({
+        conversation_id: active.id,
+        sender_id: user.id,
+        text: '✅ Покупець підтвердив отримання товару.',
+        is_system: true,
+      }),
+    ]);
+    setActive(prev => prev ? { ...prev, status: 'completed', completed_at: now } : prev);
+    setConfirmingReceipt(false);
+    setShowReviewModal(true);
   };
 
   const submitReview = async () => {
@@ -301,17 +349,18 @@ export default function Chat() {
     await supabase.from('reviews').insert({
       seller_id: active.seller_id,
       reviewer_id: user.id,
-      listing_id: active.listing.id,
+      listing_id: activeListing?.id || active.listing?.id,
       rating: reviewRating,
       comment: reviewComment.trim() || null,
     });
-    const { data: allRev } = await supabase.from('reviews').select('rating').eq('seller_id', active.seller_id);
-    if (allRev?.length) {
-      const avg = allRev.reduce((s, r) => s + r.rating, 0) / allRev.length;
-      await supabase.from('profiles').update({ rating: parseFloat(avg.toFixed(2)) }).eq('id', active.seller_id);
-    }
+    await supabase.from('messages').insert({
+      conversation_id: active.id,
+      sender_id: user.id,
+      text: `⭐ Покупець залишив відгук продавцю (${reviewRating}/5).`,
+      is_system: true,
+    });
     setSubmittingReview(false);
-    setReviewPanel(false);
+    setShowReviewModal(false);
     setReviewDone(true);
   };
 
@@ -357,7 +406,6 @@ export default function Chat() {
   const otherUser = (c) => c.buyer_id === user?.id ? c.seller : c.buyer;
   const isPinned = active && user && (active.pinned_by || []).includes(user.id);
 
-  // Sort: pinned first, then by last message time desc
   const sortedConversations = [...conversations].sort((a, b) => {
     const ap = (a.pinned_by || []).includes(user?.id);
     const bp = (b.pinned_by || []).includes(user?.id);
@@ -366,6 +414,11 @@ export default function Chat() {
     const bt = lastMsgAt[b.id] || b.created_at;
     return new Date(bt) - new Date(at);
   });
+
+  // Banner for buyer: show when awaiting confirmation and no review yet
+  const showConfirmBanner = isBuyer && active?.status === 'awaiting_confirmation' && !reviewDone;
+  // Banner for seller: show when awaiting confirmation (so they know it's pending)
+  const showAwaitingBanner = isSeller && active?.status === 'awaiting_confirmation';
 
   if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
 
@@ -498,7 +551,16 @@ export default function Chat() {
                       {activeListing?.is_free ? 'Безкоштовно' : active.listing?.price ? `${Number(active.listing.price).toLocaleString('uk-UA')} грн` : ''}
                     </div>
                   </div>
-                  {activeListing?.status === 'sold' ? (
+                  {/* Status badge / action button */}
+                  {active.status === 'completed' ? (
+                    <span style={{ fontSize: 11, fontWeight: 700, background: '#f0fdf4', color: 'var(--accent)', border: '1px solid #bbf7d0', padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>
+                      ЗАВЕРШЕНО
+                    </span>
+                  ) : active.status === 'awaiting_confirmation' ? (
+                    <span style={{ fontSize: 11, fontWeight: 700, background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>
+                      ОЧІКУЄ ПІДТВЕРДЖЕННЯ
+                    </span>
+                  ) : activeListing?.status === 'sold' ? (
                     <span style={{ fontSize: 11, fontWeight: 700, background: '#fdf2f1', color: 'var(--danger)', border: '1px solid #f5d4d0', padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>
                       ПРОДАНО
                     </span>
@@ -506,7 +568,7 @@ export default function Chat() {
                     <button
                       onClick={(e) => { e.stopPropagation(); setSoldModal(true); }}
                       style={{ fontSize: 12, fontWeight: 600, background: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid #bbf7d0', padding: '5px 10px', borderRadius: 8, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                      ✓ Продано
+                      ✓ Відправив
                     </button>
                   )}
                 </div>
@@ -530,88 +592,83 @@ export default function Chat() {
                   return (
                     <div key={m.id}>
                       {showDivider && <DayDivider label={dayLabel}/>}
-                      <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 4 }}>
-                        <div style={{
-                          maxWidth: '65%', minWidth: 72,
-                          background: isMe ? 'var(--accent)' : 'var(--bg-soft)',
-                          color: isMe ? '#fff' : 'var(--text)',
-                          padding: '8px 10px 6px 12px',
-                          borderRadius: 16,
-                          borderBottomRightRadius: isMe ? 3 : 16,
-                          borderBottomLeftRadius: isMe ? 16 : 3,
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                          display: 'flex', flexDirection: 'column', gap: 2,
-                        }}>
-                          {m.image_url && (
-                            <img src={m.image_url} onClick={() => setFullImage(m.image_url)}
-                              style={{ maxWidth: '100%', maxHeight: 260, borderRadius: 10, display: 'block', cursor: 'zoom-in', objectFit: 'cover' }}/>
-                          )}
-                          {m.text && (
-                            <div style={{ fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                              {m.text}
-                            </div>
-                          )}
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginTop: 1 }}>
-                            <span style={{ fontSize: 11, opacity: isMe ? 0.8 : 0.55, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                              {timeStr}
-                            </span>
-                            {isMe && <StatusTicks isRead={m.is_read}/>}
+                      {m.is_system ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 8px' }}>
+                          <div style={{ background: 'var(--bg-soft)', color: 'var(--text-muted)', fontSize: 12, padding: '5px 14px', borderRadius: 16, border: '1px solid var(--border)', maxWidth: '85%', textAlign: 'center', lineHeight: 1.4 }}>
+                            {m.text}
+                            <span style={{ display: 'block', fontSize: 10, opacity: 0.6, marginTop: 2 }}>{timeStr}</span>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 4 }}>
+                          <div style={{
+                            maxWidth: '65%', minWidth: 72,
+                            background: isMe ? 'var(--accent)' : 'var(--bg-soft)',
+                            color: isMe ? '#fff' : 'var(--text)',
+                            padding: '8px 10px 6px 12px',
+                            borderRadius: 16,
+                            borderBottomRightRadius: isMe ? 3 : 16,
+                            borderBottomLeftRadius: isMe ? 16 : 3,
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                            display: 'flex', flexDirection: 'column', gap: 2,
+                          }}>
+                            {m.image_url && (
+                              <img src={m.image_url} onClick={() => setFullImage(m.image_url)}
+                                style={{ maxWidth: '100%', maxHeight: 260, borderRadius: 10, display: 'block', cursor: 'zoom-in', objectFit: 'cover' }}/>
+                            )}
+                            {m.text && (
+                              <div style={{ fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                {m.text}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginTop: 1 }}>
+                              <span style={{ fontSize: 11, opacity: isMe ? 0.8 : 0.55, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                                {timeStr}
+                              </span>
+                              {isMe && <StatusTicks isRead={m.is_read}/>}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
                 <div ref={messagesEnd}/>
               </div>
 
-              {/* Review panel — shown to buyer after sale */}
-              {reviewPanel && !reviewDone && (
-                <div style={{ borderTop: '1px solid #bbf7d0', background: '#f0fdf4', padding: '12px 20px', flexShrink: 0 }}>
+              {/* Buyer: confirm receipt banner */}
+              {showConfirmBanner && (
+                <div style={{ borderTop: '1px solid #fde68a', background: '#fffbeb', padding: '12px 20px', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)', flex: 1, minWidth: 120 }}>Оцініть продавця</div>
-                    <div style={{ display: 'flex', gap: 2 }}>
-                      {[1,2,3,4,5].map(i => (
-                        <button key={i} type="button"
-                          onClick={() => setReviewRating(i)}
-                          onMouseEnter={() => setReviewHover(i)}
-                          onMouseLeave={() => setReviewHover(0)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: i <= (reviewHover || reviewRating) ? '#d97706' : '#d1d5db', transition: 'color .1s, transform .1s', transform: reviewHover === i ? 'scale(1.2)' : 'scale(1)' }}>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                          </svg>
-                        </button>
-                      ))}
+                    <div style={{ flex: 1, minWidth: 120 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e' }}>📦 Продавець відправив товар</div>
+                      <div style={{ fontSize: 12, color: '#b45309', marginTop: 2 }}>
+                        Підтвердьте отримання.{active.shipped_at && (
+                          <> Авто-підтвердження: {new Date(new Date(active.shipped_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('uk-UA')}</>
+                        )}
+                      </div>
                     </div>
-                    {reviewRating > 0 && (
-                      <>
-                        <input
-                          style={{ flex: 2, minWidth: 120, border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', fontSize: 13, background: '#fff', outline: 'none' }}
-                          placeholder="Коментар (необов'язково)"
-                          value={reviewComment}
-                          onChange={e => setReviewComment(e.target.value)}
-                          maxLength={300}
-                        />
-                        <button onClick={submitReview} disabled={submittingReview}
-                          style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
-                          {submittingReview ? '...' : 'Надіслати'}
-                        </button>
-                      </>
-                    )}
+                    <button onClick={confirmReceived} disabled={confirmingReceipt}
+                      style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: confirmingReceipt ? 'default' : 'pointer', flexShrink: 0, opacity: confirmingReceipt ? 0.7 : 1, transition: 'opacity .15s' }}>
+                      {confirmingReceipt ? 'Обробка...' : '✓ Отримав'}
+                    </button>
                   </div>
                 </div>
               )}
-              {reviewDone && (
+
+              {/* Seller: awaiting confirmation info */}
+              {showAwaitingBanner && (
+                <div style={{ borderTop: '1px solid #fde68a', background: '#fffbeb', padding: '10px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#92400e' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>Очікується підтвердження отримання від покупця</span>
+                </div>
+              )}
+
+              {/* Review done confirmation */}
+              {reviewDone && active?.status === 'completed' && (
                 <div style={{ borderTop: '1px solid #bbf7d0', background: '#f0fdf4', padding: '10px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--accent)' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Відгук надіслано. Дякуємо!</span>
-                  <div style={{ display: 'flex', gap: 2, marginLeft: 4 }}>
-                    {[1,2,3,4,5].map(i => (
-                      <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill={i <= reviewRating ? '#d97706' : '#d1d5db'}>
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                    ))}
-                  </div>
+                  <span>Угода завершена. Дякуємо!</span>
                 </div>
               )}
 
@@ -638,8 +695,8 @@ export default function Chat() {
             </>
           ) : (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10, color: 'var(--text-muted)' }}>
-  <p style={{ fontSize: 15, margin: 0 }}>Виберіть чат для спілкування</p>
-</div>
+            <p style={{ fontSize: 15, margin: 0 }}>Виберіть чат для спілкування</p>
+          </div>
           )}
         </div>
         )}
@@ -659,14 +716,64 @@ export default function Chat() {
             <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, textAlign: 'center' }}>Підтвердити продаж?</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, textAlign: 'center' }}>Підтвердити відправку?</h3>
             <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5 }}>
-              Покупець <strong>{active?.buyer?.name || 'Покупець'}</strong> отримає запит на відгук.
-              Статус оголошення зміниться на «Продано».
+              Покупець <strong>{active?.buyer?.name || 'Покупець'}</strong> отримає повідомлення про відправку та матиме 7 днів для підтвердження отримання.
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setSoldModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>Скасувати</button>
               <button onClick={confirmSold} className="btn btn-primary" style={{ flex: 1 }}>Підтвердити</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review modal — shown after buyer confirms receipt */}
+      {showReviewModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, backdropFilter: 'blur(2px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '28px', maxWidth: 440, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid var(--border)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 28 }}>⭐</div>
+              <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700 }}>Оцініть продавця</h3>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                Ваш відгук допоможе іншим покупцям
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, margin: '8px 0 4px' }}>
+              {[1,2,3,4,5].map(i => (
+                <button key={i} type="button"
+                  onClick={() => setReviewRating(i)}
+                  onMouseEnter={() => setReviewHover(i)}
+                  onMouseLeave={() => setReviewHover(0)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: i <= (reviewHover || reviewRating) ? '#d97706' : 'var(--border)', transition: 'color .1s, transform .1s', transform: reviewHover === i ? 'scale(1.2)' : 'scale(1)' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </button>
+              ))}
+            </div>
+            {reviewRating > 0 && (
+              <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, marginTop: 4 }}>
+                {['', 'Жахливо', 'Погано', 'Нормально', 'Добре', 'Відмінно'][reviewRating]}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 20 }}>
+              <textarea
+                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: 'var(--bg-soft)', outline: 'none', resize: 'vertical', minHeight: 80, boxSizing: 'border-box', fontFamily: 'inherit' }}
+                placeholder="Коментар (необов'язково)"
+                value={reviewComment}
+                onChange={e => setReviewComment(e.target.value)}
+                maxLength={500}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => { setShowReviewModal(false); setReviewDone(true); }} className="btn btn-ghost" style={{ flex: 1 }}>Пропустити</button>
+              <button onClick={submitReview} className="btn btn-primary" style={{ flex: 1 }} disabled={!reviewRating || submittingReview}>
+                {submittingReview ? 'Відправка...' : 'Надіслати відгук'}
+              </button>
             </div>
           </div>
         </div>

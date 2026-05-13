@@ -22,21 +22,7 @@ export default function ListingDetails() {
   const [showPhone, setShowPhone] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [fav, setFav] = useState(false);
-
-  // Sold flow
   const [soldModal, setSoldModal] = useState(false);
-  const [buyers, setBuyers] = useState([]);
-  const [selectedBuyer, setSelectedBuyer] = useState(null);
-  const [confirmingBuyer, setConfirmingBuyer] = useState(null); // buyer to confirm
-
-  // Review flow
-  const [reviewModal, setReviewModal] = useState(false);
-  const [reviewRating, setReviewRating] = useState(0);
-  const [reviewHover, setReviewHover] = useState(0);
-  const [reviewComment, setReviewComment] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [existingReview, setExistingReview] = useState(null);
-  const [reviewDone, setReviewDone] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -56,22 +42,11 @@ export default function ListingDetails() {
     })();
   }, [id]);
 
-  // Load existing review for current user as buyer
-  useEffect(() => {
-    if (!listing || !user || listing.status !== 'sold' || listing.buyer_id !== user.id) return;
-    (async () => {
-      const { data } = await supabase.from('reviews')
-        .select('*').eq('listing_id', id).eq('reviewer_id', user.id).maybeSingle();
-      if (data) setExistingReview(data);
-    })();
-  }, [listing, user, id]);
-
   if (!listing) return <Layout full><div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>Завантаження...</div></Layout>;
 
   const photos = listing.photos || [];
   const isOwner = user?.id === listing.user_id;
   const isMod = profile?.role === 'admin' || profile?.role === 'moderator';
-  const isBuyer = user?.id === listing.buyer_id && listing.status === 'sold';
 
   const fmtPrice = () => {
     if (listing.is_free) return 'Безкоштовно';
@@ -99,24 +74,9 @@ export default function ListingDetails() {
     nav('/');
   };
 
-  // Open sold modal — load buyers from conversations
-  const openSoldModal = async () => {
-    const { data } = await supabase.from('conversations')
-      .select('buyer_id, buyer:profiles!conversations_buyer_id_fkey(id,name,avatar_url)')
-      .eq('listing_id', id);
-    const unique = [];
-    const seen = new Set();
-    (data || []).forEach(c => {
-      if (c.buyer && !seen.has(c.buyer.id)) { seen.add(c.buyer.id); unique.push(c.buyer); }
-    });
-    setBuyers(unique);
-    setSelectedBuyer(unique[0]?.id || null);
-    setSoldModal(true);
-  };
-
   const handleStatusChange = async (newStatus) => {
     if (newStatus === 'sold' && listing.status !== 'sold') {
-      openSoldModal();
+      setSoldModal(true);
       return;
     }
     setListing({ ...listing, status: newStatus });
@@ -124,38 +84,9 @@ export default function ListingDetails() {
   };
 
   const confirmSold = async () => {
-    const buyerId = selectedBuyer;
     setSoldModal(false);
-    const update = { status: 'sold', buyer_id: buyerId || null };
-    setListing({ ...listing, ...update });
-    await supabase.from('listings').update(update).eq('id', listing.id);
-    // Increment seller's deals_count
-    if (seller) {
-      await supabase.from('profiles').update({ deals_count: (seller.deals_count || 0) + 1 }).eq('id', seller.id);
-      setSeller({ ...seller, deals_count: (seller.deals_count || 0) + 1 });
-    }
-  };
-
-  const submitReview = async () => {
-    if (!reviewRating) return;
-    setSubmittingReview(true);
-    await supabase.from('reviews').insert({
-      seller_id: listing.user_id,
-      reviewer_id: user.id,
-      listing_id: id,
-      rating: reviewRating,
-      comment: reviewComment.trim() || null,
-    });
-    // Recalculate seller rating
-    const { data: allReviews } = await supabase.from('reviews').select('rating').eq('seller_id', listing.user_id);
-    if (allReviews?.length) {
-      const avg = allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length;
-      await supabase.from('profiles').update({ rating: parseFloat(avg.toFixed(2)) }).eq('id', listing.user_id);
-    }
-    setSubmittingReview(false);
-    setReviewModal(false);
-    setReviewDone(true);
-    setExistingReview({ rating: reviewRating, comment: reviewComment });
+    setListing({ ...listing, status: 'sold' });
+    await supabase.from('listings').update({ status: 'sold' }).eq('id', listing.id);
   };
 
   return (
@@ -293,29 +224,6 @@ export default function ListingDetails() {
               )}
             </div>
 
-            {/* Review card for buyer */}
-            {isBuyer && !existingReview && !reviewDone && (
-              <div className="ld-review-prompt">
-                <div className="ld-review-prompt-title">Угода відбулась?</div>
-                <div className="ld-review-prompt-sub">Залиште відгук про продавця — це допоможе іншим покупцям</div>
-                <button className="btn btn-primary btn-block" style={{ marginTop: 12 }} onClick={() => setReviewModal(true)}>
-                  <IconStar size={15}/> Залишити відгук
-                </button>
-              </div>
-            )}
-
-            {isBuyer && (existingReview || reviewDone) && (
-              <div className="ld-review-done">
-                <IconCheck size={20}/>
-                <div>
-                  <div style={{ fontWeight: 600 }}>Відгук залишено</div>
-                  <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
-                    {[1,2,3,4,5].map(i => <IconStar key={i} size={14} fill={i <= (existingReview?.rating || reviewRating)}/>)}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {seller && (
               <div className="ld-seller-card">
                 <div className="ld-seller-label">Продавець</div>
@@ -380,96 +288,11 @@ export default function ListingDetails() {
                 <IconCheck size={24} style={{ color: 'var(--accent)' }}/>
               </div>
               <h3>Підтвердити продаж</h3>
-              <p>Виберіть покупця, якому продали товар. Йому буде запропоновано залишити відгук.</p>
+              <p>Статус оголошення зміниться на «Продано». Щоб провести повний процес продажу з підтвердженням і відгуком — використовуйте чат.</p>
             </div>
-
-            {buyers.length > 0 ? (
-              <div className="ld-buyers-list">
-                {buyers.map(b => (
-                  <label key={b.id} className={`ld-buyer-row ${selectedBuyer === b.id ? 'selected' : ''}`}>
-                    <input type="radio" name="buyer" value={b.id} checked={selectedBuyer === b.id}
-                      onChange={() => setSelectedBuyer(b.id)} style={{ display: 'none' }}/>
-                    <div className="avatar" style={{ width: 40, height: 40, fontSize: 16, flexShrink: 0 }}>
-                      {b.avatar_url ? <img src={b.avatar_url}/> : (b.name?.[0] || 'U').toUpperCase()}
-                    </div>
-                    <span style={{ flex: 1, fontWeight: 600 }}>{b.name}</span>
-                    {selectedBuyer === b.id && (
-                      <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <IconCheck size={12} style={{ color: '#fff' }}/>
-                      </div>
-                    )}
-                  </label>
-                ))}
-                <label className={`ld-buyer-row ${selectedBuyer === null ? 'selected' : ''}`}>
-                  <input type="radio" name="buyer" checked={selectedBuyer === null}
-                    onChange={() => setSelectedBuyer(null)} style={{ display: 'none' }}/>
-                  <div className="avatar" style={{ width: 40, height: 40, fontSize: 16, flexShrink: 0, background: 'var(--bg-soft)', color: 'var(--text-muted)' }}>?</div>
-                  <span style={{ flex: 1, color: 'var(--text-muted)' }}>Не вказувати покупця</span>
-                  {selectedBuyer === null && (
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <IconCheck size={12} style={{ color: '#fff' }}/>
-                    </div>
-                  )}
-                </label>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '12px 0', color: 'var(--text-muted)', fontSize: 14 }}>
-                Немає покупців з переписки. Можна продати без вибору.
-              </div>
-            )}
-
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setSoldModal(false)}>Скасувати</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSold}>Підтвердити продаж</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Review modal */}
-      {reviewModal && (
-        <div className="ld-modal-overlay" onClick={() => setReviewModal(false)}>
-          <div className="ld-modal" onClick={e => e.stopPropagation()}>
-            <div className="ld-modal-head">
-              <div className="ld-modal-icon" style={{ background: '#fef9c3' }}>
-                <IconStar size={24} style={{ color: '#d97706' }}/>
-              </div>
-              <h3>Відгук про продавця</h3>
-              <p>Розкажіть про свій досвід покупки: <strong>{listing.title}</strong></p>
-            </div>
-
-            {/* Stars */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, margin: '8px 0 20px' }}>
-              {[1,2,3,4,5].map(i => (
-                <button key={i} type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: i <= (reviewHover || reviewRating) ? '#d97706' : 'var(--border)', transition: 'color .1s, transform .1s', transform: reviewHover === i ? 'scale(1.2)' : 'scale(1)' }}
-                  onClick={() => setReviewRating(i)}
-                  onMouseEnter={() => setReviewHover(i)}
-                  onMouseLeave={() => setReviewHover(0)}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                </button>
-              ))}
-            </div>
-            {reviewRating > 0 && (
-              <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, marginTop: -12 }}>
-                {['', 'Жахливо', 'Погано', 'Нормально', 'Добре', 'Відмінно'][reviewRating]}
-              </div>
-            )}
-
-            <div className="field" style={{ margin: 0 }}>
-              <label>Коментар (необов'язково)</label>
-              <textarea className="textarea" rows={3} maxLength={500}
-                placeholder="Розкажіть деталі угоди..."
-                value={reviewComment} onChange={e => setReviewComment(e.target.value)}/>
-            </div>
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setReviewModal(false)}>Скасувати</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} disabled={!reviewRating || submittingReview} onClick={submitReview}>
-                {submittingReview ? 'Відправка...' : 'Надіслати відгук'}
-              </button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSold}>Підтвердити</button>
             </div>
           </div>
         </div>
@@ -525,20 +348,12 @@ export default function ListingDetails() {
         .ld-tips-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
         .ld-tips-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
         .ld-tips-card ul { padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.7; }
-        .ld-review-prompt { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; }
-        .ld-review-prompt-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; color: var(--accent); }
-        .ld-review-prompt-sub { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
-        .ld-review-done { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; color: var(--accent); }
         .ld-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px); }
         .ld-modal { background: var(--bg-card); border-radius: 16px; padding: 28px; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); border: 1px solid var(--border); }
         .ld-modal-head { text-align: center; margin-bottom: 20px; }
         .ld-modal-icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
         .ld-modal-head h3 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
         .ld-modal-head p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
-        .ld-buyers-list { display: flex; flex-direction: column; gap: 6px; }
-        .ld-buyer-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; transition: all .15s; }
-        .ld-buyer-row:hover { border-color: var(--accent); background: var(--accent-soft); }
-        .ld-buyer-row.selected { border-color: var(--accent); background: var(--accent-soft); }
         @media (max-width: 900px) {
           .ld-grid { grid-template-columns: 1fr; }
           .ld-sidebar { position: static; }
