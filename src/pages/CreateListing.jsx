@@ -59,31 +59,25 @@ export default function CreateListing({ edit = false }) {
   const cat = getCategory(category);
 
   const uploadFiles = async (files) => {
-    if (!user || files.length === 0) return;
+    if (!user || files.length === 0 || uploading) return;
     setUploading(true);
     setErr('');
     const remaining = Math.max(0, 12 - photos.length);
     const toUpload = files.slice(0, remaining);
+    if (toUpload.length === 0) { setUploading(false); return; }
 
-    const results = await Promise.all(
-      toUpload.map(async (f) => {
-        const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
-        const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
-        const path = `${user.id}/${safe}`;
-        const { error } = await supabase.storage.from('listing-media').upload(path, f, { cacheControl: '3600', upsert: false });
-        if (error) return null;
-        const { data } = supabase.storage.from('listing-media').getPublicUrl(path);
-        return data.publicUrl;
-      })
-    );
+    let failed = 0;
+    for (const f of toUpload) {
+      const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
+      const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+      const path = `${user.id}/${safe}`;
+      const { error } = await supabase.storage.from('listing-media').upload(path, f, { cacheControl: '3600', upsert: false });
+      if (error) { failed++; continue; }
+      const { data } = supabase.storage.from('listing-media').getPublicUrl(path);
+      setPhotos((prev) => [...prev, data.publicUrl].slice(0, 12));
+    }
 
-    const successful = results.filter(u => !!u);
-    if (successful.length) {
-      setPhotos((prev) => [...prev, ...successful].slice(0, 12));
-    }
-    if (successful.length < toUpload.length) {
-      setErr(`Не вдалося завантажити ${toUpload.length - successful.length} фото. Перевірте розмір та формат.`);
-    }
+    if (failed > 0) setErr(`Не вдалося завантажити ${failed} фото. Перевірте розмір та формат.`);
     setUploading(false);
   };
 
@@ -438,9 +432,9 @@ export default function CreateListing({ edit = false }) {
         .photo-grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; width: 100%; }
         .photo-item-2 { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); isolation: isolate; }
         .photo-item-2.main { border: 2px solid var(--accent); }
-        .photo-item-2 > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-item-2 > img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .main-badge { position: absolute; top: 6px; left: 6px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; z-index: 2; }
-        .photo-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; }
+        .photo-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; }
         .photo-item-2:hover .photo-overlay { opacity: 1; }
         .overlay-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.95); color: #111; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
         .overlay-btn.danger { background: var(--danger); color: #fff; }
