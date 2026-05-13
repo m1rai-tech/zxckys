@@ -290,6 +290,7 @@ export default function Chat() {
           comment: null,
         }),
         supabase.from('conversations').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', active.id),
+        supabase.from('listings').update({ status: 'sold' }).eq('id', activeListing.id),
       ]);
       await supabase.from('messages').insert({
         conversation_id: active.id,
@@ -311,10 +312,10 @@ export default function Chat() {
     setSoldModal(false);
     const now = new Date().toISOString();
     await Promise.all([
-      supabase.from('listings').update({ status: 'sold', buyer_id: active.buyer_id }).eq('id', activeListing.id),
+      supabase.from('listings').update({ buyer_id: active.buyer_id }).eq('id', activeListing.id),
       supabase.from('conversations').update({ status: 'awaiting_confirmation', shipped_at: now }).eq('id', active.id),
     ]);
-    setActiveListing(prev => prev ? { ...prev, status: 'sold', buyer_id: active.buyer_id } : prev);
+    setActiveListing(prev => prev ? { ...prev, buyer_id: active.buyer_id } : prev);
     setActive(prev => prev ? { ...prev, status: 'awaiting_confirmation', shipped_at: now } : prev);
     await supabase.from('messages').insert({
       conversation_id: active.id,
@@ -329,7 +330,9 @@ export default function Chat() {
     if (!active || !user) return;
     setConfirmingReceipt(true);
     const now = new Date().toISOString();
+    const listingId = activeListing?.id || active.listing?.id;
     await Promise.all([
+      supabase.from('listings').update({ status: 'sold' }).eq('id', listingId),
       supabase.from('conversations').update({ status: 'completed', completed_at: now }).eq('id', active.id),
       supabase.from('messages').insert({
         conversation_id: active.id,
@@ -338,6 +341,7 @@ export default function Chat() {
         is_system: true,
       }),
     ]);
+    setActiveListing(prev => prev ? { ...prev, status: 'sold' } : prev);
     setActive(prev => prev ? { ...prev, status: 'completed', completed_at: now } : prev);
     setConfirmingReceipt(false);
     setShowReviewModal(true);

@@ -15,10 +15,19 @@ export default function SearchPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      let query = supabase.from('listings').select('*').eq('status', 'active');
-      if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
-      if (city) query = query.ilike('location', city);
-      const { data } = await query.order('created_at', { ascending: false }).limit(60);
+      let data;
+      if (q) {
+        const { data: rpc } = await supabase.rpc('search_listings', {
+          q,
+          city: city || null,
+        });
+        data = rpc;
+      } else {
+        let query = supabase.from('listings').select('*').eq('status', 'active');
+        if (city) query = query.ilike('location', city);
+        const { data: rows } = await query.order('created_at', { ascending: false }).limit(60);
+        data = rows;
+      }
       setListings(data || []);
       setLoading(false);
     })();

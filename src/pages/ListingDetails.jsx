@@ -36,8 +36,11 @@ export default function ListingDetails() {
       setSeller(s);
       const { data: e } = await supabase.from('listing_extras').select('*').eq('listing_id', id);
       setExtras(e || []);
-      const { data: sim } = await supabase.from('listings').select('*')
-        .eq('category', data.category).eq('status', 'active').neq('id', id).limit(8);
+      const { data: sim } = await supabase.rpc('similar_listings', {
+        p_id: id,
+        p_title: data.title,
+        p_category: data.category,
+      });
       setSimilar(sim || []);
     })();
   }, [id]);
