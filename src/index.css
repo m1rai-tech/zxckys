@@ -41,6 +41,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .app {
   min-height: 100vh;
   background: var(--bg);
+  overflow-x: hidden;
 }
 
 .header {
@@ -197,6 +198,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   max-width: 1440px;
   margin: 0 auto;
   padding: 24px;
+}
+@media (max-width: 640px) {
+  .main-full { padding: 0; }
 }
 
 .sidebar {
