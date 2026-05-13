@@ -363,10 +363,12 @@ export default function ListingDetails() {
         @media (max-width: 640px) {
           .ld-page { padding: 0; }
           .ld-breadcrumbs { padding: 12px 16px 8px; }
-          .ld-gallery { border-radius: 0; border-left: none; border-right: none; margin-left: -24px; margin-right: -24px; }
-          .ld-main-photo { height: 56vw; min-height: 200px; max-height: 280px; }
-          .ld-main-photo img { object-fit: cover; }
-          .ld-block, .ld-price-card, .ld-seller-card, .ld-tips-card { border-radius: 0; border-left: none; border-right: none; margin-left: -24px; margin-right: -24px; padding: 16px; }
+          .ld-gallery { border-radius: 0; border-left: none; border-right: none; }
+          .ld-main-photo { height: 260px; }
+          .ld-block { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
+          .ld-price-card { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
+          .ld-seller-card { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
+          .ld-tips-card { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
           .ld-title { word-break: break-word; }
           .ld-desc { word-break: break-word; }
         }
