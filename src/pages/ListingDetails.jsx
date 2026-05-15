@@ -66,9 +66,12 @@ export default function ListingDetails() {
       .select('id').eq('listing_id', id).eq('buyer_id', user.id).maybeSingle();
     if (existing) { nav(`/chat?c=${existing.id}`); return; }
     const { data, error } = await supabase.from('conversations').insert({
-      listing_id: id, buyer_id: user.id, seller_id: listing.user_id,
+      listing_id: id,
+      buyer_id: user.id,
+      seller_id: listing.user_id,
     }).select().single();
-    if (!error && data) nav(`/chat?c=${data.id}`);
+    if (error) { console.error('create conversation error:', error); return; }
+    if (data) nav(`/chat?c=${data.id}`);
   };
 
   const handleDelete = async () => {

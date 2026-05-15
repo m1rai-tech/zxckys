@@ -17,10 +17,11 @@ export default function SearchPage() {
       setLoading(true);
       let data;
       if (q) {
-        const { data: rpc } = await supabase.rpc('search_listings', {
+        const { data: rpc, error } = await supabase.rpc('search_listings', {
           q,
           city: city || null,
         });
+        if (error) console.error('search_listings RPC error:', error);
         data = rpc;
       } else {
         let query = supabase.from('listings').select('*').eq('status', 'active');

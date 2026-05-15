@@ -122,7 +122,7 @@ export default function Chat() {
   const loadConversations = async () => {
     if (!user) return;
     const { data } = await supabase.from('conversations')
-      .select('*, listing:listings(id,title,photos,price,status,buyer_id,user_id,is_free), buyer:profiles!conversations_buyer_id_fkey(id,name,avatar_url), seller:profiles!conversations_seller_id_fkey(id,name,avatar_url)')
+      .select('*, listing:listings(id,title,photos,price,status,user_id,is_free), buyer:profiles!conversations_buyer_id_fkey(id,name,avatar_url), seller:profiles!conversations_seller_id_fkey(id,name,avatar_url)')
       .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
 

@@ -45,3 +45,6 @@ language sql stable as $$
       + case when category = p_category then 0.5 else 0.0 end) desc
   limit 8;
 $$;
+
+grant execute on function search_listings(text, text) to anon, authenticated;
+grant execute on function similar_listings(uuid, text, text) to anon, authenticated;
