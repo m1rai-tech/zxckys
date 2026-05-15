@@ -12,7 +12,7 @@ function FilterField({ attr, value, onChange }) {
       <div className="field" style={{ margin: 0 }}>
         <label>{attr.label}</label>
         <select className="select" value={value || ''} onChange={e => onChange(attr.key, e.target.value)}>
-          <option value="">Всі</option>
+          <option value="">All</option>
           {attr.options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       </div>
@@ -26,10 +26,10 @@ function FilterField({ attr, value, onChange }) {
       <div className="field" style={{ margin: 0 }}>
         <label>{attr.label}</label>
         <div style={{ display: 'flex', gap: 6 }}>
-          <input className="input" type="number" placeholder="від" value={from}
+          <input className="input" type="number" placeholder="from" value={from}
             onChange={e => onChange(attr.key, { from: e.target.value, to })}
             style={{ flex: 1 }}/>
-          <input className="input" type="number" placeholder="до" value={to}
+          <input className="input" type="number" placeholder="to" value={to}
             onChange={e => onChange(attr.key, { from, to: e.target.value })}
             style={{ flex: 1 }}/>
         </div>
@@ -41,7 +41,7 @@ function FilterField({ attr, value, onChange }) {
     return (
       <div className="field" style={{ margin: 0 }}>
         <label>{attr.label}</label>
-        <input className="input" placeholder={attr.placeholder || 'Пошук...'} value={value || ''}
+        <input className="input" placeholder={attr.placeholder || 'Search...'} value={value || ''}
           onChange={e => onChange(attr.key, e.target.value)}/>
       </div>
     );
@@ -132,42 +132,42 @@ export default function Category() {
       })
     : allListings;
 
-  if (!cat) return <Layout><Empty title="Категорія не знайдена"/></Layout>;
+  if (!cat) return <Layout><Empty title="Category not found"/></Layout>;
 
   return (
     <Layout>
       <div className="page-header">
         <div>
           <div className="page-title">{cat.name}</div>
-          <div className="page-subtitle">{filteredListings.length} оголошень</div>
+          <div className="page-subtitle">{filteredListings.length} listings</div>
         </div>
       </div>
 
       <div className="filters">
         <div className="filters-row">
           <div className="field" style={{ margin: 0 }}>
-            <label>Ціна від</label>
+            <label>Price from</label>
             <input className="input" type="number" value={priceFrom} onChange={e => setPriceFrom(e.target.value)} placeholder="0"/>
           </div>
           <div className="field" style={{ margin: 0 }}>
-            <label>Ціна до</label>
+            <label>Price to</label>
             <input className="input" type="number" value={priceTo} onChange={e => setPriceTo(e.target.value)} placeholder="∞"/>
           </div>
           <div className="field" style={{ margin: 0 }}>
-            <label>Місто</label>
-            <input className="input" value={location} onChange={e => setLocation(e.target.value)} placeholder="Будь-яке"/>
+            <label>City</label>
+            <input className="input" value={location} onChange={e => setLocation(e.target.value)} placeholder="Any"/>
           </div>
           <div className="field" style={{ margin: 0 }}>
-            <label>Сортування</label>
+            <label>Sort</label>
             <select className="select" value={sort} onChange={e => setSort(e.target.value)}>
-              <option value="new">Спочатку нові</option>
-              <option value="cheap">Спочатку дешеві</option>
-              <option value="expensive">Спочатку дорогі</option>
+              <option value="new">Newest first</option>
+              <option value="cheap">Cheapest first</option>
+              <option value="expensive">Most expensive first</option>
             </select>
           </div>
           <div className="checkbox-row">
             <input type="checkbox" id="delivery" checked={delivery} onChange={e => setDelivery(e.target.checked)}/>
-            <label htmlFor="delivery" style={{ margin: 0 }}>Лише з доставкою</label>
+            <label htmlFor="delivery" style={{ margin: 0 }}>With delivery only</label>
           </div>
         </div>
 
@@ -176,12 +176,12 @@ export default function Category() {
             <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }}/>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Характеристики
+                Attributes
               </span>
               {hasActiveAttrFilters && (
                 <button onClick={resetAttrFilters}
                   style={{ fontSize: 12, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
-                  Скинути
+                  Reset
                 </button>
               )}
             </div>
@@ -195,11 +195,11 @@ export default function Category() {
       </div>
 
       {loading ? (
-        <div className="text-muted">Завантаження...</div>
+        <div className="text-muted">Loading...</div>
       ) : filteredListings.length === 0 ? (
-        <Empty title="Немає оголошень" text="Спробуйте змінити фільтри"
+        <Empty title="No listings" text="Try changing the filters"
           action={hasActiveAttrFilters && (
-            <button className="btn btn-ghost" onClick={resetAttrFilters}>Скинути фільтри</button>
+            <button className="btn btn-ghost" onClick={resetAttrFilters}>Reset filters</button>
           )}/>
       ) : (
         <div className="listings-grid">

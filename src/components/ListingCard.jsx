@@ -3,26 +3,28 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IconHeart, IconImage, IconLocation } from './Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useAuth } from '../contexts/AuthContext';
+import { useCurrency } from '../contexts/CurrencyContext';
 
-const fmtPrice = (l) => {
-  if (l.is_free) return 'Безкоштовно';
-  if (l.price == null) return 'Договірна';
-  return `${l.price.toLocaleString('uk-UA')} грн`;
+const fmtPrice = (l, symbol) => {
+  if (l.is_free) return 'Free';
+  if (l.price == null) return 'Negotiable';
+  return `${symbol}${Number(l.price).toLocaleString('en-US')}`;
 };
 
 const fmtDate = (iso) => {
   const d = new Date(iso);
   const now = new Date();
   const diff = (now.getTime() - d.getTime()) / 1000;
-  if (diff < 60) return 'щойно';
-  if (diff < 3600) return `${Math.floor(diff/60)} хв тому`;
-  if (diff < 86400) return `${Math.floor(diff/3600)} год тому`;
-  if (diff < 86400*7) return `${Math.floor(diff/86400)} д тому`;
-  return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)} hr ago`;
+  if (diff < 86400*7) return `${Math.floor(diff/86400)} d ago`;
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 };
 
 export function ListingCard({ listing }) {
   const { user } = useAuth();
+  const { currency } = useCurrency();
   const navigate = useNavigate();
   const [fav, setFav] = useState(false);
   useEffect(() => { setFav(isFavorite(listing.id)); }, [listing.id]);
@@ -37,7 +39,7 @@ export function ListingCard({ listing }) {
 
   return (
     <Link to={`/listing/${listing.id}`} className="listing-card">
-      <button className={`fav-btn ${fav?'active':''}`} onClick={handleFav} aria-label="В обране">
+      <button className={`fav-btn ${fav?'active':''}`} onClick={handleFav} aria-label="Add to favorites">
         <IconHeart size={16} fill={fav}/>
       </button>
       <div className="img">
@@ -46,7 +48,7 @@ export function ListingCard({ listing }) {
         )}
       </div>
       <div className="body">
-        <div className={`price ${listing.is_free?'price-free':''}`}>{fmtPrice(listing)}</div>
+        <div className={`price ${listing.is_free?'price-free':''}`}>{fmtPrice(listing, currency.symbol)}</div>
         <div className="title">{listing.title}</div>
         <div className="meta">
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

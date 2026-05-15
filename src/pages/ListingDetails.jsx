@@ -9,11 +9,13 @@ import {
   IconEdit, IconTrash, IconStar, IconImage, IconClose, IconCheck
 } from '../components/Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
+import { useCurrency } from '../contexts/CurrencyContext';
 
 export default function ListingDetails() {
   const { id } = useParams();
   const nav = useNavigate();
   const { user, profile } = useAuth();
+  const { currency } = useCurrency();
   const [listing, setListing] = useState(null);
   const [seller, setSeller] = useState(null);
   const [extras, setExtras] = useState([]);
@@ -45,18 +47,18 @@ export default function ListingDetails() {
     })();
   }, [id]);
 
-  if (!listing) return <Layout full><div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>Завантаження...</div></Layout>;
+  if (!listing) return <Layout full><div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div></Layout>;
 
   const photos = listing.photos || [];
   const isOwner = user?.id === listing.user_id;
   const isMod = profile?.role === 'admin' || profile?.role === 'moderator';
 
   const fmtPrice = () => {
-    if (listing.is_free) return 'Безкоштовно';
-    if (listing.price == null || listing.price === '') return 'Договірна';
+    if (listing.is_free) return 'Free';
+    if (listing.price == null || listing.price === '') return 'Negotiable';
     const num = Number(listing.price);
-    if (isNaN(num)) return 'Договірна';
-    return `${num.toLocaleString('uk-UA')} грн`;
+    if (isNaN(num)) return 'Negotiable';
+    return `${currency.symbol}${num.toLocaleString('en-US')}`;
   };
 
   const startChat = async () => {
@@ -75,7 +77,7 @@ export default function ListingDetails() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Видалити це оголошення? Дія незворотна.')) return;
+    if (!confirm('Delete this listing? This action cannot be undone.')) return;
     await supabase.from('listings').delete().eq('id', id);
     nav('/');
   };
@@ -99,7 +101,7 @@ export default function ListingDetails() {
     <Layout full>
       <div className="ld-page">
         <div className="ld-breadcrumbs">
-          <Link to="/">Головна</Link>
+          <Link to="/">Home</Link>
           <span>›</span>
           <Link to={`/c/${listing.category}`}>{listing.category}</Link>
           <span>›</span>
@@ -115,7 +117,7 @@ export default function ListingDetails() {
                 ) : (
                   <div className="ld-no-photo">
                     <IconImage size={48}/>
-                    <div>Фото відсутнє</div>
+                    <div>No photo</div>
                   </div>
                 )}
                 {photos.length > 1 && (
@@ -138,17 +140,17 @@ export default function ListingDetails() {
             </div>
 
             <div className="ld-block">
-              <h2 className="ld-block-title">Опис</h2>
+              <h2 className="ld-block-title">Description</h2>
               {listing.description ? (
                 <div className="ld-desc">{listing.description}</div>
               ) : (
-                <div className="text-muted">Опис відсутній</div>
+                <div className="text-muted">No description</div>
               )}
             </div>
 
             {extras.length > 0 && (
               <div className="ld-block">
-                <h2 className="ld-block-title">Характеристики</h2>
+                <h2 className="ld-block-title">Attributes</h2>
                 <div className="ld-attrs">
                   {extras.map((e) => (
                     <div key={e.id} className="ld-attr">
@@ -162,7 +164,7 @@ export default function ListingDetails() {
 
             {similar.length > 0 && (
               <div style={{ marginTop: 32 }}>
-                <h2 className="ld-section-title">Схожі оголошення</h2>
+                <h2 className="ld-section-title">Similar listings</h2>
                 <div className="listings-grid">
                   {similar.map((l) => <ListingCard key={l.id} listing={l}/>)}
                 </div>
@@ -177,34 +179,34 @@ export default function ListingDetails() {
 
               <div className="ld-meta">
                 <span><IconLocation size={14}/> {listing.location}</span>
-                <span><IconCalendar size={14}/> {new Date(listing.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                <span><IconCalendar size={14}/> {new Date(listing.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
               </div>
 
               <div className="ld-tags">
-                {listing.delivery && <span className="ld-tag">Доставка</span>}
-                {listing.status === 'sold' && <span className="ld-tag ld-tag-sold">Продано</span>}
-                {listing.status === 'archived' && <span className="ld-tag">В архіві</span>}
+                {listing.delivery && <span className="ld-tag">Delivery</span>}
+                {listing.status === 'sold' && <span className="ld-tag ld-tag-sold">Sold</span>}
+                {listing.status === 'archived' && <span className="ld-tag">Archived</span>}
               </div>
 
               {isOwner ? (
                 <div className="ld-actions">
                   <Link to={`/edit/${listing.id}`} className="btn btn-ghost btn-block">
-                    <IconEdit size={16}/> Редагувати
+                    <IconEdit size={16}/> Edit
                   </Link>
                   <select className="select" value={listing.status} onChange={(e) => handleStatusChange(e.target.value)}>
-                    <option value="active">Статус: Активне</option>
-                    <option value="sold">Статус: Продано</option>
-                    <option value="archived">Статус: В архіві</option>
+                    <option value="active">Status: Active</option>
+                    <option value="sold">Status: Sold</option>
+                    <option value="archived">Status: Archived</option>
                   </select>
                   <button className="btn btn-danger btn-block" onClick={handleDelete}>
-                    <IconTrash size={16}/> Видалити
+                    <IconTrash size={16}/> Delete
                   </button>
                 </div>
               ) : (
                 <div className="ld-actions">
                   {listing.status === 'active' && (
                     <button className="btn btn-primary btn-block btn-lg" onClick={startChat}>
-                      <IconMessage size={18}/> Написати продавцю
+                      <IconMessage size={18}/> Message Seller
                     </button>
                   )}
                   {listing.show_phone && seller?.phone && (
@@ -214,16 +216,16 @@ export default function ListingDetails() {
                       </a>
                     ) : (
                       <button className="btn btn-ghost btn-block" onClick={() => { if (!user) { nav('/login'); return; } setShowPhone(true); }}>
-                        <IconPhone size={16}/> Показати телефон
+                        <IconPhone size={16}/> Show phone number
                       </button>
                     )
                   )}
                   <button className="btn btn-ghost btn-block" onClick={() => { if (!user) { nav('/login'); return; } if (id) setFav(toggleFavorite(id)); }}>
-                  <IconHeart size={16} fill={fav}/> {fav ? 'В обраному' : 'Додати в обране'}
+                  <IconHeart size={16} fill={fav}/> {fav ? 'In favorites' : 'Add to favorites'}
                   </button>
                   {isMod && (
                     <button className="btn btn-danger btn-block" onClick={handleDelete}>
-                      <IconTrash size={16}/> Видалити (модератор)
+                      <IconTrash size={16}/> Delete (moderator)
                     </button>
                   )}
                 </div>
@@ -232,7 +234,7 @@ export default function ListingDetails() {
 
             {seller && (
               <div className="ld-seller-card">
-                <div className="ld-seller-label">Продавець</div>
+                <div className="ld-seller-label">Seller</div>
                 <Link to={`/u/${seller.id}`} className="ld-seller-head">
                   <div className="avatar" style={{ width: 48, height: 48 }}>
                     {seller.avatar_url ? <img src={seller.avatar_url} alt=""/> : (seller.name?.[0] || 'U').toUpperCase()}
@@ -242,27 +244,27 @@ export default function ListingDetails() {
                     <div className="ld-seller-meta">
                       {seller.rating > 0 ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#d97706' }}>
-                          <IconStar size={12} fill/> {Number(seller.rating).toFixed(1)} · {seller.deals_count || 0} угод
+                          <IconStar size={12} fill/> {Number(seller.rating).toFixed(1)} · {seller.deals_count || 0} deals
                         </span>
-                      ) : 'Новий продавець'}
+                      ) : 'New seller'}
                     </div>
                   </div>
                 </Link>
                 <div className="ld-seller-footer">
                   <div className="ld-seller-since">
-                    На сайті з {new Date(seller.created_at).toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' })}
+                    Member since {new Date(seller.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </div>
-                  <Link to={`/u/${seller.id}`} className="ld-seller-link">Усі оголошення →</Link>
+                  <Link to={`/u/${seller.id}`} className="ld-seller-link">All listings →</Link>
                 </div>
               </div>
             )}
 
             <div className="ld-tips-card">
-              <div className="ld-tips-title">Поради щодо безпеки</div>
+              <div className="ld-tips-title">Safety tips</div>
               <ul>
-                <li>Зустрічайтесь у людних місцях</li>
-                <li>Перевіряйте товар перед оплатою</li>
-                <li>Не переказуйте передоплату незнайомим</li>
+                <li>Meet in public places</li>
+                <li>Inspect the item before paying</li>
+                <li>Never send prepayment to strangers</li>
               </ul>
             </div>
           </aside>
@@ -293,12 +295,12 @@ export default function ListingDetails() {
               <div className="ld-modal-icon" style={{ background: '#dcfce7' }}>
                 <IconCheck size={24} style={{ color: 'var(--accent)' }}/>
               </div>
-              <h3>Підтвердити продаж</h3>
-              <p>Статус оголошення зміниться на «Продано». Щоб провести повний процес продажу з підтвердженням і відгуком — використовуйте чат.</p>
+              <h3>Confirm sale</h3>
+              <p>The listing status will change to "Sold". To complete the full sale process with confirmation and a review — use chat.</p>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setSoldModal(false)}>Скасувати</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSold}>Підтвердити</button>
+              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setSoldModal(false)}>Cancel</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSold}>Confirm</button>
             </div>
           </div>
         </div>

@@ -1,27 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCurrency, CURRENCIES } from '../contexts/CurrencyContext';
 import { CATEGORIES } from '../lib/categories';
 import {
   IconSearch, IconHeart, IconMessage, IconUser, IconPlus,
-  IconLogout, IconHome, IconSettings, IconChevronDown, IconLocation
+  IconLogout, IconHome, IconSettings
 } from './Icons';
 import { getFavorites } from '../lib/favorites';
-
-const CITIES = [
-  'Вся Україна', 'Київ', 'Харків', 'Одеса', 'Дніпро', 'Львів',
-  'Вінниця', 'Запоріжжя', 'Полтава', 'Черкаси', 'Чернівці',
-  'Чернігів', 'Херсон', 'Хмельницький', 'Тернопіль', 'Суми',
-  'Рівне', 'Миколаїв', 'Луцьк', 'Кропивницький', 'Івано-Франківськ', 'Житомир',
-];
+import { LocationAutocomplete } from './LocationAutocomplete';
 
 export function Layout({ children, full }) {
   const { user, profile, signOut } = useAuth();
+  const { currency, changeCurrency } = useCurrency();
   const nav = useNavigate();
   const loc = useLocation();
   const [q, setQ] = useState('');
-  const [city, setCity] = useState(localStorage.getItem('olxua_city') || 'Вся Україна');
-  const [showCities, setShowCities] = useState(false);
+  const [city, setCity] = useState(localStorage.getItem('olxua_city') || '');
   const [showUser, setShowUser] = useState(false);
   const [favCount, setFavCount] = useState(getFavorites().length);
 
@@ -41,21 +36,9 @@ export function Layout({ children, full }) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (q.trim()) params.set('q', q.trim());
-    if (city !== 'Вся Україна') params.set('city', city);
+    if (city) params.set('city', city);
     nav(`/search?${params.toString()}`);
   };
-
- const handleCitySelect = (c) => {
-  setCity(c);
-  setShowCities(false);
-  window.dispatchEvent(new CustomEvent('city-changed', { detail: c })); 
-  if (loc.pathname === '/search') {
-    const params = new URLSearchParams(loc.search);
-    if (c !== 'Вся Україна') params.set('city', c);
-    else params.delete('city');
-    nav(`/search?${params.toString()}`);
-  }
-};
 
   const initials = (profile?.name || user?.email || 'U').slice(0, 1).toUpperCase();
 
@@ -63,62 +46,56 @@ export function Layout({ children, full }) {
     <div className="app">
       <header className="header">
         <div className="header-inner">
-          <Link to="/" className="logo zx-terminal">
-            <span className="zx-prompt">▸</span>zxckys<span className="zx-cursor"/>
+          <Link to="/" className="logo">
+            YOUR BRAND
           </Link>
 
-          <form onSubmit={onSearch} className="search-wrap" style={{ flex: 1, minWidth: 0 }}>
+          <form onSubmit={onSearch} className="search-wrap hdr-search" style={{ flex: 1, minWidth: 0 }}>
             <IconSearch size={18}/>
             <input
               value={q} onChange={e => setQ(e.target.value)}
-              placeholder="Пошук оголошень..."
+              placeholder="Search listings..."
               style={{ minWidth: 0, flex: 1 }}
             />
           </form>
 
-          <div style={{ position: 'relative', flexShrink: 0 }} className="hdr-city">
-  <button
-    className="btn btn-ghost"
-    onClick={() => setShowCities(s => !s)}
-    style={{ whiteSpace: 'nowrap', width: 205, justifyContent: 'flex-start', gap: 6 }}
-  >
-    <IconLocation size={16}/>
-    <span style={{ flex: 1, textAlign: 'left' }}>{city}</span>
-    <IconChevronDown size={14}/>
-  </button>
-            {showCities && (
-              <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowCities(false)}/>
-                <div style={{
-                  position: 'absolute', top: '110%', right: 0,
-                  background: '#fff', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)', padding: 6,
-                  minWidth: 200, zIndex: 50,
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.06)',
-                  maxHeight: 320, overflowY: 'auto',
-                }}>
-                  {CITIES.map(c => (
-                    <button key={c} className="sidebar-link" style={{ width: '100%' }}
-                      onClick={() => handleCitySelect(c)}>{c}</button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          <LocationAutocomplete
+            className="hdr-city"
+            value={city}
+            placeholder="City"
+            onChange={(val) => {
+              setCity(val);
+              localStorage.setItem('olxua_city', val);
+              window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
+              if (loc.pathname === '/search') {
+                const params = new URLSearchParams(loc.search);
+                if (val) params.set('city', val); else params.delete('city');
+                nav(`/search?${params.toString()}`);
+              }
+            }}
+          />
+
+          <select
+            className="currency-select hdr-currency-desktop"
+            value={currency.code}
+            onChange={e => changeCurrency(e.target.value)}
+          >
+            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
+          </select>
 
           {user ? (
             <>
               <Link to="/create" className="btn btn-primary hdr-post" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                <IconPlus size={16}/> Подати оголошення
+                <IconPlus size={16}/> Post Ad
               </Link>
-              <Link to="/favorites" className="icon-btn hdr-fav" title="Улюблене">
+              <Link to="/favorites" className="icon-btn hdr-fav" title="Favorites">
                 <IconHeart size={20}/>
                 {favCount > 0 && <span className="badge">{favCount}</span>}
               </Link>
-              <Link to="/chat" className="icon-btn hdr-msg" title="Повідомлення">
+              <Link to="/chat" className="icon-btn hdr-msg" title="Messages">
                 <IconMessage size={20}/>
               </Link>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative' }} className="hdr-avatar">
                 <button className="avatar" onClick={() => setShowUser(s => !s)} style={{ width: 40, height: 40, fontSize: 14 }}>
                   {profile?.avatar_url ? <img src={profile.avatar_url} alt=""/> : initials}
                 </button>
@@ -133,25 +110,25 @@ export function Layout({ children, full }) {
                       boxShadow: '0 6px 24px rgba(0,0,0,0.06)',
                     }}>
                       <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{profile?.name || 'Користувач'}</div>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{profile?.name || 'User'}</div>
                         <div className="text-xs text-muted">{user.email}</div>
                       </div>
                       <Link to="/me" className="sidebar-link" onClick={() => setShowUser(false)}>
-                        <IconUser size={18}/> Мій профіль
+                        <IconUser size={18}/> My Profile
                       </Link>
                       <Link to="/settings" className="sidebar-link" onClick={() => setShowUser(false)}>
-                        <IconSettings size={18}/> Налаштування
+                        <IconSettings size={18}/> Settings
                       </Link>
                       {(profile?.role === 'admin' || profile?.role === 'moderator') && (
                         <Link to="/admin" className="sidebar-link" onClick={() => setShowUser(false)}
                           style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                          <IconSettings size={18}/> Адмін-панель
+                          <IconSettings size={18}/> Admin Panel
                         </Link>
                       )}
                       <div className="sidebar-divider"/>
                       <button className="sidebar-link" style={{ width: '100%', color: 'var(--danger)' }}
                         onClick={async () => { await signOut(); setShowUser(false); nav('/'); }}>
-                        <IconLogout size={18}/> Вийти
+                        <IconLogout size={18}/> Sign Out
                       </button>
                     </div>
                   </>
@@ -160,33 +137,68 @@ export function Layout({ children, full }) {
             </>
           ) : (
             <div className="hdr-auth-desktop" style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-              <Link to="/login" className="btn btn-ghost">Увійти</Link>
-              <Link to="/register" className="btn btn-primary">Реєстрація</Link>
+              <Link to="/login" className="btn btn-ghost">Sign In</Link>
+              <Link to="/register" className="btn btn-primary">Sign Up</Link>
             </div>
           )}
         </div>
       </header>
+
+      <div className="mobile-subbar">
+        <div className="mobile-subbar-row1">
+          <LocationAutocomplete
+            value={city}
+            placeholder="City or region"
+            style={{ flex: 1 }}
+            onChange={(val) => {
+              setCity(val);
+              localStorage.setItem('olxua_city', val);
+              window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
+              if (loc.pathname === '/search') {
+                const params = new URLSearchParams(loc.search);
+                if (val) params.set('city', val); else params.delete('city');
+                nav(`/search?${params.toString()}`);
+              }
+            }}
+          />
+          <select
+            className="currency-select"
+            value={currency.code}
+            onChange={e => changeCurrency(e.target.value)}
+          >
+            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
+          </select>
+        </div>
+        <form onSubmit={onSearch} className="search-wrap mobile-subbar-search">
+          <IconSearch size={16}/>
+          <input
+            value={q} onChange={e => setQ(e.target.value)}
+            placeholder="Search listings..."
+            style={{ minWidth: 0, flex: 1 }}
+          />
+        </form>
+      </div>
 
       {full ? (
         <div className="main-full">{children}</div>
       ) : (
         <div className="main">
           <aside className="sidebar">
-            <div className="sidebar-title">Навігація</div>
+            <div className="sidebar-title">Navigation</div>
             <NavLink to="/" end className={({isActive}) => `sidebar-link ${isActive?'active':''}`}>
-              <IconHome size={18}/> Головна
+              <IconHome size={18}/> Home
             </NavLink>
             <NavLink to="/favorites" className={({isActive}) => `sidebar-link ${isActive?'active':''}`}>
-              <IconHeart size={18}/> Улюблене
+              <IconHeart size={18}/> Favorites
               {favCount > 0 && <span style={{ marginLeft: 'auto', background: 'var(--accent-soft)', color: 'var(--accent)', padding: '0 8px', borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{favCount}</span>}
             </NavLink>
             {user && (
               <NavLink to="/chat" className={({isActive}) => `sidebar-link ${isActive?'active':''}`}>
-                <IconMessage size={18}/> Повідомлення
+                <IconMessage size={18}/> Messages
               </NavLink>
             )}
             <div className="sidebar-divider"/>
-            <div className="sidebar-title">Категорії</div>
+            <div className="sidebar-title">Categories</div>
             {CATEGORIES.map(c => (
               <NavLink key={c.slug} to={`/c/${c.slug}`}
                 className={({isActive}) => `sidebar-link ${isActive || loc.pathname === `/c/${c.slug}` ?'active':''}`}>
@@ -201,14 +213,14 @@ export function Layout({ children, full }) {
       <nav className="bottom-nav">
         <NavLink to="/" end className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
           <IconHome size={22}/>
-          <span>Головна</span>
+          <span>Home</span>
         </NavLink>
         <NavLink to="/favorites" className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
           <div style={{ position: 'relative' }}>
             <IconHeart size={22}/>
             {favCount > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: 'var(--accent)', color: '#fff', fontSize: 9, minWidth: 14, height: 14, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', fontWeight: 700 }}>{favCount}</span>}
           </div>
-          <span>Обране</span>
+          <span>Favorites</span>
         </NavLink>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Link to={user ? '/create' : '/login'} className="nav-post-btn">
@@ -217,7 +229,7 @@ export function Layout({ children, full }) {
         </div>
         <NavLink to="/chat" className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
           <IconMessage size={22}/>
-          <span>Чати</span>
+          <span>Chats</span>
         </NavLink>
         <NavLink to={user ? '/me' : '/login'} className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
           {user ? (
@@ -227,7 +239,7 @@ export function Layout({ children, full }) {
           ) : (
             <IconUser size={22}/>
           )}
-          <span>{user ? 'Профіль' : 'Увійти'}</span>
+          <span>{user ? 'Profile' : 'Sign In'}</span>
         </NavLink>
       </nav>
     </div>

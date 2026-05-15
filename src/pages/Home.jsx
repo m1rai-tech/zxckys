@@ -17,9 +17,9 @@ export default function Home() {
   useEffect(() => {
   const fetchListings = async (city) => {
     setLoading(true);
-    const activeCity = city ?? (localStorage.getItem('olxua_city') || 'Вся Україна');
+    const activeCity = city ?? (localStorage.getItem('olxua_city') || 'All Ukraine');
     let query = supabase.from('listings').select('*').eq('status', 'active');
-    if (activeCity && activeCity !== 'Вся Україна') query = query.ilike('location', activeCity);
+    if (activeCity && activeCity !== 'All Ukraine') query = query.ilike('location', activeCity);
     const { data } = await query.order('created_at', { ascending: false }).limit(36);
     setListings(data || []);
     setLoading(false);
@@ -34,7 +34,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <div style={{
+      <div className="post-banner" style={{
         background: 'var(--accent-soft)', border: '1px solid #c8e0d4',
         borderRadius: 'var(--radius-lg)', padding: '20px 24px', marginBottom: 20,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -42,20 +42,20 @@ export default function Home() {
       }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 2 }}>
-            Подайте оголошення безкоштовно
+            Post a listing for free
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            Тисячі покупців з усієї України
+            Thousands of buyers waiting
           </div>
         </div>
         <Link to={user ? '/create' : '/login'} className="btn btn-primary">
-          <IconPlus size={16}/> Подати оголошення
+          <IconPlus size={16}/> Post Ad
         </Link>
       </div>
 
       <div className="mobile-categories" style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
-          Категорії
+          Categories
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {CATEGORIES.map(c => (
@@ -79,10 +79,10 @@ export default function Home() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em' }}>
-          Свіжі оголошення
+          Recent listings
         </h2>
         <Link to="/search" style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 14 }}>
-          Усі →
+          All →
         </Link>
       </div>
 
@@ -98,9 +98,9 @@ export default function Home() {
         </div>
       ) : listings.length === 0 ? (
         <Empty
-          title="Поки що немає оголошень"
-          text="Будьте першим, хто розмістить оголошення!"
-          action={<Link to={user ? '/create' : '/login'} className="btn btn-primary">Подати оголошення</Link>}
+          title="No listings yet"
+          text="Be the first to post a listing!"
+          action={<Link to={user ? '/create' : '/login'} className="btn btn-primary">Post Ad</Link>}
         />
       ) : (
         <div className="listings-grid">

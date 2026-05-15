@@ -5,8 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES, getCategory } from '../lib/categories';
 import { supabase } from '../lib/supabase';
 import { IconClose, IconPlus, IconImage, IconCheck, IconLocation } from '../components/Icons';
-
-const CITIES = ['Київ','Львів','Одеса','Харків','Дніпро','Запоріжжя','Вінниця','Полтава','Чернігів','Тернопіль','Івано-Франківськ','Ужгород','Луцьк','Рівне','Чернівці','Хмельницький','Житомир','Суми','Черкаси','Кропивницький','Миколаїв','Херсон'];
+import { LocationAutocomplete } from '../components/LocationAutocomplete';
 
 export default function CreateListing({ edit = false }) {
   const { user, loading } = useAuth();
@@ -77,7 +76,7 @@ export default function CreateListing({ edit = false }) {
       setPhotos((prev) => [...prev, data.publicUrl].slice(0, 12));
     }
 
-    if (failed > 0) setErr(`Не вдалося завантажити ${failed} фото. Перевірте розмір та формат.`);
+    if (failed > 0) setErr(`Failed to upload ${failed} photo(s). Check file size and format.`);
     setUploading(false);
   };
 
@@ -97,11 +96,11 @@ export default function CreateListing({ edit = false }) {
   const submit = async (e) => {
     e?.preventDefault();
     if (!user) return;
-    if (!isFree && !negotiable && Number(price) < 0) { setErr('Ціна не може бути від\'ємною'); return; }
+    if (!isFree && !negotiable && Number(price) < 0) { setErr('Price cannot be negative'); return; }
     setErr('');
-    if (!title.trim()) { setErr('Введіть назву оголошення'); return; }
-    if (!category) { setErr('Оберіть категорію'); return; }
-    if (!location) { setErr('Оберіть місто'); return; }
+    if (!title.trim()) { setErr('Enter a listing title'); return; }
+    if (!category) { setErr('Select a category'); return; }
+    if (!location) { setErr('Select a city'); return; }
     setSaving(true);
 
     const payload = {
@@ -132,20 +131,20 @@ export default function CreateListing({ edit = false }) {
   };
 
   const fmtPrice = () => {
-  if (isFree) return 'Безкоштовно';
-  if (negotiable) return 'Договірна';
-  if (!price) return 'Вкажіть ціну';
-  return `${Number(price).toLocaleString('uk-UA')} грн`;
+  if (isFree) return 'Free';
+  if (negotiable) return 'Negotiable';
+  if (!price) return 'Enter price';
+  return `${Number(price).toLocaleString('en-US')}`;
 };
 
-  if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
+  if (loading) return <Layout><div className="text-muted">Loading...</div></Layout>;
 
   return (
     <Layout full>
       <div className="create-page">
         <div className="create-head">
-          <h1>{edit ? 'Редагування оголошення' : 'Нове оголошення'}</h1>
-          <p>Заповніть інформацію — це займе декілька хвилин</p>
+          <h1>{edit ? 'Edit Listing' : 'New Listing'}</h1>
+          <p>Fill in the details — it only takes a few minutes</p>
         </div>
 
         {err && <div className="alert alert-error" style={{ maxWidth: 1200, margin: '0 auto 16px' }}>{err}</div>}
@@ -156,8 +155,8 @@ export default function CreateListing({ edit = false }) {
               <div className="section-head">
                 <span className="section-num">1</span>
                 <div>
-                  <div className="section-title-2">Фотографії</div>
-                  <div className="section-sub">До 12 фото. Перше фото буде головним. Перетягніть, щоб змінити порядок.</div>
+                  <div className="section-title-2">Photos</div>
+                  <div className="section-sub">Up to 12 photos. The first photo will be the main one. Drag to reorder.</div>
                 </div>
               </div>
 
@@ -169,8 +168,8 @@ export default function CreateListing({ edit = false }) {
                   onDrop={onDrop}
                 >
                   <div className="upload-icon"><IconImage size={32}/></div>
-                  <div className="upload-title">{uploading ? 'Завантаження...' : 'Перетягніть фото сюди'}</div>
-                  <div className="upload-sub">або натисніть, щоб обрати файли (до 12)</div>
+                  <div className="upload-title">{uploading ? 'Uploading...' : 'Drag photos here'}</div>
+                  <div className="upload-sub">or click to select files (up to 12)</div>
                   <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                     onChange={(e) => { if (e.target.files) uploadFiles(Array.from(e.target.files)); e.target.value = ''; }}/>
                 </label>
@@ -178,12 +177,12 @@ export default function CreateListing({ edit = false }) {
                 <div className="photo-grid-2">
                   {photos.map((p, i) => (
                     <div key={p} className={`photo-item-2 ${i===0?'main':''}`}>
-                      <img src={p} alt={`Фото ${i+1}`} loading="lazy"/>
-                      {i === 0 && <span className="main-badge">Головне</span>}
+                      <img src={p} alt={`Photo ${i+1}`} loading="lazy"/>
+                      {i === 0 && <span className="main-badge">Main</span>}
                       <div className="photo-overlay">
-                        {i > 0 && <button type="button" onClick={() => movePhoto(i, i-1)} className="overlay-btn" title="Вліво">←</button>}
-                        {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i+1)} className="overlay-btn" title="Вправо">→</button>}
-                        <button type="button" onClick={() => setPhotos(prev => prev.filter((_,j)=>j!==i))} className="overlay-btn danger" title="Видалити">
+                        {i > 0 && <button type="button" onClick={() => movePhoto(i, i-1)} className="overlay-btn" title="Move left">←</button>}
+                        {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i+1)} className="overlay-btn" title="Move right">→</button>}
+                        <button type="button" onClick={() => setPhotos(prev => prev.filter((_,j)=>j!==i))} className="overlay-btn danger" title="Delete">
                           <IconClose size={14}/>
                         </button>
                       </div>
@@ -192,7 +191,7 @@ export default function CreateListing({ edit = false }) {
                   {photos.length < 12 && (
                     <label className="photo-add-2">
                       <IconPlus size={20}/>
-                      <span>{uploading ? 'Завантаження...' : `Додати (${photos.length}/12)`}</span>
+                      <span>{uploading ? 'Uploading...' : `Add (${photos.length}/12)`}</span>
                       <input type="file" accept="image/*" multiple style={{display:'none'}}
                         onChange={(e) => { if (e.target.files) uploadFiles(Array.from(e.target.files)); e.target.value = ''; }}/>
                     </label>
@@ -205,20 +204,20 @@ export default function CreateListing({ edit = false }) {
               <div className="section-head">
                 <span className="section-num">2</span>
                 <div>
-                  <div className="section-title-2">Основна інформація</div>
-                  <div className="section-sub">Що ви продаєте?</div>
+                  <div className="section-title-2">Basic Information</div>
+                  <div className="section-sub">What are you selling?</div>
                 </div>
               </div>
 
               <div className="field">
-                <label>Назва оголошення *</label>
+                <label>Listing title *</label>
                 <input className="input" required value={title} onChange={e=>setTitle(e.target.value)}
-                  placeholder="Наприклад: iPhone 13 Pro 256 GB" maxLength={80}/>
-                <div className="hint">{title.length}/80 символів</div>
+                  placeholder="e.g. iPhone 13 Pro 256 GB" maxLength={80}/>
+                <div className="hint">{title.length}/80 characters</div>
               </div>
 
               <div className="field">
-                <label>Категорія *</label>
+                <label>Category *</label>
                 <div className="cat-picker">
                   {CATEGORIES.map(c => (
                     <button key={c.slug} type="button"
@@ -233,10 +232,10 @@ export default function CreateListing({ edit = false }) {
               </div>
 
               <div className="field">
-                <label>Опис</label>
+                <label>Description</label>
                 <textarea className="textarea" value={description} onChange={e=>setDescription(e.target.value)}
-                  placeholder="Розкажіть детально про товар: стан, комплектацію, особливості..." rows={6} maxLength={3000}/>
-                <div className="hint">{description.length}/3000 символів</div>
+                  placeholder="Describe the item in detail: condition, what's included, features..." rows={6} maxLength={3000}/>
+                <div className="hint">{description.length}/3000 characters</div>
               </div>
             </section>
 
@@ -244,32 +243,32 @@ export default function CreateListing({ edit = false }) {
               <div className="section-head">
                 <span className="section-num">3</span>
                 <div>
-                  <div className="section-title-2">Ціна</div>
-                  <div className="section-sub">Оберіть тип ціни</div>
+                  <div className="section-title-2">Price</div>
+                  <div className="section-sub">Choose a price type</div>
                 </div>
               </div>
 
               <div className="price-options">
                 <button type="button" className={`price-opt ${!isFree && !negotiable?'selected':''}`}
                   onClick={() => { setIsFree(false); setNegotiable(false); }}>
-                  <div className="price-opt-title">Фіксована</div>
-                  <div className="price-opt-sub">Точна ціна</div>
+                  <div className="price-opt-title">Fixed</div>
+                  <div className="price-opt-sub">Exact price</div>
                 </button>
                 <button type="button" className={`price-opt ${negotiable?'selected':''}`}
                   onClick={() => { setNegotiable(true); setIsFree(false); }}>
-                  <div className="price-opt-title">Договірна</div>
-                  <div className="price-opt-sub">Обговорюється</div>
+                  <div className="price-opt-title">Negotiable</div>
+                  <div className="price-opt-sub">Open to offers</div>
                 </button>
                 <button type="button" className={`price-opt ${isFree?'selected':''}`}
                   onClick={() => { setIsFree(true); setNegotiable(false); }}>
-                  <div className="price-opt-title">Безкоштовно</div>
-                  <div className="price-opt-sub">Віддам даром</div>
+                  <div className="price-opt-title">Free</div>
+                  <div className="price-opt-sub">Giving away</div>
                 </button>
               </div>
 
               {!isFree && !negotiable && (
                 <div className="field" style={{ marginTop: 16 }}>
-                  <label>Сума, грн *</label>
+                  <label>Amount *</label>
                   <div className="price-input">
                     <input
                       className="input"
@@ -280,7 +279,7 @@ export default function CreateListing({ edit = false }) {
                       onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
                       placeholder="0"
                     />
-                    <span className="price-currency">грн</span>
+                    <span className="price-currency">$</span>
                   </div>
                 </div>
               )}
@@ -290,24 +289,26 @@ export default function CreateListing({ edit = false }) {
               <div className="section-head">
                 <span className="section-num">4</span>
                 <div>
-                  <div className="section-title-2">Локація і доставка</div>
-                  <div className="section-sub">Де знаходиться товар?</div>
+                  <div className="section-title-2">Location & Delivery</div>
+                  <div className="section-sub">Where is the item located?</div>
                 </div>
               </div>
 
               <div className="field">
-                <label>Місто *</label>
-                <select className="select" value={location} onChange={e=>setLocation(e.target.value)}>
-                  <option value="">Оберіть місто</option>
-                  {CITIES.map(c => <option key={c}>{c}</option>)}
-                </select>
+                <label>City *</label>
+                <LocationAutocomplete
+                  value={location}
+                  onChange={setLocation}
+                  placeholder="Start typing a city..."
+                  style={{ width: '100%' }}
+                />
               </div>
 
               <label className="toggle-row">
                 <input type="checkbox" checked={delivery} onChange={e=>setDelivery(e.target.checked)}/>
                 <div>
-                  <div className="toggle-title">Доступна доставка</div>
-                  <div className="toggle-sub">Відправлю покупцеві Новою поштою або іншим перевізником</div>
+                  <div className="toggle-title">Delivery available</div>
+                  <div className="toggle-sub">I will ship to the buyer via courier or postal service</div>
                 </div>
               </label>
             </section>
@@ -317,8 +318,8 @@ export default function CreateListing({ edit = false }) {
                 <div className="section-head">
                   <span className="section-num">5</span>
                   <div>
-                    <div className="section-title-2">Характеристики</div>
-                    <div className="section-sub">Допоможе покупцю швидше прийняти рішення</div>
+                    <div className="section-title-2">Attributes</div>
+                    <div className="section-sub">Helps buyers make a faster decision</div>
                   </div>
                 </div>
 
@@ -346,33 +347,33 @@ export default function CreateListing({ edit = false }) {
               <div className="section-head">
                 <span className="section-num">{cat && cat.attrs.length>0 ? 6 : 5}</span>
                 <div>
-                  <div className="section-title-2">Контакти</div>
-                  <div className="section-sub">Як з вами зв'язатися</div>
+                  <div className="section-title-2">Contacts</div>
+                  <div className="section-sub">How buyers can reach you</div>
                 </div>
               </div>
 
               <label className="toggle-row">
                 <input type="checkbox" checked={showPhone} onChange={e=>setShowPhone(e.target.checked)}/>
                 <div>
-                  <div className="toggle-title">Показувати номер телефону</div>
-                  <div className="toggle-sub">Покупці зможуть подзвонити вам напряму</div>
+                  <div className="toggle-title">Show phone number</div>
+                  <div className="toggle-sub">Buyers will be able to call you directly</div>
                 </div>
               </label>
               <div className="hint" style={{ marginTop: 8 }}>
-                Чат буде доступний завжди, незалежно від цього налаштування
+                Chat is always available regardless of this setting
               </div>
             </section>
 
             <div className="mobile-submit">
               <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={saving}>
-                {saving ? 'Збереження...' : (edit ? 'Зберегти зміни' : 'Опублікувати оголошення')}
+                {saving ? 'Saving...' : (edit ? 'Save changes' : 'Post Listing')}
               </button>
             </div>
           </form>
 
           <aside className="create-preview">
             <div className="preview-card">
-              <div className="preview-label">Прев'ю оголошення</div>
+              <div className="preview-label">Listing preview</div>
               <div className="preview-listing">
                 <div className="preview-img">
                   {photos[0] ? <img src={photos[0]} alt=""/> : (
@@ -381,30 +382,30 @@ export default function CreateListing({ edit = false }) {
                 </div>
                 <div className="preview-body">
                   <div className={`preview-price ${isFree?'free':''}`}>{fmtPrice()}</div>
-                  <div className="preview-title">{title || 'Назва оголошення'}</div>
+                  <div className="preview-title">{title || 'Listing title'}</div>
                   <div className="preview-meta">
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <IconLocation size={12}/> {location || 'Місто'}
+                      <IconLocation size={12}/> {location || 'City'}
                     </span>
-                    {delivery && <span className="tag" style={{ padding: '2px 8px', fontSize: 11 }}>Доставка</span>}
+                    {delivery && <span className="tag" style={{ padding: '2px 8px', fontSize: 11 }}>Delivery</span>}
                   </div>
                 </div>
               </div>
 
               <button type="button" onClick={() => submit()} className="btn btn-primary btn-block btn-lg" disabled={saving} style={{ marginTop: 16 }}>
-                {saving ? 'Збереження...' : (edit ? 'Зберегти зміни' : 'Опублікувати')}
+                {saving ? 'Saving...' : (edit ? 'Save changes' : 'Post Ad')}
               </button>
               <button type="button" onClick={() => nav(-1)} className="btn btn-ghost btn-block" style={{ marginTop: 8 }}>
-                Скасувати
+                Cancel
               </button>
 
               <div className="preview-tips">
-                <div className="tip-title">Поради для гарного оголошення</div>
+                <div className="tip-title">Tips for a great listing</div>
                 <ul>
-                  <li>Додайте якісні фото з різних ракурсів</li>
-                  <li>Опишіть стан та комплектацію</li>
-                  <li>Вкажіть реальну ціну</li>
-                  <li>Будьте чесні щодо недоліків</li>
+                  <li>Add quality photos from different angles</li>
+                  <li>Describe the condition and what's included</li>
+                  <li>Set a fair price</li>
+                  <li>Be honest about any defects</li>
                 </ul>
               </div>
             </div>

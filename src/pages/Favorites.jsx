@@ -29,18 +29,18 @@ export default function Favorites() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="page-title">Улюблене</div>
-          <div className="page-subtitle">{listings.length} збережених оголошень</div>
+          <div className="page-title">Favorites</div>
+          <div className="page-subtitle">{listings.length} saved listings</div>
         </div>
       </div>
       {loading ? (
-        <div className="text-muted">Завантаження...</div>
+        <div className="text-muted">Loading...</div>
       ) : listings.length === 0 ? (
         <Empty
           icon={<IconHeart size={48}/>}
-          title="Поки немає улюблених"
-          text="Натискайте на сердечко в оголошеннях, щоб додавати їх сюди"
-          action={<Link to="/" className="btn btn-primary">Перейти до оголошень</Link>}
+          title="No favorites yet"
+          text="Tap the heart on listings to save them here"
+          action={<Link to="/" className="btn btn-primary">Browse listings</Link>}
         />
       ) : (
         <div className="listings-grid">

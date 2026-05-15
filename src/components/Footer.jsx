@@ -10,15 +10,15 @@ export default function Footer() {
         <div style={styles.grid}>
           <div style={styles.section}>
             <Link to="/" style={styles.logo}>
-              OLX<span style={styles.logoAccent}>ua</span>
+              Marketplace
             </Link>
             <p style={styles.description}>
-              Маркетплейс для покупки та продажу товарів в Україні
+              A marketplace for buying and selling goods
             </p>
           </div>
 
           <div style={styles.section}>
-            <h4 style={styles.title}>Категорії</h4>
+            <h4 style={styles.title}>Categories</h4>
             <nav style={styles.links}>
               {categories.slice(0, 4).map((cat) => (
                 <Link key={cat.id} to={`/category/${cat.slug}`} style={styles.link}>
@@ -29,7 +29,7 @@ export default function Footer() {
           </div>
 
           <div style={styles.section}>
-            <h4 style={styles.title}>Ще</h4>
+            <h4 style={styles.title}>More</h4>
             <nav style={styles.links}>
               {categories.slice(4).map((cat) => (
                 <Link key={cat.id} to={`/category/${cat.slug}`} style={styles.link}>
@@ -40,19 +40,19 @@ export default function Footer() {
           </div>
 
           <div style={styles.section}>
-            <h4 style={styles.title}>Інформація</h4>
+            <h4 style={styles.title}>Information</h4>
             <nav style={styles.links}>
-              <Link to="/about" style={styles.link}>Про нас</Link>
-              <Link to="/help" style={styles.link}>Допомога</Link>
-              <Link to="/terms" style={styles.link}>Правила</Link>
-              <Link to="/privacy" style={styles.link}>Конфіденційність</Link>
+              <Link to="/about" style={styles.link}>About Us</Link>
+              <Link to="/help" style={styles.link}>Help</Link>
+              <Link to="/terms" style={styles.link}>Terms</Link>
+              <Link to="/privacy" style={styles.link}>Privacy</Link>
             </nav>
           </div>
         </div>
 
         <div style={styles.bottom}>
           <p style={styles.copyright}>
-            © {currentYear} OLXua. Всі права захищені.
+            © {currentYear} Marketplace. All rights reserved.
           </p>
           <div style={styles.social}>
             <a href="#" style={styles.socialLink}>📘</a>

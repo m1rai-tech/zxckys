@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { IconUser, IconSettings, IconCheck, IconClose, IconImage } from '../components/Icons';
 
-const CITIES = ['Київ','Львів','Одеса','Харків','Дніпро','Запоріжжя','Вінниця','Полтава','Чернігів','Тернопіль','Івано-Франківськ','Ужгород','Луцьк','Рівне','Чернівці','Хмельницький','Житомир','Суми','Черкаси','Кропивницький','Миколаїв','Херсон'];
+const CITIES = ['Kyiv','Lviv','Odesa','Kharkiv','Dnipro','Zaporizhzhia','Vinnytsia','Poltava','Chernihiv','Ternopil','Ivano-Frankivsk','Uzhhorod','Lutsk','Rivne','Chernivtsi','Khmelnytskyi','Zhytomyr','Sumy','Cherkasy','Kropyvnytskyi','Mykolaiv','Kherson'];
 
 export default function Settings() {
   const { user, profile, refreshProfile, loading } = useAuth();
@@ -48,8 +48,8 @@ export default function Settings() {
 
   const onAvatarFile = async (file) => {
     if (!user) return;
-    if (!file.type.startsWith('image/')) { flash('err', 'Оберіть зображення'); return; }
-    if (file.size > 5 * 1024 * 1024) { flash('err', 'Максимум 5 МБ'); return; }
+    if (!file.type.startsWith('image/')) { flash('err', 'Please select an image'); return; }
+    if (file.size > 5 * 1024 * 1024) { flash('err', 'Maximum 5 MB'); return; }
     setUploadingAva(true);
     const path = `${user.id}/avatar-${Date.now()}.${file.name.split('.').pop()}`;
     const { error } = await supabase.storage.from('listing-media').upload(path, file, { upsert: true });
@@ -59,7 +59,7 @@ export default function Settings() {
     await supabase.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', user.id);
     refreshProfile();
     setUploadingAva(false);
-    flash('msg', 'Аватар оновлено');
+    flash('msg', 'Avatar updated');
   };
 
   const removeAvatar = async () => {
@@ -67,48 +67,48 @@ export default function Settings() {
     setAvatar('');
     await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
     refreshProfile();
-    flash('msg', 'Аватар видалено');
+    flash('msg', 'Avatar removed');
   };
 
   const saveProfile = async (e) => {
     e.preventDefault();
     if (!user) return;
-    if (!name.trim()) { flash('err', "Ім'я не може бути порожнім"); return; }
-    if (!phone.trim()) { flash('err', 'Номер телефона обов\'язковий'); return; }
-    if (!city) { flash('err', 'Виберіть місто'); return; }
+    if (!name.trim()) { flash('err', "Name cannot be empty"); return; }
+    if (!phone.trim()) { flash('err', 'Phone number is required'); return; }
+    if (!city) { flash('err', 'Please select a city'); return; }
     const { isValidUaPhone } = await import('../lib/validation');
-    if (!isValidUaPhone(phone)) { flash('err', 'Невірний номер телефона. Мають бути українські номери +380'); return; }
+    if (!isValidUaPhone(phone)) { flash('err', 'Invalid phone number. Must be a Ukrainian number +380'); return; }
     setSavingProfile(true);
     const { error } = await supabase.from('profiles').update({
       name, phone, bio, city, avatar_url: avatar || null,
     }).eq('id', user.id);
     setSavingProfile(false);
     if (error) flash('err', error.message);
-    else { flash('msg', 'Профіль оновлено'); refreshProfile(); }
+    else { flash('msg', 'Profile updated'); refreshProfile(); }
   };
 
   const changePassword = async (e) => {
     e.preventDefault();
-    if (newPassword.length < 6) { flash('err', 'Пароль має бути від 6 символів'); return; }
-    if (newPassword !== newPassword2) { flash('err', 'Паролі не співпадають'); return; }
+    if (newPassword.length < 6) { flash('err', 'Password must be at least 6 characters'); return; }
+    if (newPassword !== newPassword2) { flash('err', 'Passwords do not match'); return; }
     setSavingPwd(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSavingPwd(false);
     if (error) flash('err', error.message);
-    else { flash('msg', 'Пароль успішно змінено'); setNewPassword(''); setNewPassword2(''); }
+    else { flash('msg', 'Password changed successfully'); setNewPassword(''); setNewPassword2(''); }
   };
 
   const initials = (name || user?.email || 'U').slice(0,1).toUpperCase();
 
-  if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
-  if (!profile) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
+  if (loading) return <Layout><div className="text-muted">Loading...</div></Layout>;
+  if (!profile) return <Layout><div className="text-muted">Loading...</div></Layout>;
 
   return (
     <Layout full>
       <div className="settings-page">
         <div className="settings-head">
-          <h1>Налаштування</h1>
-          <p>Керуйте даними свого акаунта та безпекою</p>
+          <h1>Settings</h1>
+          <p>Manage your account data and security</p>
         </div>
 
         <div className="settings-grid">
@@ -116,15 +116,15 @@ export default function Settings() {
             <button className={`stab ${tab==='profile'?'active':''}`} onClick={() => setTab('profile')}>
               <IconUser size={18}/>
               <div>
-                <div className="stab-title">Профіль</div>
-                <div className="stab-sub">Особиста інформація</div>
+                <div className="stab-title">Profile</div>
+                <div className="stab-sub">Personal information</div>
               </div>
             </button>
             <button className={`stab ${tab==='security'?'active':''}`} onClick={() => setTab('security')}>
               <IconSettings size={18}/>
               <div>
-                <div className="stab-title">Безпека</div>
-                <div className="stab-sub">Email та пароль</div>
+                <div className="stab-title">Security</div>
+                <div className="stab-sub">Email and password</div>
               </div>
             </button>
           </aside>
@@ -136,7 +136,7 @@ export default function Settings() {
             {tab === 'profile' && (
               <form onSubmit={saveProfile} className="settings-card">
                 <section className="set-section">
-                  <div className="set-section-title">Аватар</div>
+                  <div className="set-section-title">Avatar</div>
                   <div className="avatar-row">
                     <div className="avatar-big">
                       {avatar ? <img src={avatar} alt=""/> : <span>{initials}</span>}
@@ -145,15 +145,15 @@ export default function Settings() {
                       <div className="avatar-actions">
                         <button type="button" className="btn btn-primary btn-sm"
                           onClick={() => fileRef.current?.click()} disabled={uploadingAva}>
-                          <IconImage size={14}/> {uploadingAva ? 'Завантаження...' : 'Завантажити фото'}
+                          <IconImage size={14}/> {uploadingAva ? 'Uploading...' : 'Upload photo'}
                         </button>
                         {avatar && (
                           <button type="button" className="btn btn-ghost btn-sm" onClick={removeAvatar}>
-                            <IconClose size={14}/> Видалити
+                            <IconClose size={14}/> Remove
                           </button>
                         )}
                       </div>
-                      <div className="set-hint">JPG, PNG. Максимум 5 МБ.</div>
+                      <div className="set-hint">JPG, PNG. Maximum 5 MB.</div>
                       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
                         onChange={(e) => e.target.files?.[0] && onAvatarFile(e.target.files[0])}/>
                     </div>
@@ -161,20 +161,20 @@ export default function Settings() {
                 </section>
 
                 <section className="set-section">
-                  <div className="set-section-title">Особисті дані</div>
+                  <div className="set-section-title">Personal details</div>
                   <div className="set-grid">
                     <div className="field" style={{ margin: 0 }}>
-                      <label>Ім'я *</label>
+                      <label>Name *</label>
                       <input className="input" value={name} onChange={e=>setName(e.target.value)} required/>
                     </div>
                     <div className="field" style={{ margin: 0 }}>
-                      <label>Телефон *</label>
+                      <label>Phone *</label>
                       <input className="input" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+380 XX XXX XX XX" required/>
                     </div>
                     <div className="field" style={{ margin: 0, gridColumn: '1 / -1' }}>
-                      <label>Місто *</label>
+                      <label>City *</label>
                       <select className="select" value={city} onChange={e=>setCity(e.target.value)} required>
-                        <option value="">Виберіть місто</option>
+                        <option value="">Select city</option>
                         {CITIES.map(c => <option key={c}>{c}</option>)}
                       </select>
                     </div>
@@ -182,18 +182,18 @@ export default function Settings() {
                 </section>
 
                 <section className="set-section">
-                  <div className="set-section-title">Про вас</div>
+                  <div className="set-section-title">About you</div>
                   <div className="field" style={{ margin: 0 }}>
-                    <label>Опис профілю</label>
+                    <label>Profile bio</label>
                     <textarea className="textarea" rows={4} value={bio} onChange={e=>setBio(e.target.value)}
-                      placeholder="Коротко розкажіть про себе. Цей текст бачитимуть покупці." maxLength={500}/>
+                      placeholder="Briefly tell about yourself. Buyers will see this text." maxLength={500}/>
                     <div className="set-hint">{bio.length}/500</div>
                   </div>
                 </section>
 
                 <div className="set-actions">
                   <button type="submit" className="btn btn-primary" disabled={savingProfile}>
-                    {savingProfile ? 'Збереження...' : 'Зберегти зміни'}
+                    {savingProfile ? 'Saving...' : 'Save changes'}
                   </button>
                 </div>
               </form>
@@ -205,21 +205,21 @@ export default function Settings() {
                   <div className="set-section-title">Email</div>
                   <div className="field" style={{ margin: 0 }}>
                     <input className="input" value={user?.email || ''} disabled/>
-                    <div className="set-hint">Email прив'язаний до акаунта і не може бути змінений</div>
+                    <div className="set-hint">Email is linked to your account and cannot be changed</div>
                   </div>
                 </section>
 
                 <form onSubmit={changePassword}>
                   <section className="set-section">
-                    <div className="set-section-title">Зміна пароля</div>
+                    <div className="set-section-title">Change password</div>
                     <div className="set-grid">
                       <div className="field" style={{ margin: 0 }}>
-                        <label>Новий пароль</label>
+                        <label>New password</label>
                         <input className="input" type="password" value={newPassword}
-                          onChange={e=>setNewPassword(e.target.value)} placeholder="Мінімум 6 символів"/>
+                          onChange={e=>setNewPassword(e.target.value)} placeholder="Minimum 6 characters"/>
                       </div>
                       <div className="field" style={{ margin: 0 }}>
-                        <label>Підтвердити пароль</label>
+                        <label>Confirm password</label>
                         <input className="input" type="password" value={newPassword2}
                           onChange={e=>setNewPassword2(e.target.value)}/>
                       </div>
@@ -227,22 +227,22 @@ export default function Settings() {
                   </section>
                   <div className="set-actions">
                     <button type="submit" className="btn btn-primary" disabled={savingPwd || !newPassword}>
-                      {savingPwd ? 'Збереження...' : 'Змінити пароль'}
+                      {savingPwd ? 'Saving...' : 'Change password'}
                     </button>
                   </div>
                 </form>
 
                 <section className="set-section danger-zone">
-                  <div className="set-section-title" style={{ color: 'var(--danger)' }}>Небезпечна зона</div>
+                  <div className="set-section-title" style={{ color: 'var(--danger)' }}>Danger zone</div>
                   <div className="danger-row">
                     <div>
-                      <div style={{ fontWeight: 600 }}>Вийти з усіх пристроїв</div>
-                      <div className="set-hint">Завершить усі активні сесії</div>
+                      <div style={{ fontWeight: 600 }}>Sign out of all devices</div>
+                      <div className="set-hint">Ends all active sessions</div>
                     </div>
                     <button type="button" className="btn btn-danger btn-sm" onClick={async () => {
                       await supabase.auth.signOut();
                       nav('/');
-                    }}>Вийти</button>
+                    }}>Sign Out</button>
                   </div>
                 </section>
               </div>

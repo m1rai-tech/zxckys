@@ -62,13 +62,13 @@ export default function Admin() {
   useEffect(() => { if (isAdmin && tab === 'users') loadUsers(); }, [isAdmin, tab, search]);
 
   const deleteListing = async (id) => {
-    if (!confirm('Точно видалити це оголошення?')) return;
+    if (!confirm('Are you sure you want to delete this listing?')) return;
     await supabase.from('listings').delete().eq('id', id);
     loadListings(); loadStats();
   };
 
   const changeRole = async (uid, role) => {
-    if (profile?.role !== 'admin') { alert('Тільки адмін може міняти ролі'); return; }
+    if (profile?.role !== 'admin') { alert('Only an admin can change roles'); return; }
     await supabase.from('profiles').update({ role }).eq('id', uid);
     loadUsers();
   };
@@ -78,57 +78,57 @@ export default function Admin() {
     loadListings();
   };
 
-  if (authLoading || (user && !profile)) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
-  if (!isAdmin) return <Layout><div className="text-muted">Доступ заборонено</div></Layout>;
+  if (authLoading || (user && !profile)) return <Layout><div className="text-muted">Loading...</div></Layout>;
+  if (!isAdmin) return <Layout><div className="text-muted">Access denied</div></Layout>;
 
   return (
     <Layout full>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Адмін-панель</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Admin Panel</h1>
           <span style={{
             background: profile?.role === 'admin' ? 'var(--accent)' : '#d97706',
             color: '#fff', padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600,
           }}>{profile?.role === 'admin' ? 'Admin' : 'Moderator'}</span>
         </div>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Керування платформою</p>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Platform management</p>
 
         <div className="tabs" style={{ marginBottom: 24 }}>
-          <button className={`tab ${tab==='overview'?'active':''}`} onClick={() => setTab('overview')}>Огляд</button>
-          <button className={`tab ${tab==='listings'?'active':''}`} onClick={() => setTab('listings')}>Оголошення</button>
-          <button className={`tab ${tab==='users'?'active':''}`} onClick={() => setTab('users')}>Користувачі</button>
+          <button className={`tab ${tab==='overview'?'active':''}`} onClick={() => setTab('overview')}>Overview</button>
+          <button className={`tab ${tab==='listings'?'active':''}`} onClick={() => setTab('listings')}>Listings</button>
+          <button className={`tab ${tab==='users'?'active':''}`} onClick={() => setTab('users')}>Users</button>
         </div>
 
         {tab === 'overview' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-            <StatCard label="Оголошень" value={stats.listings} accent/>
-            <StatCard label="Користувачів" value={stats.users}/>
-            <StatCard label="Розмов" value={stats.conversations}/>
-            <StatCard label="Відгуків" value={stats.reviews}/>
+            <StatCard label="Listings" value={stats.listings} accent/>
+            <StatCard label="Users" value={stats.users}/>
+            <StatCard label="Conversations" value={stats.conversations}/>
+            <StatCard label="Reviews" value={stats.reviews}/>
           </div>
         )}
 
         {(tab === 'listings' || tab === 'users') && (
           <div style={{ marginBottom: 16 }}>
-            <input className="input" placeholder={tab === 'listings' ? 'Пошук за назвою...' : 'Пошук за іменем або email...'}
+            <input className="input" placeholder={tab === 'listings' ? 'Search by title...' : 'Search by name or email...'}
               value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: 400 }}/>
           </div>
         )}
 
         {tab === 'listings' && (
-          loading ? <div className="text-muted">Завантаження...</div> :
-          listings.length === 0 ? <Empty title="Немає оголошень"/> : (
+          loading ? <div className="text-muted">Loading...</div> :
+          listings.length === 0 ? <Empty title="No listings"/> : (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead style={{ background: 'var(--bg-soft)', borderBottom: '1px solid var(--border)' }}>
                   <tr>
-                    <th style={th}>Фото</th>
-                    <th style={th}>Назва</th>
-                    <th style={th}>Автор</th>
-                    <th style={th}>Ціна</th>
-                    <th style={th}>Статус</th>
-                    <th style={th}>Дата</th>
-                    <th style={th}>Дії</th>
+                    <th style={th}>Photo</th>
+                    <th style={th}>Title</th>
+                    <th style={th}>Author</th>
+                    <th style={th}>Price</th>
+                    <th style={th}>Status</th>
+                    <th style={th}>Date</th>
+                    <th style={th}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -148,17 +148,17 @@ export default function Admin() {
                         <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{l.profiles?.email}</div>
                       </td>
                       <td style={td}>
-                        {l.is_free ? 'Безкоштовно' : l.price ? `${Number(l.price).toLocaleString('uk-UA')} грн` : 'Договірна'}
+                        {l.is_free ? 'Free' : l.price ? `${Number(l.price).toLocaleString('en-US')}` : 'Negotiable'}
                       </td>
                       <td style={td}>
                         <select value={l.status} onChange={e => setListingStatus(l.id, e.target.value)}
                           className="select" style={{ height: 32, padding: '0 8px', fontSize: 12 }}>
-                          <option value="active">Активне</option>
-                          <option value="sold">Продано</option>
-                          <option value="archived">Архів</option>
+                          <option value="active">Active</option>
+                          <option value="sold">Sold</option>
+                          <option value="archived">Archived</option>
                         </select>
                       </td>
-                      <td style={td}>{new Date(l.created_at).toLocaleDateString('uk-UA')}</td>
+                      <td style={td}>{new Date(l.created_at).toLocaleDateString('en-US')}</td>
                       <td style={td}>
                         <button className="btn btn-danger btn-sm" onClick={() => deleteListing(l.id)}>
                           <IconTrash size={14}/>
@@ -173,19 +173,19 @@ export default function Admin() {
         )}
 
         {tab === 'users' && (
-          loading ? <div className="text-muted">Завантаження...</div> :
-          users.length === 0 ? <Empty title="Немає користувачів"/> : (
+          loading ? <div className="text-muted">Loading...</div> :
+          users.length === 0 ? <Empty title="No users"/> : (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead style={{ background: 'var(--bg-soft)', borderBottom: '1px solid var(--border)' }}>
                   <tr>
-                    <th style={th}>Користувач</th>
+                    <th style={th}>User</th>
                     <th style={th}>Email</th>
-                    <th style={th}>Телефон</th>
-                    <th style={th}>Рейтинг</th>
-                    <th style={th}>Угод</th>
-                    <th style={th}>Роль</th>
-                    <th style={th}>Реєстрація</th>
+                    <th style={th}>Phone</th>
+                    <th style={th}>Rating</th>
+                    <th style={th}>Deals</th>
+                    <th style={th}>Role</th>
+                    <th style={th}>Joined</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,7 +218,7 @@ export default function Admin() {
                           <option value="admin">admin</option>
                         </select>
                       </td>
-                      <td style={td}>{new Date(u.created_at).toLocaleDateString('uk-UA')}</td>
+                      <td style={td}>{new Date(u.created_at).toLocaleDateString('en-US')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -246,7 +246,7 @@ function StatCard({ label, value, accent }) {
         {label}
       </div>
       <div style={{ fontSize: 32, fontWeight: 700, marginTop: 6, color: accent ? 'var(--accent)' : 'var(--text)' }}>
-        {value.toLocaleString('uk-UA')}
+        {value.toLocaleString('en-US')}
       </div>
     </div>
   );

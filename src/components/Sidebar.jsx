@@ -20,12 +20,12 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-title">Навігація</div>
+      <div className="sidebar-title">Navigation</div>
       <NavLink to="/" end className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-        🏠 Головна
+        🏠 Home
       </NavLink>
       <NavLink to="/favorites" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-        🤍 Улюблене
+        🤍 Favorites
         {favCount > 0 && (
           <span style={{ marginLeft: 'auto', background: 'var(--accent-soft)', color: 'var(--accent)', padding: '0 8px', borderRadius: 10, fontSize: 11, fontWeight: 600 }}>
             {favCount}
@@ -34,11 +34,11 @@ export default function Sidebar() {
       </NavLink>
       {user && (
         <NavLink to="/chat" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-          💬 Повідомлення
+          💬 Messages
         </NavLink>
       )}
       <div className="sidebar-divider" />
-      <div className="sidebar-title">Категорії</div>
+      <div className="sidebar-title">Categories</div>
       {categories.map(c => (
         <NavLink
           key={c.slug}

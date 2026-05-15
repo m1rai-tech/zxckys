@@ -15,7 +15,7 @@ const GoogleIcon = () => (
 const Divider = () => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0', color: 'var(--text-faint)' }}>
     <div style={{ flex: 1, height: 1, background: 'var(--border)' }}/>
-    <span style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>або</span>
+    <span style={{ fontSize: 12, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>or</span>
     <div style={{ flex: 1, height: 1, background: 'var(--border)' }}/>
   </div>
 );
@@ -78,8 +78,8 @@ export function Login() {
         <div className="auth-card-2">
           <div className="auth-head">
             <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>zxckys</Link>
-            <h1>Вхід в акаунт</h1>
-            <p>Введіть свої дані, щоб продовжити</p>
+            <h1>Sign In</h1>
+            <p>Enter your details to continue</p>
           </div>
 
           {err && <div className="alert alert-error">{err}</div>}
@@ -87,22 +87,22 @@ export function Login() {
           <form onSubmit={submit}>
             <div className="field">
               <label>Email</label>
-              <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="ваш@email.com"/>
+              <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"/>
             </div>
             <div className="field">
-              <label>Пароль</label>
+              <label>Password</label>
               <input className="input" type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"/>
             </div>
             <button className="btn btn-primary btn-block btn-lg" disabled={loading}>
-              {loading ? 'Вхід...' : 'Увійти'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           <Divider/>
-          <GoogleButton label="Увійти через Google" onClick={onGoogle}/>
+          <GoogleButton label="Sign in with Google" onClick={onGoogle}/>
 
           <div className="auth-bottom">
-            Немає акаунту? <Link to="/register">Створити</Link>
+            Don't have an account? <Link to="/register">Create one</Link>
           </div>
         </div>
       </div>
@@ -126,8 +126,8 @@ export function Register() {
   const submit = async (e) => {
     e.preventDefault();
     setErr('');
-    if (password !== password2) { setErr('Паролі не співпадають'); return; }
-    if (password.length < 6) { setErr('Пароль має містити мінімум 6 символів'); return; }
+    if (password !== password2) { setErr('Passwords do not match'); return; }
+    if (password.length < 6) { setErr('Password must be at least 6 characters'); return; }
     setLoading(true);
     const { error } = await signUp(email, password, name, phone);
     setLoading(false);
@@ -150,47 +150,47 @@ export function Register() {
         <div className="auth-card-2">
           <div className="auth-head">
             <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>zxckys</Link>
-            <h1>Реєстрація</h1>
-            <p>Створіть акаунт для розміщення оголошень</p>
+            <h1>Sign Up</h1>
+            <p>Create an account to post listings</p>
           </div>
 
           {err && <div className="alert alert-error">{err}</div>}
-          {success && <div className="alert alert-success">Реєстрація успішна! Перенаправлення...</div>}
+          {success && <div className="alert alert-success">Registration successful! Redirecting...</div>}
 
           <form onSubmit={submit}>
             <div className="field">
-              <label>Ім'я *</label>
-              <input className="input" required value={name} onChange={e => setName(e.target.value)} placeholder="Як до вас звертатися?"/>
+              <label>Name *</label>
+              <input className="input" required value={name} onChange={e => setName(e.target.value)} placeholder="What should we call you?"/>
             </div>
             <div className="field">
               <label>Email *</label>
-              <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="ваш@email.com"/>
+              <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"/>
             </div>
             <div className="field">
-              <label>Телефон</label>
+              <label>Phone</label>
               <input className="input" placeholder="+380 XX XXX XX XX" value={phone} onChange={e => setPhone(e.target.value)}/>
             </div>
             <div className="field">
-              <label>Пароль *</label>
-              <input className="input" type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Мінімум 6 символів"/>
+              <label>Password *</label>
+              <input className="input" type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Minimum 6 characters"/>
             </div>
             <div className="field">
-              <label>Підтвердити пароль *</label>
-              <input className="input" type="password" required value={password2} onChange={e => setPassword2(e.target.value)} placeholder="Повторіть пароль"/>
+              <label>Confirm password *</label>
+              <input className="input" type="password" required value={password2} onChange={e => setPassword2(e.target.value)} placeholder="Repeat password"/>
             </div>
             <button className="btn btn-primary btn-block btn-lg" disabled={loading}>
-              {loading ? 'Створення...' : 'Створити акаунт'}
+              {loading ? 'Creating...' : 'Create Account'}
             </button>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 12, textAlign: 'center' }}>
-              Реєструючись, ви погоджуєтесь з умовами використання
+              By signing up, you agree to our terms of use
             </div>
           </form>
 
           <Divider/>
-          <GoogleButton label="Зареєструватися через Google" onClick={onGoogle}/>
+          <GoogleButton label="Sign up with Google" onClick={onGoogle}/>
 
           <div className="auth-bottom">
-            Вже маєте акаунт? <Link to="/login">Увійти</Link>
+            Already have an account? <Link to="/login">Sign In</Link>
           </div>
         </div>
       </div>

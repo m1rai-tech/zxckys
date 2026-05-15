@@ -5,6 +5,7 @@ import {
   PaperAirplaneIcon, TrashIcon, PencilIcon, CheckIcon, HomeIcon, Cog6ToothIcon,
   ComputerDesktopIcon, TruckIcon, ShoppingBagIcon, BriefcaseIcon,
   WrenchScrewdriverIcon, BookOpenIcon, PuzzlePieceIcon, GiftIcon, Squares2X2Icon,
+  BuildingOfficeIcon, ArchiveBoxIcon, TrophyIcon, FaceSmileIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid, StarIcon as StarSolid } from '@heroicons/react/24/solid';
 
@@ -40,3 +41,7 @@ export const IconBook = w(BookOpenIcon);
 export const IconGamepad = w(PuzzlePieceIcon);
 export const IconGift = w(GiftIcon);
 export const IconGrid = w(Squares2X2Icon);
+export const IconBuilding = w(BuildingOfficeIcon);
+export const IconFurniture = w(ArchiveBoxIcon);
+export const IconSport = w(TrophyIcon);
+export const IconBaby = w(FaceSmileIcon);

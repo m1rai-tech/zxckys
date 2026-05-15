@@ -1,11 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCurrency, CURRENCIES } from '../contexts/CurrencyContext';
 import { useState } from 'react';
 
-const cities = ['Вся Україна', 'Київ', 'Харків', 'Одеса', 'Дніпро', 'Львів', 'Вінниця', 'Запоріжжя', 'Полтава'];
+const cities = ['All Ukraine', 'Kyiv', 'Kharkiv', 'Odesa', 'Dnipro', 'Lviv', 'Vinnytsia', 'Zaporizhzhia', 'Poltava'];
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();
+  const { currency, changeCurrency } = useCurrency();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showMenu, setShowMenu] = useState(false);
@@ -19,7 +21,7 @@ export default function Header() {
     <header style={styles.header}>
       <div style={styles.container}>
         <Link to="/" style={styles.logo}>
-          OLX<span style={styles.logoAccent}>ua</span>
+          YOUR BRAND
         </Link>
 
         <form onSubmit={handleSearch} style={styles.searchWrap}>
@@ -29,7 +31,7 @@ export default function Header() {
           </svg>
           <input
             type="text"
-            placeholder="Пошук оголошень..."
+            placeholder="Search listings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={styles.searchInput}
@@ -46,15 +48,25 @@ export default function Header() {
           </select>
         </div>
 
+        <div style={styles.cityWrap}>
+          <select
+            style={styles.citySelect}
+            value={currency.code}
+            onChange={e => changeCurrency(e.target.value)}
+          >
+            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
+          </select>
+        </div>
+
         <div style={styles.right}>
           {user ? (
             <>
-              <Link to="/listing/new" style={styles.postBtn}>
+              <Link to="/create" style={styles.postBtn}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="12" y1="5" x2="12" y2="19"/>
                   <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
-                Подати
+                Post Ad
               </Link>
               <button style={styles.iconBtn} onClick={() => navigate('/chat')}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.5">
@@ -83,14 +95,14 @@ export default function Header() {
                         </div>
                       </div>
                       <div style={styles.divider} />
-                      <Link to={`/user/${user.id}`} style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Профіль</Link>
-                      <Link to="/my-listings" style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Мої оголошення</Link>
-                      <Link to="/settings" style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Налаштування</Link>
+                      <Link to={`/user/${user.id}`} style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Profile</Link>
+                      <Link to="/my-listings" style={styles.dropdownItem} onClick={() => setShowMenu(false)}>My Listings</Link>
+                      <Link to="/settings" style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Settings</Link>
                       {profile?.role === 'admin' && (
-                        <Link to="/admin" style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Адмін-панель</Link>
+                        <Link to="/admin" style={styles.dropdownItem} onClick={() => setShowMenu(false)}>Admin Panel</Link>
                       )}
                       <div style={styles.divider} />
-                      <button style={{...styles.dropdownItem, color: '#dc2626'}} onClick={() => { signOut(); navigate('/'); }}>Вийти</button>
+                      <button style={{...styles.dropdownItem, color: '#dc2626'}} onClick={() => { signOut(); navigate('/'); }}>Sign Out</button>
                     </div>
                   </>
                 )}
@@ -98,8 +110,8 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link to="/login" style={styles.loginBtn}>Увійти</Link>
-              <Link to="/register" style={styles.regBtn}>Реєстрація</Link>
+              <Link to="/login" style={styles.loginBtn}>Sign In</Link>
+              <Link to="/register" style={styles.regBtn}>Sign Up</Link>
             </>
           )}
         </div>
@@ -126,12 +138,15 @@ const styles = {
     gap: 16,
   },
   logo: {
-    fontSize: 22,
-    fontWeight: 800,
-    color: '#2d6a4f',
-    letterSpacing: '-0.5px',
+    fontSize: 15,
+    fontWeight: 500,
+    color: '#6b7280',
+    letterSpacing: '0.05em',
     flexShrink: 0,
     textDecoration: 'none',
+    border: '1.5px dashed #d1d5db',
+    borderRadius: 6,
+    padding: '4px 10px',
   },
   logoAccent: {
     color: '#999',

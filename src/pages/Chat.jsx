@@ -4,6 +4,7 @@ import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { IconSend, IconImage } from '../components/Icons';
+import { useCurrency } from '../contexts/CurrencyContext';
 
 const iconBtnStyle = {
   background: 'none', border: 'none', cursor: 'pointer', padding: 8,
@@ -65,13 +66,14 @@ function getDayLabel(dateStr) {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return 'Сьогодні';
-  if (d.toDateString() === yesterday.toDateString()) return 'Вчора';
-  return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+  if (d.toDateString() === today.toDateString()) return 'Today';
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export default function Chat() {
   const { user, loading } = useAuth();
+  const { currency } = useCurrency();
   const nav = useNavigate();
   const [params, setParams] = useSearchParams();
   const activeId = params.get('c');
@@ -294,7 +296,7 @@ export default function Chat() {
       await supabase.from('messages').insert({
         conversation_id: active.id,
         sender_id: user.id,
-        text: '⭐⭐⭐⭐⭐ Оцінку виставлено автоматично (7 днів без підтвердження).',
+        text: '⭐⭐⭐⭐⭐ Rating set automatically (7 days without confirmation).',
         is_system: true,
       });
       setActive(prev => prev ? { ...prev, status: 'completed' } : prev);
@@ -315,7 +317,7 @@ export default function Chat() {
     await supabase.from('messages').insert({
       conversation_id: active.id,
       sender_id: user.id,
-      text: '📦 Продавець відправив товар. Покупцю необхідно підтвердити отримання.',
+      text: '📦 Seller has shipped the item. Buyer needs to confirm receipt.',
       is_system: true,
     });
   };
@@ -332,7 +334,7 @@ export default function Chat() {
       supabase.from('messages').insert({
         conversation_id: active.id,
         sender_id: user.id,
-        text: '✅ Покупець підтвердив отримання товару.',
+        text: '✅ Buyer confirmed receipt of the item.',
         is_system: true,
       }),
     ]);
@@ -356,7 +358,7 @@ export default function Chat() {
     await supabase.from('messages').insert({
       conversation_id: active.id,
       sender_id: user.id,
-      text: `⭐ Покупець залишив відгук продавцю (${reviewRating}/5).`,
+      text: `⭐ Buyer left a review for the seller (${reviewRating}/5).`,
       is_system: true,
     });
     setSubmittingReview(false);
@@ -420,7 +422,7 @@ export default function Chat() {
   // Banner for seller: show when awaiting confirmation (so they know it's pending)
   const showAwaitingBanner = isSeller && active?.status === 'awaiting_confirmation';
 
-  if (loading) return <Layout><div className="text-muted">Завантаження...</div></Layout>;
+  if (loading) return <Layout><div className="text-muted">Loading...</div></Layout>;
 
   return (
     <Layout>
@@ -430,11 +432,11 @@ export default function Chat() {
         {(!isMobile || mobileView === 'list') && (
         <div style={{ width: isMobile ? '100%' : 320, borderRadius: isMobile ? 0 : 'var(--radius-lg)', border: isMobile ? 'none' : '1px solid var(--border)', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', overflow: 'hidden', flexShrink: 0 }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Повідомлення</h2>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Messages</h2>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {sortedConversations.length === 0 && (
-              <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>Немає розмов</div>
+              <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>No conversations</div>
             )}
             {sortedConversations.map(c => {
               const pinned = user && (c.pinned_by || []).includes(user.id);
@@ -462,7 +464,7 @@ export default function Chat() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontWeight: unread > 0 ? 700 : 600, fontSize: 14, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {otherUser(c)?.name || 'Інкогніто'}
+                        {otherUser(c)?.name || 'Anonymous'}
                       </span>
                       {pinned && (
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" style={{ flexShrink: 0 }}>
@@ -510,12 +512,12 @@ export default function Chat() {
                       onClick={() => otherUser(active)?.id && nav(`/u/${otherUser(active).id}`)}
                       style={{ fontWeight: 700, fontSize: 15, cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     >
-                      {otherUser(active)?.name || 'Інкогніто'}
+                      {otherUser(active)?.name || 'Anonymous'}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Обговорення товару</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Item discussion</div>
                   </div>
                   <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                    <button title={isPinned ? 'Відкріпити' : 'Закріпити'} onClick={togglePin}
+                    <button title={isPinned ? 'Unpin' : 'Pin'} onClick={togglePin}
                       style={{ ...iconBtnStyle, color: isPinned ? 'var(--accent)' : 'var(--text-muted)' }}
                       onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-soft)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
@@ -523,7 +525,7 @@ export default function Chat() {
                         <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
                       </svg>
                     </button>
-                    <button title="Видалити чат" onClick={() => setShowDeleteModal(true)}
+                    <button title="Delete chat" onClick={() => setShowDeleteModal(true)}
                       style={iconBtnStyle}
                       onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-soft)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
@@ -548,27 +550,27 @@ export default function Chat() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.listing?.title}</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: activeListing?.status === 'sold' ? 'var(--text-muted)' : 'var(--accent)', marginTop: 1 }}>
-                      {activeListing?.is_free ? 'Безкоштовно' : active.listing?.price ? `${Number(active.listing.price).toLocaleString('uk-UA')} грн` : ''}
+                      {activeListing?.is_free ? 'Free' : active.listing?.price ? `${currency.symbol}${Number(active.listing.price).toLocaleString('en-US')}` : ''}
                     </div>
                   </div>
                   {/* Status badge / action button */}
                   {active.status === 'completed' ? (
                     <span style={{ fontSize: 11, fontWeight: 700, background: '#f0fdf4', color: 'var(--accent)', border: '1px solid #bbf7d0', padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>
-                      ЗАВЕРШЕНО
+                      COMPLETED
                     </span>
                   ) : active.status === 'awaiting_confirmation' ? (
                     <span style={{ fontSize: 11, fontWeight: 700, background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>
-                      ОЧІКУЄ ПІДТВЕРДЖЕННЯ
+                      AWAITING CONFIRMATION
                     </span>
                   ) : activeListing?.status === 'sold' ? (
                     <span style={{ fontSize: 11, fontWeight: 700, background: '#fdf2f1', color: 'var(--danger)', border: '1px solid #f5d4d0', padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>
-                      ПРОДАНО
+                      SOLD
                     </span>
                   ) : isSeller && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setSoldModal(true); }}
                       style={{ fontSize: 12, fontWeight: 600, background: 'var(--accent-soft)', color: 'var(--accent)', border: '1px solid #bbf7d0', padding: '5px 10px', borderRadius: 8, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                      ✓ Відправив
+                      ✓ Shipped
                     </button>
                   )}
                 </div>
@@ -578,7 +580,7 @@ export default function Chat() {
               <div ref={messagesContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column' }}>
                 {messages.length === 0 && (
                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-                    Почніть обговорення!
+                    Start the conversation!
                   </div>
                 )}
 
@@ -641,16 +643,16 @@ export default function Chat() {
                 <div style={{ borderTop: '1px solid #fde68a', background: '#fffbeb', padding: '12px 20px', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: 120 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e' }}>📦 Продавець відправив товар</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e' }}>📦 Seller has shipped the item</div>
                       <div style={{ fontSize: 12, color: '#b45309', marginTop: 2 }}>
-                        Підтвердьте отримання.{active.shipped_at && (
-                          <> Авто-підтвердження: {new Date(new Date(active.shipped_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('uk-UA')}</>
+                        Please confirm receipt.{active.shipped_at && (
+                          <> Auto-confirm: {new Date(new Date(active.shipped_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}</>
                         )}
                       </div>
                     </div>
                     <button onClick={confirmReceived} disabled={confirmingReceipt}
                       style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: confirmingReceipt ? 'default' : 'pointer', flexShrink: 0, opacity: confirmingReceipt ? 0.7 : 1, transition: 'opacity .15s' }}>
-                      {confirmingReceipt ? 'Обробка...' : '✓ Отримав'}
+                      {confirmingReceipt ? 'Processing...' : '✓ Received'}
                     </button>
                   </div>
                 </div>
@@ -660,7 +662,7 @@ export default function Chat() {
               {showAwaitingBanner && (
                 <div style={{ borderTop: '1px solid #fde68a', background: '#fffbeb', padding: '10px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#92400e' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <span>Очікується підтвердження отримання від покупця</span>
+                  <span>Waiting for buyer to confirm receipt</span>
                 </div>
               )}
 
@@ -668,20 +670,20 @@ export default function Chat() {
               {reviewDone && active?.status === 'completed' && (
                 <div style={{ borderTop: '1px solid #bbf7d0', background: '#f0fdf4', padding: '10px 20px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--accent)' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Угода завершена. Дякуємо!</span>
+                  <span>Deal completed. Thank you!</span>
                 </div>
               )}
 
               {/* Input */}
               <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg-card)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-soft)', borderRadius: 24, padding: '4px 4px 4px 12px', border: '1px solid var(--border)' }}>
-                  <label style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', flexShrink: 0 }} title="Надіслати фото">
+                  <label style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', flexShrink: 0 }} title="Send photo">
                     <IconImage size={20}/>
                     <input type="file" accept="image/*" hidden onChange={e => e.target.files?.[0] && sendImage(e.target.files[0])}/>
                   </label>
                   <input
                     style={{ flex: 1, border: 'none', background: 'transparent', padding: '8px 0', outline: 'none', fontSize: 14, minWidth: 0 }}
-                    placeholder="Напишіть повідомлення..."
+                    placeholder="Write a message..."
                     value={text}
                     onChange={e => setText(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
@@ -695,7 +697,7 @@ export default function Chat() {
             </>
           ) : (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10, color: 'var(--text-muted)' }}>
-            <p style={{ fontSize: 15, margin: 0 }}>Виберіть чат для спілкування</p>
+            <p style={{ fontSize: 15, margin: 0 }}>Select a chat to start messaging</p>
           </div>
           )}
         </div>
@@ -716,13 +718,13 @@ export default function Chat() {
             <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, textAlign: 'center' }}>Підтвердити відправку?</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, textAlign: 'center' }}>Confirm shipment?</h3>
             <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5 }}>
-              Покупець <strong>{active?.buyer?.name || 'Покупець'}</strong> отримає повідомлення про відправку та матиме 7 днів для підтвердження отримання.
+              Buyer <strong>{active?.buyer?.name || 'Buyer'}</strong> will be notified of the shipment and will have 7 days to confirm receipt.
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setSoldModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>Скасувати</button>
-              <button onClick={confirmSold} className="btn btn-primary" style={{ flex: 1 }}>Підтвердити</button>
+              <button onClick={() => setSoldModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+              <button onClick={confirmSold} className="btn btn-primary" style={{ flex: 1 }}>Confirm</button>
             </div>
           </div>
         </div>
@@ -734,9 +736,9 @@ export default function Chat() {
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '28px', maxWidth: 440, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid var(--border)' }}>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#fef9c3', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 28 }}>⭐</div>
-              <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700 }}>Оцініть продавця</h3>
+              <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700 }}>Rate the seller</h3>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Ваш відгук допоможе іншим покупцям
+                Your review will help other buyers
               </p>
             </div>
 
@@ -755,14 +757,14 @@ export default function Chat() {
             </div>
             {reviewRating > 0 && (
               <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, marginTop: 4 }}>
-                {['', 'Жахливо', 'Погано', 'Нормально', 'Добре', 'Відмінно'][reviewRating]}
+                {['', 'Terrible', 'Bad', 'OK', 'Good', 'Excellent'][reviewRating]}
               </div>
             )}
 
             <div style={{ marginBottom: 20 }}>
               <textarea
                 style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 13, background: 'var(--bg-soft)', outline: 'none', resize: 'vertical', minHeight: 80, boxSizing: 'border-box', fontFamily: 'inherit' }}
-                placeholder="Коментар (необов'язково)"
+                placeholder="Comment (optional)"
                 value={reviewComment}
                 onChange={e => setReviewComment(e.target.value)}
                 maxLength={500}
@@ -770,9 +772,9 @@ export default function Chat() {
             </div>
 
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => { setShowReviewModal(false); setReviewDone(true); }} className="btn btn-ghost" style={{ flex: 1 }}>Пропустити</button>
+              <button onClick={() => { setShowReviewModal(false); setReviewDone(true); }} className="btn btn-ghost" style={{ flex: 1 }}>Skip</button>
               <button onClick={submitReview} className="btn btn-primary" style={{ flex: 1 }} disabled={!reviewRating || submittingReview}>
-                {submittingReview ? 'Відправка...' : 'Надіслати відгук'}
+                {submittingReview ? 'Submitting...' : 'Submit review'}
               </button>
             </div>
           </div>
@@ -789,13 +791,13 @@ export default function Chat() {
                 <path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
               </svg>
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, textAlign: 'center' }}>Видалити чат?</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, textAlign: 'center' }}>Delete chat?</h3>
             <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5 }}>
-              Чат буде видалено лише у вас. Якщо вам надішлють нове повідомлення — чат відновиться.
+              The chat will only be deleted for you. If you receive a new message, the chat will be restored.
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowDeleteModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>Скасувати</button>
-              <button onClick={deleteChat} className="btn btn-danger" style={{ flex: 1 }}>Видалити</button>
+              <button onClick={() => setShowDeleteModal(false)} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+              <button onClick={deleteChat} className="btn btn-danger" style={{ flex: 1 }}>Delete</button>
             </div>
           </div>
         </div>

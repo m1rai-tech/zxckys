@@ -40,14 +40,14 @@ export default function SearchPage() {
     <Layout>
       <div className="page-header">
         <div>
-          <div className="page-title">Результати пошуку</div>
-          <div className="page-subtitle">{subtitle || 'Усі оголошення'} — {listings.length} знайдено</div>
+          <div className="page-title">Search results</div>
+          <div className="page-subtitle">{subtitle || 'All listings'} — {listings.length} found</div>
         </div>
       </div>
       {loading ? (
-        <div className="text-muted">Завантаження...</div>
+        <div className="text-muted">Loading...</div>
       ) : listings.length === 0 ? (
-        <Empty title="Нічого не знайдено" text="Спробуйте інший запит або змініть місто"/>
+        <Empty title="Nothing found" text="Try a different search or change the city"/>
       ) : (
         <div className="listings-grid">
           {listings.map(l => <ListingCard key={l.id} listing={l}/>)}

@@ -1,1 +1,1 @@
-export const CITIES = ['Івано-Франківськ']
+export const CITIES = ['Ivano-Frankivsk']
