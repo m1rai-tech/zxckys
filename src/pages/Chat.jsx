@@ -283,11 +283,10 @@ export default function Chat() {
       if (existingRev) { setReviewDone(true); return; }
       await Promise.all([
         supabase.from('reviews').insert({
+          conversation_id: active.id,
           seller_id: active.seller_id,
           reviewer_id: user.id,
-          listing_id: activeListing.id,
           rating: 5,
-          comment: null,
         }),
         supabase.from('conversations').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', active.id),
         supabase.from('listings').update({ status: 'sold' }).eq('id', activeListing.id),
@@ -311,11 +310,7 @@ export default function Chat() {
     if (!active || !activeListing) return;
     setSoldModal(false);
     const now = new Date().toISOString();
-    await Promise.all([
-      supabase.from('listings').update({ buyer_id: active.buyer_id }).eq('id', activeListing.id),
-      supabase.from('conversations').update({ status: 'awaiting_confirmation', shipped_at: now }).eq('id', active.id),
-    ]);
-    setActiveListing(prev => prev ? { ...prev, buyer_id: active.buyer_id } : prev);
+    await supabase.from('conversations').update({ status: 'awaiting_confirmation', shipped_at: now }).eq('id', active.id);
     setActive(prev => prev ? { ...prev, status: 'awaiting_confirmation', shipped_at: now } : prev);
     await supabase.from('messages').insert({
       conversation_id: active.id,
@@ -350,13 +345,14 @@ export default function Chat() {
   const submitReview = async () => {
     if (!reviewRating || !active || !user) return;
     setSubmittingReview(true);
-    await supabase.from('reviews').insert({
+    const { error: revErr } = await supabase.from('reviews').insert({
+      conversation_id: active.id,
       seller_id: active.seller_id,
       reviewer_id: user.id,
-      listing_id: activeListing?.id || active.listing?.id,
       rating: reviewRating,
       comment: reviewComment.trim() || null,
     });
+    if (revErr) { console.error('review insert error:', revErr); }
     await supabase.from('messages').insert({
       conversation_id: active.id,
       sender_id: user.id,
