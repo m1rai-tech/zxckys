@@ -5,6 +5,7 @@
 * { margin: 0; padding: 0; }
 img { max-width: 100%; }
 
+/* ----- global variables ----- change --accent to rebrand the whole site */
 :root {
   --bg: #ffffff;
   --bg-soft: #f7f7f8;
@@ -37,7 +38,7 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
 
-/* ============= LAYOUT ============= */
+/* ----- layout & header ----- sticky top bar, logo, search */
 .app {
   min-height: 100vh;
   background: var(--bg);
@@ -131,7 +132,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   font-weight: 600;
 }
 
-/* ============= BUTTONS ============= */
+/* ----- buttons ----- primary (green), ghost (outline), danger (red) */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -156,10 +157,11 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .btn-lg { height: 48px; padding: 0 24px; font-size: 15px; }
 .btn-sm { height: 32px; padding: 0 12px; font-size: 13px; }
 
-/* ============= LOCATION AUTOCOMPLETE ============= */
+/* ----- city autocomplete & currency ----- used in header and create listing form */
 .hdr-city { flex-shrink: 0; }
 .hdr-city .location-input-wrap { min-width: 160px; max-width: 210px; }
 
+/* hidden on desktop, shown only on mobile */
 .mobile-subbar { display: none; }
 
 .location-input-wrap {
@@ -247,6 +249,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .location-city { font-weight: 500; color: var(--text); }
 .location-country { color: var(--text-faint); font-size: 12px; margin-left: auto; padding-left: 8px; white-space: nowrap; }
 
+/* currency select */
 .currency-select {
   height: 36px;
   padding: 0 10px;
@@ -265,7 +268,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .currency-select:hover { border-color: var(--border-strong); background: #fff; }
 .currency-select:focus { border-color: var(--accent); background: #fff; }
 
-/* ============= MAIN LAYOUT (sidebar + content) ============= */
+/* ----- main layout ----- sidebar on the left, content on the right */
 .main {
   max-width: 1440px;
   margin: 0 auto;
@@ -317,7 +320,6 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 
 .content { min-width: 0; }
 
-/* ============= PAGE HEADER ============= */
 .page-header {
   display: flex;
   align-items: center;
@@ -333,7 +335,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .page-subtitle { color: var(--text-muted); margin-top: 4px; }
 
-/* ============= LISTING GRID ============= */
+/* ----- listing cards ----- the grid of cards shown on home and search pages */
 .listings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -422,7 +424,6 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .fav-btn:hover { color: var(--danger); }
 .fav-btn.active { color: var(--danger); background: #fff; }
 
-/* ============= CATEGORY SECTION ON HOME ============= */
 .hero {
   background: var(--bg-soft);
   border: 1px solid var(--border);
@@ -446,7 +447,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   letter-spacing: -0.01em;
 }
 
-/* ============= FILTERS ============= */
+/* ----- search filters ----- the filter bar above search results */
 .filters {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -461,7 +462,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   align-items: end;
 }
 
-/* ============= FORM ============= */
+/* ----- forms ----- inputs, textareas, selects, alerts */
 .form-card {
   max-width: 640px;
   margin: 0 auto;
@@ -517,7 +518,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .alert-success { background: var(--accent-soft); color: var(--accent); border: 1px solid #c8e0d4; }
 .alert-info { background: #f0f4ff; color: #2d3a8c; border: 1px solid #d6e0fb; }
 
-/* ============= AUTH PAGE ============= */
+/* ----- auth pages ----- login and register */
 .auth-page {
   min-height: calc(100vh - 64px);
   display: flex;
@@ -551,7 +552,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .auth-card .form-bottom a { color: var(--accent); font-weight: 600; }
 
-/* ============= LISTING DETAILS ============= */
+/* ----- seller card & avatar ----- shown on listing detail page */
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 360px;
@@ -642,7 +643,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .seller-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 .rating { display: inline-flex; align-items: center; gap: 4px; color: #d97706; }
 
-/* ============= EMPTY STATE ============= */
+/* ----- empty state ----- shown when no listings found */
 .empty {
   text-align: center;
   padding: 64px 24px;
@@ -654,7 +655,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .empty svg { color: var(--text-faint); margin-bottom: 16px; }
 .empty h3 { color: var(--text); font-size: 18px; font-weight: 600; margin-bottom: 6px; }
 
-/* ============= PROFILE PAGE ============= */
+/* ----- profile page ----- user stats, tabs, listings */
 .profile-header {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -684,7 +685,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 
-/* ============= CHAT ============= */
+/* ----- chat ----- conversation list + message window */
 .chat-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -754,7 +755,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .chat-input input:focus { border-color: var(--accent); }
 
-/* ============= PHOTO UPLOAD ============= */
+/* ----- photo upload ----- grid of photos when creating a listing */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -793,7 +794,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 .photo-add:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ============= LIGHTBOX ============= */
+/* ----- lightbox ----- fullscreen photo overlay */
 .lightbox {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.85);
@@ -814,7 +815,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ============= UTILITIES ============= */
+/* ----- utility classes ----- flex, spacing, text helpers */
 .flex { display: flex; }
 .flex-1 { flex: 1; }
 .gap-2 { gap: 8px; }
@@ -830,7 +831,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 .mb-2 { margin-bottom: 8px; }
 .mb-4 { margin-bottom: 16px; }
 
-/* ============= RESPONSIVE ============= */
+/* ----- responsive ----- tablet hides sidebar, mobile gets bottom nav */
 @media (max-width: 900px) {
   .main { grid-template-columns: 1fr; }
   .sidebar { display: none; }
@@ -849,7 +850,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   .profile-stats { justify-content: center; }
 }
 
-/* ============= BOTTOM NAVIGATION ============= */
+/* ----- bottom nav ----- shown only on mobile, replaces the sidebar */
 .bottom-nav { display: none; }
 .hdr-auth-mobile { display: none; }
 
@@ -857,7 +858,6 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   .app { padding-bottom: 60px; }
   .header-inner { padding: 0 12px; gap: 8px; }
 
-  /* Bottom nav */
   .bottom-nav {
     display: flex;
     position: fixed;
@@ -902,7 +902,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
     text-decoration: none;
   }
 
-  /* Header: only logo visible on mobile */
+  /* on mobile the header shows only the logo, everything else moves to the subbar below */
   .hdr-city,
   .hdr-currency-desktop,
   .hdr-search,
@@ -913,7 +913,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   .hdr-auth-desktop { display: none !important; }
   .hdr-auth-mobile { display: flex; align-items: center; }
 
-  /* Subbar: row1 = city+currency, row2 = search */
+  /* subbar below the header: row1 = city + currency, row2 = search */
   .mobile-subbar {
     display: flex;
     flex-direction: column;
@@ -961,9 +961,9 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
     z-index: 1;
     box-sizing: border-box;
   }
+  /* hide the "post for free" banner on mobile, it takes too much space */
   .post-banner { display: none !important; }
 
-  /* Chat: fixed overlay between header and bottom nav */
   .chat-outer {
     position: fixed !important;
     top: 64px !important;
@@ -980,7 +980,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   .listings-grid { grid-template-columns: 1fr; }
 }
 
-/* ============= LISTING DETAILS (ld-*) ============= */
+/* ----- listing detail page ----- all ld-* classes live here */
 .ld-page { max-width: 1200px; margin: 0 auto; padding: 16px; }
 .ld-breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 16px; flex-wrap: wrap; }
 .ld-breadcrumbs a { color: var(--text-muted); transition: color .15s; }

@@ -1,3 +1,5 @@
+// favorites are stored in localStorage — no login needed, works instantly
+// they disappear if the user clears browser data, which is fine for this kind of feature
 const KEY = 'olxua_favorites';
 
 export const getFavorites = () => {
@@ -6,6 +8,8 @@ export const getFavorites = () => {
 
 export const isFavorite = (id) => getFavorites().includes(id);
 
+// adds the listing if it's not there, removes it if it already is (toggle)
+// fires a custom event so the heart icon and badge update everywhere at once
 export const toggleFavorite = (id) => {
   const list = getFavorites();
   const idx = list.indexOf(id);

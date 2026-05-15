@@ -17,9 +17,9 @@ export default function Home() {
   useEffect(() => {
   const fetchListings = async (city) => {
     setLoading(true);
-    const activeCity = city ?? (localStorage.getItem('olxua_city') || 'All Ukraine');
+    const activeCity = city ?? (localStorage.getItem('olxua_city') || '');
     let query = supabase.from('listings').select('*').eq('status', 'active');
-    if (activeCity && activeCity !== 'All Ukraine') query = query.ilike('location', activeCity);
+    if (activeCity) query = query.ilike('location', `%${activeCity}%`);
     const { data } = await query.order('created_at', { ascending: false }).limit(36);
     setListings(data || []);
     setLoading(false);

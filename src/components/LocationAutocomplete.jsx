@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { IconLocation } from './Icons';
 
+// these cities show up instantly when user clicks the field before typing anything
+// feel free to change, add or remove cities here
 const POPULAR = [
   { label: 'New York, United States', city: 'New York', flag: '🇺🇸' },
   { label: 'Los Angeles, United States', city: 'Los Angeles', flag: '🇺🇸' },
@@ -16,6 +18,7 @@ const POPULAR = [
   { label: 'Toronto, Canada', city: 'Toronto', flag: '🇨🇦' },
 ];
 
+// city search input with autocomplete — uses OpenStreetMap, totally free, no API key needed
 export function LocationAutocomplete({ value, onChange, placeholder = 'City', className, style }) {
   const [query, setQuery] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -50,6 +53,7 @@ export function LocationAutocomplete({ value, onChange, placeholder = 'City', cl
       return;
     }
     setShowPopular(false);
+    // wait 350ms after user stops typing before sending a request (so we don't spam the API)
     timer.current = setTimeout(async () => {
       setLoading(true);
       try {

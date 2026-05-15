@@ -16,7 +16,11 @@ export function Layout({ children, full }) {
   const nav = useNavigate();
   const loc = useLocation();
   const [q, setQ] = useState('');
-  const [city, setCity] = useState(localStorage.getItem('olxua_city') || '');
+  const [city, setCity] = useState(() => {
+    const saved = localStorage.getItem('olxua_city') || '';
+    // clear old Ukrainian default that came from previous version
+    return saved === 'All Ukraine' || saved === 'Вся Україна' ? '' : saved;
+  });
   const [showUser, setShowUser] = useState(false);
   const [favCount, setFavCount] = useState(getFavorites().length);
 

@@ -4,6 +4,19 @@ import {
   IconBuilding, IconFurniture, IconSport, IconBaby,
 } from '../components/Icons';
 
+// this is the main categories config — everything about categories lives here
+//
+// to add a new category: copy one of the blocks below, give it a unique slug,
+// pick an icon from Icons.jsx, and define the attrs (fields shown on listing page)
+//
+// each attr has:
+//   key       — unique id, saved to the database
+//   label     — what the user sees
+//   type      — 'select' (dropdown) or 'text' (free input)
+//   filter    — how it shows up in search filters
+//   options   — list of choices (only for select type)
+//   placeholder — hint text (only for text type)
+
 export const CATEGORIES = [
   {
     slug: 'tech', name: 'Electronics', Icon: IconLaptop,

@@ -1,13 +1,15 @@
 import { createContext, useContext, useState } from 'react';
 
-const CurrencyContext = createContext();
-
+// add or remove currencies here, symbol shows up next to prices everywhere
 export const CURRENCIES = [
   { code: 'USD', symbol: '$', label: 'USD' },
   { code: 'EUR', symbol: '€', label: 'EUR' },
 ];
 
+const CurrencyContext = createContext();
+
 export function CurrencyProvider({ children }) {
+  // remembers the last selected currency even after page refresh
   const [currency, setCurrency] = useState(
     () => CURRENCIES.find(c => c.code === localStorage.getItem('currency')) || CURRENCIES[0]
   );
@@ -27,4 +29,5 @@ export function CurrencyProvider({ children }) {
   );
 }
 
+// use this in any component to get current currency: const { currency } = useCurrency()
 export const useCurrency = () => useContext(CurrencyContext);
