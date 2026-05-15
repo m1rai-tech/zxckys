@@ -65,8 +65,15 @@ export default function ListingDetails() {
     if (!user) { nav('/login'); return; }
     if (isOwner) return;
     const { data: existing } = await supabase.from('conversations')
-      .select('id').eq('listing_id', id).eq('buyer_id', user.id).maybeSingle();
-    if (existing) { nav(`/chat?c=${existing.id}`); return; }
+      .select('id, hidden_for').eq('listing_id', id).eq('buyer_id', user.id).maybeSingle();
+    if (existing) {
+      // if the user deleted this chat before, un-hide it so they can start fresh
+      if (existing.hidden_for?.includes(user.id)) {
+        const updated = (existing.hidden_for || []).filter(uid => uid !== user.id);
+        await supabase.from('conversations').update({ hidden_for: updated }).eq('id', existing.id);
+      }
+      nav(`/chat?c=${existing.id}`); return;
+    }
     const { data, error } = await supabase.from('conversations').insert({
       listing_id: id,
       buyer_id: user.id,

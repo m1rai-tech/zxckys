@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
+import { PhoneInput, PHONE_CODES } from '../components/PhoneCodeSelect';
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -114,7 +115,8 @@ export function Login() {
 export function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneIso, setPhoneIso] = useState('us');
+  const [phoneNum, setPhoneNum] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [err, setErr] = useState('');
@@ -128,6 +130,8 @@ export function Register() {
     setErr('');
     if (password !== password2) { setErr('Passwords do not match'); return; }
     if (password.length < 6) { setErr('Password must be at least 6 characters'); return; }
+    const dialCode = PHONE_CODES.find(c => c.iso === phoneIso)?.code || '+1';
+    const phone = phoneNum.trim() ? `${dialCode} ${phoneNum.trim()}` : '';
     setLoading(true);
     const { error } = await signUp(email, password, name, phone);
     setLoading(false);
@@ -168,7 +172,10 @@ export function Register() {
             </div>
             <div className="field">
               <label>Phone</label>
-              <input className="input" placeholder="+380 XX XXX XX XX" value={phone} onChange={e => setPhone(e.target.value)}/>
+              <PhoneInput
+                phoneIso={phoneIso} phoneNum={phoneNum}
+                onIsoChange={setPhoneIso} onNumChange={setPhoneNum}
+              />
             </div>
             <div className="field">
               <label>Password *</label>

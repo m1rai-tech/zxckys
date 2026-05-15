@@ -11,26 +11,64 @@ import { CATEGORIES } from '../lib/categories';
 export default function Home() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-  const fetchListings = async (city) => {
-    setLoading(true);
-    const activeCity = city ?? (localStorage.getItem('olxua_city') || '');
-    let query = supabase.from('listings').select('*').eq('status', 'active');
-    if (activeCity) query = query.ilike('location', `%${activeCity}%`);
-    const { data } = await query.order('created_at', { ascending: false }).limit(36);
-    setListings(data || []);
-    setLoading(false);
-  };
+    const fetchListings = async (headerCity) => {
+      setLoading(true);
 
-  fetchListings();
+      // header city takes priority, then profile city, then nothing
+      const headerOrSaved = headerCity ?? (localStorage.getItem('olxua_city') || '');
+      const filterStr = headerOrSaved || (profile?.city || '');
 
-  const onCityChange = (e) => fetchListings(e.detail);
-  window.addEventListener('city-changed', onCityChange);
-  return () => window.removeEventListener('city-changed', onCityChange);
-}, []);
+      if (filterStr) {
+        // stored format is "London, United Kingdom" — split out city name and country
+        const parts = filterStr.split(',').map(p => p.trim());
+        const cityName = parts[0];
+        const country = parts.length > 1 ? parts[parts.length - 1] : '';
+
+        // try city first
+        const { data: cityData } = await supabase
+          .from('listings').select('*').eq('status', 'active')
+          .ilike('location', `%${cityName}%`)
+          .order('created_at', { ascending: false }).limit(36);
+
+        if (cityData && cityData.length > 0) {
+          setListings(cityData);
+          setLoading(false);
+          return;
+        }
+
+        // nothing in city — try country
+        if (country) {
+          const { data: countryData } = await supabase
+            .from('listings').select('*').eq('status', 'active')
+            .ilike('location', `%${country}%`)
+            .order('created_at', { ascending: false }).limit(36);
+
+          if (countryData && countryData.length > 0) {
+            setListings(countryData);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      // fallback — show everything
+      const { data } = await supabase
+        .from('listings').select('*').eq('status', 'active')
+        .order('created_at', { ascending: false }).limit(36);
+      setListings(data || []);
+      setLoading(false);
+    };
+
+    fetchListings();
+
+    const onCityChange = (e) => fetchListings(e.detail);
+    window.addEventListener('city-changed', onCityChange);
+    return () => window.removeEventListener('city-changed', onCityChange);
+  }, [profile?.city]);
 
   return (
     <Layout>

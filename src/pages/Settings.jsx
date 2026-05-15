@@ -4,8 +4,9 @@ import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { IconUser, IconSettings, IconCheck, IconClose, IconImage } from '../components/Icons';
+import { LocationAutocomplete } from '../components/LocationAutocomplete';
+import { PhoneInput, PHONE_CODES } from '../components/PhoneCodeSelect';
 
-const CITIES = ['Kyiv','Lviv','Odesa','Kharkiv','Dnipro','Zaporizhzhia','Vinnytsia','Poltava','Chernihiv','Ternopil','Ivano-Frankivsk','Uzhhorod','Lutsk','Rivne','Chernivtsi','Khmelnytskyi','Zhytomyr','Sumy','Cherkasy','Kropyvnytskyi','Mykolaiv','Kherson'];
 
 export default function Settings() {
   const { user, profile, refreshProfile, loading } = useAuth();
@@ -13,7 +14,8 @@ export default function Settings() {
   const [tab, setTab] = useState('profile');
 
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneIso, setPhoneIso] = useState('us');
+  const [phoneNum, setPhoneNum] = useState('');
   const [bio, setBio] = useState('');
   const [city, setCity] = useState('');
   const [avatar, setAvatar] = useState('');
@@ -35,9 +37,20 @@ export default function Settings() {
 
   useEffect(() => {
     if (profile) {
-      setName(profile.name || ''); setPhone(profile.phone || '');
-      setBio(profile.bio || ''); setCity(profile.city || '');
+      setName(profile.name || '');
+      setBio(profile.bio || '');
+      setCity(profile.city || '');
       setAvatar(profile.avatar_url || '');
+      // parse stored phone into code + number parts
+      const stored = profile.phone || '';
+      const matched = PHONE_CODES.filter(c => stored.startsWith(c.code)).sort((a,b) => b.code.length - a.code.length)[0];
+      if (matched) {
+        setPhoneIso(matched.iso);
+        setPhoneNum(stored.slice(matched.code.length).trim());
+      } else {
+        setPhoneIso('us');
+        setPhoneNum(stored);
+      }
     }
   }, [profile]);
 
@@ -73,14 +86,14 @@ export default function Settings() {
   const saveProfile = async (e) => {
     e.preventDefault();
     if (!user) return;
-    if (!name.trim()) { flash('err', "Name cannot be empty"); return; }
-    if (!phone.trim()) { flash('err', 'Phone number is required'); return; }
-    if (!city) { flash('err', 'Please select a city'); return; }
-    const { isValidUaPhone } = await import('../lib/validation');
-    if (!isValidUaPhone(phone)) { flash('err', 'Invalid phone number. Must be a Ukrainian number +380'); return; }
+    if (!name.trim()) { flash('err', 'Name cannot be empty'); return; }
+    const dialCode = PHONE_CODES.find(c => c.iso === phoneIso)?.code || '+1';
+    const fullPhone = phoneNum.trim() ? `${dialCode} ${phoneNum.trim()}` : '';
+    if (!fullPhone) { flash('err', 'Phone number is required'); return; }
+    if (phoneNum.replace(/\D/g, '').length < 7) { flash('err', 'Please enter a valid phone number'); return; }
     setSavingProfile(true);
     const { error } = await supabase.from('profiles').update({
-      name, phone, bio, city, avatar_url: avatar || null,
+      name, phone: fullPhone, bio, city, avatar_url: avatar || null,
     }).eq('id', user.id);
     setSavingProfile(false);
     if (error) flash('err', error.message);
@@ -169,14 +182,14 @@ export default function Settings() {
                     </div>
                     <div className="field" style={{ margin: 0 }}>
                       <label>Phone *</label>
-                      <input className="input" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+380 XX XXX XX XX" required/>
+                      <PhoneInput
+                        phoneIso={phoneIso} phoneNum={phoneNum}
+                        onIsoChange={setPhoneIso} onNumChange={setPhoneNum}
+                      />
                     </div>
                     <div className="field" style={{ margin: 0, gridColumn: '1 / -1' }}>
-                      <label>City *</label>
-                      <select className="select" value={city} onChange={e=>setCity(e.target.value)} required>
-                        <option value="">Select city</option>
-                        {CITIES.map(c => <option key={c}>{c}</option>)}
-                      </select>
+                      <label>City</label>
+                      <LocationAutocomplete value={city} onChange={setCity} placeholder="Your city"/>
                     </div>
                   </div>
                 </section>
