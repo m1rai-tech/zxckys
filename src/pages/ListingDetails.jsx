@@ -238,7 +238,7 @@ export default function ListingDetails() {
                     onClick={() => !isBoosted && setBoostModal(true)}
                     disabled={isBoosted}
                   >
-                    ⚡ {isBoosted
+                    {isBoosted
                       ? `Boosted until ${new Date(listing.boosted_until).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`
                       : 'Boost to top'}
                   </button>

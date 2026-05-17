@@ -192,17 +192,57 @@ The `api/` directory is automatically served as Vercel serverless functions.
 
 Listing owners can pay to promote their listings to the top of search and category pages for 7 days ($2.99) or 30 days ($7.99).
 
-1. Create a [Stripe](https://stripe.com) account
-2. Copy your **Secret key** → set `STRIPE_SECRET_KEY` in env
-3. In Stripe Dashboard → **Developers → Webhooks → Add endpoint**:
-   - URL: `https://your-domain.vercel.app/api/stripe-webhook`
-   - Events: `checkout.session.completed`
-   - Copy **Signing secret** → set `STRIPE_WEBHOOK_SECRET` in env
-4. To test locally, install the [Stripe CLI](https://stripe.com/docs/stripe-cli):
-   ```bash
-   stripe listen --forward-to localhost:5173/api/stripe-webhook
-   ```
-5. Change boost prices in `api/create-checkout.js` — `PLANS` object
+### 1. Create a Stripe account
+
+Go to [stripe.com](https://stripe.com) → Sign up.
+
+When asked for a **business name**, enter your brand name (e.g. `Marketplace Platform`). You can change it later in Stripe Dashboard → Settings → Business details.
+
+### 2. Get your API keys
+
+Stripe Dashboard → **Developers** → **API keys** → copy **Secret key** (`sk_live_...` or `sk_test_...` for testing).
+
+### 3. Add environment variables to Vercel
+
+| Variable | Value |
+|----------|-------|
+| `STRIPE_SECRET_KEY` | `sk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | from step 4 below |
+| `APP_URL` | `https://your-domain.vercel.app` |
+| `SUPABASE_URL` | your Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role |
+
+### 4. Set up Stripe Webhook
+
+Stripe Dashboard → **Developers** → **Webhooks** → **Add endpoint**:
+- URL: `https://your-domain.vercel.app/api/stripe-webhook`
+- Events: `checkout.session.completed`
+- Copy **Signing secret** → add as `STRIPE_WEBHOOK_SECRET` in Vercel
+
+### 5. Run the boost migration
+
+Run this in Supabase SQL Editor (or apply via migrations):
+```sql
+alter table public.listings
+  add column if not exists boosted_until timestamptz;
+
+create index if not exists listings_boosted_until_idx
+  on public.listings (boosted_until desc nulls last);
+```
+
+### 6. Redeploy Vercel
+
+After adding all env vars — trigger a redeploy in Vercel dashboard so they take effect.
+
+### Change boost prices
+
+Edit `api/create-checkout.js` — `PLANS` object:
+```js
+const PLANS = {
+  '7d':  { name: '7-day Boost',  amount: 299,  days: 7  },  // $2.99
+  '30d': { name: '30-day Boost', amount: 799,  days: 30 },  // $7.99
+};
+```
 
 ---
 
