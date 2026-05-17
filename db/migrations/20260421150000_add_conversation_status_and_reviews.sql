@@ -23,7 +23,7 @@ create table if not exists public.reviews (
   listing_id bigint not null,
   seller_id uuid not null references auth.users(id) on delete cascade,
   buyer_id uuid not null references auth.users(id) on delete cascade,
-  buyer_name text not null default 'Покупець',
+  buyer_name text not null default 'Buyer',
   rating integer not null check (rating between 1 and 5),
   comment text not null check (char_length(btrim(comment)) between 3 and 1000),
   created_at timestamptz not null default now(),

@@ -1,6 +1,6 @@
 // favorites are stored in localStorage — no login needed, works instantly
 // they disappear if the user clears browser data, which is fine for this kind of feature
-const KEY = 'olxua_favorites';
+const KEY = 'app_favorites';
 
 export const getFavorites = () => {
   try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; }

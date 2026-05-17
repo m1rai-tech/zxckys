@@ -17,7 +17,7 @@ export function Layout({ children, full }) {
   const loc = useLocation();
   const [q, setQ] = useState('');
   const [city, setCity] = useState(() => {
-    const saved = localStorage.getItem('olxua_city') || '';
+    const saved = localStorage.getItem('app_city') || '';
     // clear old Ukrainian default that came from previous version
     return saved === 'All Ukraine' || saved === 'Вся Україна' ? '' : saved;
   });
@@ -34,7 +34,7 @@ export function Layout({ children, full }) {
     };
   }, []);
 
-  useEffect(() => { localStorage.setItem('olxua_city', city); }, [city]);
+  useEffect(() => { localStorage.setItem('app_city', city); }, [city]);
 
   const onSearch = (e) => {
     e.preventDefault();
@@ -69,7 +69,7 @@ export function Layout({ children, full }) {
             placeholder="City"
             onChange={(val) => {
               setCity(val);
-              localStorage.setItem('olxua_city', val);
+              localStorage.setItem('app_city', val);
               window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
               if (loc.pathname === '/search') {
                 const params = new URLSearchParams(loc.search);
@@ -156,7 +156,7 @@ export function Layout({ children, full }) {
             style={{ flex: 1 }}
             onChange={(val) => {
               setCity(val);
-              localStorage.setItem('olxua_city', val);
+              localStorage.setItem('app_city', val);
               window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
               if (loc.pathname === '/search') {
                 const params = new URLSearchParams(loc.search);

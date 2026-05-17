@@ -37,11 +37,21 @@ export function ListingCard({ listing }) {
 
   const photo = listing.photos?.[0];
 
+  const isBoosted = listing.boosted_until && new Date(listing.boosted_until) > new Date();
+
   return (
-    <Link to={`/listing/${listing.id}`} className="listing-card">
+    <Link to={`/listing/${listing.id}`} className={`listing-card${isBoosted ? ' listing-card-boosted' : ''}`}>
       <button className={`fav-btn ${fav?'active':''}`} onClick={handleFav} aria-label="Add to favorites">
         <IconHeart size={16} fill={fav}/>
       </button>
+      {isBoosted && (
+        <span style={{
+          position: 'absolute', top: 8, left: 8, zIndex: 2,
+          background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+          color: '#fff', fontSize: 10, fontWeight: 700,
+          padding: '3px 8px', borderRadius: 6, letterSpacing: '0.04em',
+        }}>⚡ TOP</span>
+      )}
       <div className="img">
         {photo ? <img src={photo} alt={listing.title} loading="lazy"/> : (
           <div className="img-empty"><IconImage size={40}/></div>

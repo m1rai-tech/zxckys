@@ -10,6 +10,7 @@ import {
 } from '../components/Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useMeta } from '../hooks/useMeta';
 
 export default function ListingDetails() {
   const { id } = useParams();
@@ -25,6 +26,8 @@ export default function ListingDetails() {
   const [lightbox, setLightbox] = useState(false);
   const [fav, setFav] = useState(false);
   const [soldModal, setSoldModal] = useState(false);
+  const [boostModal, setBoostModal] = useState(false);
+  const [boosting, setBoosting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -46,6 +49,12 @@ export default function ListingDetails() {
       setSimilar(sim || []);
     })();
   }, [id]);
+
+  useMeta({
+    title: listing?.title,
+    description: listing?.description?.slice(0, 160) || undefined,
+    image: listing?.photos?.[0] || undefined,
+  });
 
   if (!listing) return <Layout full><div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div></Layout>;
 
@@ -103,6 +112,24 @@ export default function ListingDetails() {
     setListing({ ...listing, status: 'sold' });
     await supabase.from('listings').update({ status: 'sold' }).eq('id', listing.id);
   };
+
+  const startBoost = async (plan) => {
+    setBoosting(true);
+    try {
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId: listing.id, listingTitle: listing.title, plan }),
+      });
+      const { url, error } = await res.json();
+      if (error) { alert(error); return; }
+      window.location.href = url;
+    } finally {
+      setBoosting(false);
+    }
+  };
+
+  const isBoosted = listing?.boosted_until && new Date(listing.boosted_until) > new Date();
 
   return (
     <Layout full>
@@ -205,6 +232,16 @@ export default function ListingDetails() {
                     <option value="sold">Status: Sold</option>
                     <option value="archived">Status: Archived</option>
                   </select>
+                  <button
+                    className="btn btn-block"
+                    style={{ background: isBoosted ? '#fef9c3' : 'linear-gradient(135deg,#f59e0b,#d97706)', color: isBoosted ? '#92400e' : '#fff', border: 'none' }}
+                    onClick={() => !isBoosted && setBoostModal(true)}
+                    disabled={isBoosted}
+                  >
+                    ⚡ {isBoosted
+                      ? `Boosted until ${new Date(listing.boosted_until).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`
+                      : 'Boost to top'}
+                  </button>
                   <button className="btn btn-danger btn-block" onClick={handleDelete}>
                     <IconTrash size={16}/> Delete
                   </button>
@@ -309,6 +346,41 @@ export default function ListingDetails() {
               <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setSoldModal(false)}>Cancel</button>
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={confirmSold}>Confirm</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Boost modal */}
+      {boostModal && (
+        <div className="ld-modal-overlay" onClick={() => setBoostModal(false)}>
+          <div className="ld-modal" onClick={e => e.stopPropagation()}>
+            <div className="ld-modal-head">
+              <div className="ld-modal-icon" style={{ background: '#fef3c7', fontSize: 24 }}>⚡</div>
+              <h3>Boost listing</h3>
+              <p>Boosted listings appear at the top of search results and category pages.</p>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button
+                className="btn btn-block"
+                style={{ flex: 1, background: '#fff', border: '2px solid var(--border)', flexDirection: 'column', height: 'auto', padding: '14px 8px' }}
+                disabled={boosting}
+                onClick={() => startBoost('7d')}
+              >
+                <div style={{ fontWeight: 700, fontSize: 15 }}>7 days</div>
+                <div style={{ color: 'var(--accent)', fontWeight: 700, fontSize: 18 }}>$2.99</div>
+              </button>
+              <button
+                className="btn btn-block"
+                style={{ flex: 1, background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', border: 'none', flexDirection: 'column', height: 'auto', padding: '14px 8px', position: 'relative' }}
+                disabled={boosting}
+                onClick={() => startBoost('30d')}
+              >
+                <div style={{ position: 'absolute', top: -10, right: 8, background: '#ef4444', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 10 }}>BEST VALUE</div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>30 days</div>
+                <div style={{ fontWeight: 700, fontSize: 18 }}>$7.99</div>
+              </button>
+            </div>
+            <button className="btn btn-ghost btn-block" style={{ marginTop: 10 }} onClick={() => setBoostModal(false)}>Cancel</button>
           </div>
         </div>
       )}

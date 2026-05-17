@@ -78,7 +78,7 @@ export function Login() {
       <div className="auth-page">
         <div className="auth-card-2">
           <div className="auth-head">
-            <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>zxckys</Link>
+            <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>YOUR BRAND</Link>
             <h1>Sign In</h1>
             <p>Enter your details to continue</p>
           </div>
@@ -120,10 +120,9 @@ export function Register() {
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [err, setErr] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuth();
-  const nav = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -136,10 +135,7 @@ export function Register() {
     const { error } = await signUp(email, password, name, phone);
     setLoading(false);
     if (error) setErr(error);
-    else {
-      setSuccess(true);
-      setTimeout(() => nav('/'), 1500);
-    }
+    else setDone(true);
   };
 
   const onGoogle = async () => {
@@ -148,18 +144,48 @@ export function Register() {
     if (error) setErr(error);
   };
 
+  if (done) {
+    return (
+      <Layout full>
+        <div className="auth-page">
+          <div className="auth-card-2" style={{ textAlign: 'center' }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%',
+              background: 'var(--accent-soft)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px', fontSize: 28,
+            }}>
+              ✉️
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Check your email</h2>
+            <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+              We sent a confirmation link to <strong>{email}</strong>.<br/>
+              Click it to activate your account.
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-faint)' }}>
+              Didn't receive it? Check your spam folder.
+            </p>
+            <div className="auth-bottom">
+              <Link to="/login">Back to Sign In</Link>
+            </div>
+          </div>
+        </div>
+        <AuthStyles/>
+      </Layout>
+    );
+  }
+
   return (
     <Layout full>
       <div className="auth-page">
         <div className="auth-card-2">
           <div className="auth-head">
-            <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>zxckys</Link>
+            <Link to="/" className="logo" style={{ marginBottom: 24, display: 'inline-flex' }}>YOUR BRAND</Link>
             <h1>Sign Up</h1>
             <p>Create an account to post listings</p>
           </div>
 
           {err && <div className="alert alert-error">{err}</div>}
-          {success && <div className="alert alert-success">Registration successful! Redirecting...</div>}
 
           <form onSubmit={submit}>
             <div className="field">

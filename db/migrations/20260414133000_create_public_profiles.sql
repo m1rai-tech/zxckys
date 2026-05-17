@@ -1,8 +1,8 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
-  display_name text not null default 'Продавець',
-  full_name text not null default 'Продавець',
+  display_name text not null default 'Seller',
+  full_name text not null default 'Seller',
   rating numeric not null default 0,
   completed_deals integer not null default 0,
   created_at timestamptz not null default now(),

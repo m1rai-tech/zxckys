@@ -352,6 +352,10 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   transition: transform .15s, border-color .15s, box-shadow .15s;
   position: relative;
 }
+.listing-card-boosted {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px #f59e0b20;
+}
 .listing-card:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);

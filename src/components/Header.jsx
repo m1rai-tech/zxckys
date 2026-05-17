@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCurrency, CURRENCIES } from '../contexts/CurrencyContext';
 import { useState } from 'react';
 
-const cities = ['All Ukraine', 'Kyiv', 'Kharkiv', 'Odesa', 'Dnipro', 'Lviv', 'Vinnytsia', 'Zaporizhzhia', 'Poltava'];
+const cities = ['New York', 'Los Angeles', 'London', 'Paris', 'Berlin', 'Toronto', 'Amsterdam', 'Warsaw'];
 
 export default function Header() {
   const { user, profile, signOut } = useAuth();

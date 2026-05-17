@@ -36,6 +36,7 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 - **Status management** — mark listings as Active / Sold / Archived
 - **Sale confirmation flow** — confirm sale via chat with a dedicated button
 - **Photo upload** — multiple photos with thumbnails
+- **Paid Boost** — promote listings to the top of results for 7 or 30 days (Stripe)
 
 ### Real-time Chat
 - Instant messaging between buyer and seller
@@ -78,6 +79,8 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 | Location | OpenStreetMap Nominatim API (free, no key needed) |
 | Auth | Supabase Auth (email/password) |
 | Real-time | Supabase Realtime subscriptions |
+| Payments | Stripe Checkout (listing boost) |
+| Email | Resend via Supabase Edge Functions |
 
 ---
 
@@ -134,8 +137,20 @@ npm install
 Create a `.env` file in the project root:
 
 ```env
+# Supabase (required)
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# App URL — used by Stripe redirects (required for boost feature)
+APP_URL=https://your-domain.vercel.app
+
+# Stripe (optional — only needed for paid listing boost)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Supabase service role — used by Stripe webhook to update listings
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
 ### 4. Apply database migrations
@@ -144,7 +159,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 npm run supabase:setup
 ```
 
-Or apply the SQL files in `db/migrations/` manually via the Supabase SQL editor.
+Or apply the SQL files in `db/migrations/` manually via the Supabase SQL editor (run in filename order).
 
 ### 5. Run locally
 
@@ -162,12 +177,71 @@ npm run build
 
 ---
 
+## Deploy to Vercel
+
+1. Push the repo to GitHub
+2. Import it on [vercel.com](https://vercel.com)
+3. Add all environment variables from `.env` in **Settings → Environment Variables**
+4. Deploy — Vercel auto-deploys on every push to `main`
+
+The `api/` directory is automatically served as Vercel serverless functions.
+
+---
+
+## Stripe Setup (Paid Boost)
+
+Listing owners can pay to promote their listings to the top of search and category pages for 7 days ($2.99) or 30 days ($7.99).
+
+1. Create a [Stripe](https://stripe.com) account
+2. Copy your **Secret key** → set `STRIPE_SECRET_KEY` in env
+3. In Stripe Dashboard → **Developers → Webhooks → Add endpoint**:
+   - URL: `https://your-domain.vercel.app/api/stripe-webhook`
+   - Events: `checkout.session.completed`
+   - Copy **Signing secret** → set `STRIPE_WEBHOOK_SECRET` in env
+4. To test locally, install the [Stripe CLI](https://stripe.com/docs/stripe-cli):
+   ```bash
+   stripe listen --forward-to localhost:5173/api/stripe-webhook
+   ```
+5. Change boost prices in `api/create-checkout.js` — `PLANS` object
+
+---
+
+## Email Notifications Setup (Resend)
+
+Sellers receive an email when a buyer opens a chat. Buyers receive an email when they get a reply.
+
+1. Create a [Resend](https://resend.com) account and verify your sending domain
+2. Copy your API key
+
+**Deploy the Edge Function:**
+
+```bash
+npm install -g supabase
+supabase login
+supabase link --project-ref <your-project-ref>
+
+supabase secrets set RESEND_API_KEY=re_...
+supabase secrets set FROM_EMAIL=noreply@yourdomain.com
+supabase secrets set APP_URL=https://your-domain.vercel.app
+
+supabase functions deploy send-notification-email
+```
+
+**Create Database Webhooks in Supabase → Database → Webhooks:**
+
+| Hook name | Table | Event | Function |
+|-----------|-------|-------|----------|
+| `notify_new_conversation` | `conversations` | INSERT | `send-notification-email` |
+| `notify_new_message` | `messages` | INSERT | `send-notification-email` |
+
+---
+
 ## Database Schema (key tables)
 
 | Table | Description |
 |-------|-------------|
 | `profiles` | User profiles — name, avatar, rating, role |
-| `listings` | All ads — title, price, photos, category, location, status |
+| `listings` | All ads — title, price, photos, category, location, status, `boosted_until` |
 | `listing_extras` | Key-value attributes per listing (category-specific) |
 | `conversations` | Buyer ↔ seller chat threads, linked to a listing |
 | `messages` | Individual chat messages with read status |
@@ -175,29 +249,17 @@ npm run build
 
 ---
 
-## Deployment
-
-The app is a standard Vite SPA. Deploy to any static host:
-
-- **Vercel** — connect repo, set env vars, deploy
-- **Netlify** — same as Vercel
-- **Cloudflare Pages** — same
-
-Make sure to add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables in your deployment settings.
-
-For SPA routing to work, configure your host to redirect all routes to `index.html`.
-
----
-
 ## Customization
 
 | What | Where |
 |------|-------|
-| Brand name | `src/components/Layout.jsx` — line with `YOUR BRAND` |
+| Brand name | `src/components/Layout.jsx` line 54, `index.html` |
 | Categories | `src/lib/categories.js` |
 | Colors / fonts | `src/index.css` — `:root` CSS variables |
 | Popular cities | `src/components/LocationAutocomplete.jsx` — `POPULAR` array |
 | Currencies | `src/contexts/CurrencyContext.jsx` — `CURRENCIES` array |
+| Boost prices | `api/create-checkout.js` — `PLANS` object |
+| Email templates | `supabase/functions/send-notification-email/index.ts` |
 
 ---
 

@@ -7,19 +7,21 @@ import { supabase } from '../lib/supabase';
 import { IconPlus } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES } from '../lib/categories';
+import { useMeta } from '../hooks/useMeta';
 
 export default function Home() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  useMeta({ title: 'Home', description: 'Buy and sell anything near you — electronics, vehicles, clothing, jobs and more.' });
 
   useEffect(() => {
     const fetchListings = async (headerCity) => {
       setLoading(true);
 
       // header city takes priority, then profile city, then nothing
-      const headerOrSaved = headerCity ?? (localStorage.getItem('olxua_city') || '');
+      const headerOrSaved = headerCity ?? (localStorage.getItem('app_city') || '');
       const filterStr = headerOrSaved || (profile?.city || '');
 
       if (filterStr) {
