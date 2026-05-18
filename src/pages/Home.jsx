@@ -110,6 +110,7 @@ export default function Home() {
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
   const [recentListings, setRecentListings] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   const { user, profile } = useAuth();
   const { currency } = useCurrency();
@@ -196,7 +197,17 @@ export default function Home() {
     setPriceMax(limitedInt + (dec !== undefined ? '.' + dec.slice(0, 2) : ''));
   };
 
-  const filtered = listings.filter(l => !reportedIds.has(l.id));
+  const now = new Date();
+  const filtered = listings
+    .filter(l => !reportedIds.has(l.id))
+    .sort((a, b) => {
+      const aBoosted = a.boosted_until && new Date(a.boosted_until) > now;
+      const bBoosted = b.boosted_until && new Date(b.boosted_until) > now;
+      if (aBoosted && !bBoosted) return -1;
+      if (!aBoosted && bBoosted) return 1;
+      return 0;
+    });
+  useEffect(() => { setVisibleCount(12); }, [listings]);
 
   return (
     <Layout>
@@ -327,9 +338,22 @@ export default function Home() {
             : <Link to={user ? '/create' : '/login'} className="btn btn-primary">Post Ad</Link>}
         />
       ) : (
-        <div className="listings-grid">
-          {filtered.map(l => <ListingCard key={l.id} listing={l} />)}
-        </div>
+        <>
+          <div className="listings-grid">
+            {filtered.slice(0, visibleCount).map(l => <ListingCard key={l.id} listing={l} />)}
+          </div>
+          {visibleCount < filtered.length && (
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: '10px 32px', fontWeight: 600, fontSize: 14 }}
+                onClick={() => setVisibleCount(n => n + 6)}
+              >
+                Show more
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <style>{`
