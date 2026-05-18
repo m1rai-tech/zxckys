@@ -178,7 +178,7 @@ export default function Settings() {
                   <div className="set-grid">
                     <div className="field" style={{ margin: 0 }}>
                       <label>Name *</label>
-                      <input className="input" value={name} onChange={e=>setName(e.target.value)} required/>
+                      <input className="input" value={name} onChange={e=>setName(e.target.value.slice(0, 20))} required/>
                     </div>
                     <div className="field" style={{ margin: 0 }}>
                       <label>Phone *</label>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import Footer from './Footer';
 import { SupportWidget } from './SupportWidget';
@@ -12,6 +12,93 @@ import {
 import { getFavorites } from '../lib/favorites';
 import { LocationAutocomplete } from './LocationAutocomplete';
 
+function CurrencySelect({ currency, changeCurrency }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          height: 38,
+          padding: '0 10px',
+          background: 'var(--bg-soft)',
+          border: '1px solid',
+          borderColor: open ? 'var(--accent)' : 'var(--border)',
+          borderRadius: 'var(--radius)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          cursor: 'pointer',
+          fontSize: 13,
+          fontWeight: 500,
+          color: 'var(--text)',
+          transition: 'border-color .15s, background .15s',
+          whiteSpace: 'nowrap',
+          minWidth: 86,
+        }}
+      >
+        <span style={{ flex: 1 }}>{currency.symbol} {currency.code}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+          style={{
+            color: 'var(--text-muted)',
+            flexShrink: 0,
+            transition: 'transform .15s',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          right: 0,
+          background: '#fff',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          zIndex: 1000,
+          minWidth: '100%',
+          overflow: 'hidden',
+        }}>
+          {CURRENCIES.map(c => (
+            <div
+              key={c.code}
+              onClick={() => { changeCurrency(c.code); setOpen(false); }}
+              style={{
+                padding: '9px 12px',
+                cursor: 'pointer',
+                fontSize: 13,
+                background: currency.code === c.code ? 'var(--accent-soft)' : 'transparent',
+                color: currency.code === c.code ? 'var(--accent)' : 'var(--text)',
+                fontWeight: currency.code === c.code ? 600 : 400,
+                transition: 'background .1s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { if (currency.code !== c.code) e.currentTarget.style.background = 'var(--bg-soft)'; }}
+              onMouseLeave={e => { if (currency.code !== c.code) e.currentTarget.style.background = 'transparent'; }}
+            >
+              {c.symbol} {c.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Layout({ children, full }) {
   const { user, profile, isBanned, signOut } = useAuth();
   const { currency, changeCurrency } = useCurrency();
@@ -20,7 +107,6 @@ export function Layout({ children, full }) {
   const [q, setQ] = useState('');
   const [city, setCity] = useState(() => {
     const saved = localStorage.getItem('app_city') || '';
-    // clear old Ukrainian default that came from previous version
     return saved === 'All Ukraine' || saved === 'Вся Україна' ? '' : saved;
   });
   const [showUser, setShowUser] = useState(false);
@@ -48,6 +134,17 @@ export function Layout({ children, full }) {
 
   const initials = (profile?.name || user?.email || 'U').slice(0, 1).toUpperCase();
 
+  const handleCityChange = (val) => {
+    setCity(val);
+    localStorage.setItem('app_city', val);
+    window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
+    if (loc.pathname === '/search') {
+      const params = new URLSearchParams(loc.search);
+      if (val) params.set('city', val); else params.delete('city');
+      nav(`/search?${params.toString()}`);
+    }
+  };
+
   return (
     <div className="app">
       <header className="header">
@@ -69,25 +166,12 @@ export function Layout({ children, full }) {
             className="hdr-city"
             value={city}
             placeholder="City"
-            onChange={(val) => {
-              setCity(val);
-              localStorage.setItem('app_city', val);
-              window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
-              if (loc.pathname === '/search') {
-                const params = new URLSearchParams(loc.search);
-                if (val) params.set('city', val); else params.delete('city');
-                nav(`/search?${params.toString()}`);
-              }
-            }}
+            onChange={handleCityChange}
           />
 
-          <select
-            className="currency-select hdr-currency-desktop"
-            value={currency.code}
-            onChange={e => changeCurrency(e.target.value)}
-          >
-            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
-          </select>
+          <div className="hdr-currency-desktop">
+            <CurrencySelect currency={currency} changeCurrency={changeCurrency} />
+          </div>
 
           {user ? (
             <>
@@ -156,24 +240,9 @@ export function Layout({ children, full }) {
             value={city}
             placeholder="City or region"
             style={{ flex: 1 }}
-            onChange={(val) => {
-              setCity(val);
-              localStorage.setItem('app_city', val);
-              window.dispatchEvent(new CustomEvent('city-changed', { detail: val }));
-              if (loc.pathname === '/search') {
-                const params = new URLSearchParams(loc.search);
-                if (val) params.set('city', val); else params.delete('city');
-                nav(`/search?${params.toString()}`);
-              }
-            }}
+            onChange={handleCityChange}
           />
-          <select
-            className="currency-select"
-            value={currency.code}
-            onChange={e => changeCurrency(e.target.value)}
-          >
-            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
-          </select>
+          <CurrencySelect currency={currency} changeCurrency={changeCurrency} />
         </div>
         <form onSubmit={onSearch} className="search-wrap mobile-subbar-search">
           <IconSearch size={16}/>

@@ -1,28 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
 
 export const PHONE_CODES = [
-  { code: '+1',   iso: 'us' }, { code: '+1',   iso: 'ca' },
-  { code: '+7',   iso: 'ru' },
-  { code: '+20',  iso: 'eg' }, { code: '+27',  iso: 'za' },
-  { code: '+30',  iso: 'gr' }, { code: '+31',  iso: 'nl' },
-  { code: '+32',  iso: 'be' }, { code: '+33',  iso: 'fr' },
-  { code: '+34',  iso: 'es' }, { code: '+36',  iso: 'hu' },
-  { code: '+39',  iso: 'it' }, { code: '+40',  iso: 'ro' },
-  { code: '+41',  iso: 'ch' }, { code: '+43',  iso: 'at' },
-  { code: '+44',  iso: 'gb' }, { code: '+45',  iso: 'dk' },
-  { code: '+46',  iso: 'se' }, { code: '+47',  iso: 'no' },
-  { code: '+48',  iso: 'pl' }, { code: '+49',  iso: 'de' },
-  { code: '+51',  iso: 'pe' }, { code: '+52',  iso: 'mx' },
-  { code: '+54',  iso: 'ar' }, { code: '+55',  iso: 'br' },
-  { code: '+56',  iso: 'cl' }, { code: '+57',  iso: 'co' },
-  { code: '+60',  iso: 'my' }, { code: '+61',  iso: 'au' },
-  { code: '+62',  iso: 'id' }, { code: '+63',  iso: 'ph' },
-  { code: '+64',  iso: 'nz' }, { code: '+65',  iso: 'sg' },
-  { code: '+66',  iso: 'th' }, { code: '+81',  iso: 'jp' },
-  { code: '+82',  iso: 'kr' }, { code: '+84',  iso: 'vn' },
-  { code: '+86',  iso: 'cn' }, { code: '+90',  iso: 'tr' },
-  { code: '+91',  iso: 'in' }, { code: '+92',  iso: 'pk' },
-  { code: '+94',  iso: 'lk' }, { code: '+98',  iso: 'ir' },
+  { code: '+1', iso: 'us' }, { code: '+1', iso: 'ca' },
+  { code: '+7', iso: 'ru' },
+  { code: '+20', iso: 'eg' }, { code: '+27', iso: 'za' },
+  { code: '+30', iso: 'gr' }, { code: '+31', iso: 'nl' },
+  { code: '+32', iso: 'be' }, { code: '+33', iso: 'fr' },
+  { code: '+34', iso: 'es' }, { code: '+36', iso: 'hu' },
+  { code: '+39', iso: 'it' }, { code: '+40', iso: 'ro' },
+  { code: '+41', iso: 'ch' }, { code: '+43', iso: 'at' },
+  { code: '+44', iso: 'gb' }, { code: '+45', iso: 'dk' },
+  { code: '+46', iso: 'se' }, { code: '+47', iso: 'no' },
+  { code: '+48', iso: 'pl' }, { code: '+49', iso: 'de' },
+  { code: '+51', iso: 'pe' }, { code: '+52', iso: 'mx' },
+  { code: '+54', iso: 'ar' }, { code: '+55', iso: 'br' },
+  { code: '+56', iso: 'cl' }, { code: '+57', iso: 'co' },
+  { code: '+60', iso: 'my' }, { code: '+61', iso: 'au' },
+  { code: '+62', iso: 'id' }, { code: '+63', iso: 'ph' },
+  { code: '+64', iso: 'nz' }, { code: '+65', iso: 'sg' },
+  { code: '+66', iso: 'th' }, { code: '+81', iso: 'jp' },
+  { code: '+82', iso: 'kr' }, { code: '+84', iso: 'vn' },
+  { code: '+86', iso: 'cn' }, { code: '+90', iso: 'tr' },
+  { code: '+91', iso: 'in' }, { code: '+92', iso: 'pk' },
+  { code: '+94', iso: 'lk' }, { code: '+98', iso: 'ir' },
   { code: '+212', iso: 'ma' }, { code: '+213', iso: 'dz' },
   { code: '+216', iso: 'tn' }, { code: '+234', iso: 'ng' },
   { code: '+254', iso: 'ke' }, { code: '+255', iso: 'tz' },
@@ -84,20 +84,22 @@ export function PhoneInput({ phoneIso, phoneNum, onIsoChange, onNumChange }) {
             cursor: 'pointer', whiteSpace: 'nowrap', borderRadius: 0,
           }}
         >
-          <FlagImg iso={selected.iso}/>
+          <FlagImg iso={selected.iso} />
           <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{selected.code}</span>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>▾</span>
         </button>
 
         {open && (
           <>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)}/>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)} />
             <div style={{
               position: 'absolute', top: '100%', left: 0, zIndex: 100,
               background: '#fff', border: '1px solid var(--border)',
               borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
               maxHeight: 240, overflowY: 'auto', minWidth: 130,
               marginTop: 4,
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'var(--border) transparent',
             }}>
               {PHONE_CODES.map(c => (
                 <button
@@ -112,7 +114,7 @@ export function PhoneInput({ phoneIso, phoneNum, onIsoChange, onNumChange }) {
                     color: 'var(--text)',
                   }}
                 >
-                  <FlagImg iso={c.iso}/>
+                  <FlagImg iso={c.iso} />
                   <span>{c.code}</span>
                 </button>
               ))}
@@ -123,8 +125,9 @@ export function PhoneInput({ phoneIso, phoneNum, onIsoChange, onNumChange }) {
 
       <input
         value={phoneNum}
-        onChange={e => onNumChange(e.target.value)}
+         onChange={e => onNumChange(e.target.value.replace(/[^\d\s\-\+\(\)]/g, '').slice(0, 15))}
         placeholder="123 456 7890"
+        maxLength={12}
         style={{
           flex: 1, border: 'none', padding: '10px 12px',
           outline: 'none', fontSize: 14, background: 'transparent',

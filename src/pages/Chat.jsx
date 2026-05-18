@@ -42,9 +42,9 @@ function StatusTicks({ isRead }) {
   }
   return (
     <svg width="17" height="10" viewBox="0 0 20 12" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M1.5 6.5L5 10.5L13 1.5" stroke="#60b4f6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M6 6.5L9.5 10.5L17.5 1.5" stroke="#60b4f6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+  <path d="M1.5 6L5 10L13 1.5" stroke="#60b4f6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+  <path d="M9.5 8.5L10.5 10L18.5 1.5" stroke="#60b4f6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+</svg>
   );
 }
 
