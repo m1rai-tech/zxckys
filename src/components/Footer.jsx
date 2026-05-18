@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { CATEGORIES } from '../lib/categories';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Footer() {
+  const { user } = useAuth();
   const year = new Date().getFullYear();
 
   return (
@@ -57,18 +59,23 @@ export default function Footer() {
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-faint)', marginBottom: 4 }}>
               Account
             </div>
-            <Link to="/login" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Sign In</Link>
-            <Link to="/register" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Sign Up</Link>
+            {!user && <>
+              <Link to="/login" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Sign In</Link>
+              <Link to="/register" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Sign Up</Link>
+            </>}
             <Link to="/create" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Post Ad</Link>
-            <Link to="/me" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+            {user && <Link to="/me" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>My Profile</Link>
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>My Profile</Link>}
+            {user && <Link to="/favorites" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Favorites</Link>}
           </div>
         </div>
 
