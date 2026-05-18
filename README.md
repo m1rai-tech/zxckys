@@ -8,23 +8,6 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 
 [https://demo-market-blond.vercel.app/](https://demo-market-blond.vercel.app/)
 
----
-
-## Screenshots
-
-| Home | Chat |
-|------|------|
-| ![Home](https://github.com/user-attachments/assets/03140e6e-0f54-4678-885d-84d4285f2623) | ![Chat](https://github.com/user-attachments/assets/a322ff76-d7bb-4168-ac2b-012f80e282e9) |
-
-| Create Ad | Profile |
-|-----------|---------|
-| ![Create](https://github.com/user-attachments/assets/feef4fc9-02dc-451b-80d8-5340bada682b) | ![Profile](https://github.com/user-attachments/assets/5280e0b0-535f-4b5b-a2fb-ae3eee2344ee) |
-
-| Mobile |
-|--------|
-| ![Mobile](https://github.com/user-attachments/assets/e9bd1bec-a1da-4ec0-a305-54b5f01d127e) |
-
----
 
 ## Features
 
