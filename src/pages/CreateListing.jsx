@@ -176,8 +176,8 @@ export default function CreateListing({ edit = false }) {
               ) : (
                 <div className="photo-grid-2">
                   {photos.map((p, i) => (
-                    <div key={p} className={`photo-item-2 ${i===0?'main':''}`}>
-                      <img src={p} alt={`Photo ${i+1}`} loading="lazy"/>
+                    <div key={p} className={`photo-item-2 ${i===0?'main':''}`} style={{ height: '100px' }}>
+                      <img src={p} alt={`Photo ${i+1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
                       {i === 0 && <span className="main-badge">Main</span>}
                       <div className="photo-overlay">
                         {i > 0 && <button type="button" onClick={() => movePhoto(i, i-1)} className="overlay-btn" title="Move left">←</button>}
@@ -430,16 +430,16 @@ export default function CreateListing({ edit = false }) {
         .upload-icon { width: 56px; height: 56px; border-radius: 14px; background: #fff; color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 1px solid var(--border); }
         .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
         .upload-sub { font-size: 13px; color: var(--text-muted); }
-        .photo-grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; width: 100%; }
-        .photo-item-2 { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); isolation: isolate; }
+        .photo-grid-2 { display: flex; flex-wrap: wrap; gap: 10px; }
+        .photo-item-2 { position: relative; width: 100px; height: 100px; flex-shrink: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); box-sizing: border-box; }
         .photo-item-2.main { border: 2px solid var(--accent); }
-        .photo-item-2 > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-item-2 > img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block; }
         .main-badge { position: absolute; top: 6px; left: 6px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; z-index: 2; }
-        .photo-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; }
+        .photo-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; box-sizing: border-box; }
         .photo-item-2:hover .photo-overlay { opacity: 1; }
         .overlay-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.95); color: #111; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
         .overlay-btn.danger { background: var(--danger); color: #fff; }
-        .photo-add-2 { width: 100%; aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed var(--border-strong); border-radius: 10px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: all .15s; text-align: center; padding: 8px; }
+        .photo-add-2 { width: 100px; height: 100px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed var(--border-strong); border-radius: 10px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: all .15s; text-align: center; box-sizing: border-box; }
         .photo-add-2:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
         .cat-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
         .cat-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; color: var(--text); font-size: 12px; font-weight: 500; transition: all .15s; text-align: center; }

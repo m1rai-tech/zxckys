@@ -111,6 +111,7 @@ export default function Home() {
   const [priceMax, setPriceMax] = useState('');
   const [recentListings, setRecentListings] = useState([]);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [catListings, setCatListings] = useState([]);
 
   const { user, profile } = useAuth();
   const { currency } = useCurrency();
@@ -126,6 +127,14 @@ export default function Home() {
       const sorted = ids.map(id => data.find(l => l.id === id)).filter(Boolean);
       setRecentListings(sorted);
     });
+  }, []);
+
+  useEffect(() => {
+    supabase.from('listings').select('*').eq('status', 'active')
+      .order('boosted_until', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .limit(200)
+      .then(({ data }) => { setCatListings(data || []); });
   }, []);
 
   const fetchListings = useCallback(async (headerCity, sort = sortBy, min = priceMin, max = priceMax) => {
@@ -363,6 +372,37 @@ export default function Home() {
             )}
           </div>
         </>
+      )}
+
+      {catListings.length > 0 && (
+        <div style={{ marginTop: 40 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 24 }}>
+            Browse by category
+          </h2>
+          {CATEGORIES.map(cat => {
+            const items = catListings.filter(l => l.category === cat.slug && !reportedIds.has(l.id)).slice(0, 6);
+            if (!items.length) return null;
+            return (
+              <div key={cat.slug} style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <cat.Icon size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} /> {cat.name}
+                  </h3>
+                  <Link to={`/c/${cat.slug}`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 13, whiteSpace: 'nowrap' }}>
+                    See all →
+                  </Link>
+                </div>
+                <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                  {items.map(l => (
+                    <div key={l.id} style={{ flexShrink: 0, width: 180 }}>
+                      <ListingCard listing={l} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <style>{`
