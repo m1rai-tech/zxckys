@@ -38,26 +38,57 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 - **Currency selector** — switch between USD and EUR, price displayed everywhere accordingly
 - **Favorites** — save listings locally, count shown in the nav
 - **Similar listings** — shown at the bottom of every listing page
-- **Seller profiles** — rating, number of deals, member since date
+- **Seller profiles** — rating, number of deals, member since date, suspension status
 
 ### For Sellers
 - **Post ads in minutes** — title, description, photos, price, location, category attributes
 - **Rich category attributes** — structured fields per category (see list below)
 - **Status management** — mark listings as Active / Sold / Archived
 - **Sale confirmation flow** — confirm sale via chat with a dedicated button
-- **Photo upload** — multiple photos with thumbnails
+- **Photo upload** — multiple photos with square thumbnails
 - **Paid Boost** — promote listings to the top of results for 7 or 30 days (Stripe)
 
 ### Real-time Chat
 - Instant messaging between buyer and seller
+- Photo sharing inside chat
 - Delivery confirmation and sale flow built into chat
 - Read receipts (single / double tick)
 - Review & rating system after a completed deal
+- Auto-confirm after 7 days if buyer doesn't respond
+- Pin conversations, hide/delete chat per user
+- **Report user** button in chat header — sends a report to moderation with a reason
+
+### Support
+- **24/7 Support widget** — floating button on every page
+- FAQ with 6 built-in answers
+- Live chat with moderation if FAQ doesn't help
+- Unread message badge + sound notification for mod replies
+- Admins reply directly from the admin panel
 
 ### Admin & Moderation
-- Admin panel for managing listings and users
-- Moderators can delete any listing directly from the listing page
-- Role-based access: `user`, `moderator`, `admin`
+- **Overview dashboard** — total listings, users, conversations, reviews
+- **Listings tab** — search, status change, delete any listing
+- **Users tab** — search, role change, ban/unban with duration and reason
+- **Reports tab** — listing reports and user reports from chat, with Dismiss / Delete / Ban actions
+- **Reviews tab** — delete any review
+- **Support tab** — reply to user tickets, close (auto-deletes) tickets
+- **All Chats tab** — view every conversation on the platform, reported ones sorted first with a badge, read-only message history, ban participants directly from the chat view
+
+### Report System
+- Report any listing with a reason (Spam, Scam, Inappropriate, Wrong category, Duplicate, Other)
+- Report any user from a chat conversation
+- "Other" reason opens a custom text field
+- Reported listings hidden from reporter's feed while pending
+- Moderation resolves reports: Dismiss or Delete listing / Ban user
+
+### Ban System
+- Ban duration: 1 hour, 24 hours, 7 days, 30 days, or permanent
+- Optional ban reason stored and shown to the banned user
+- Banned users see a full-screen overlay with reason and expiry — cannot interact with the platform
+- Banned users' listings are hidden from all other users automatically via RLS
+- Listings restore automatically when a temporary ban expires
+- Admins and moderators can always see all listings including from banned users
+- Public profile shows "Account suspended" banner when user is banned
 
 ### Categories
 | Category | Key Attributes |
@@ -87,7 +118,7 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 | Backend | Supabase (PostgreSQL + Auth + Storage + Realtime) |
 | Search | PostgreSQL `pg_trgm` — fuzzy, typo-tolerant |
 | Location | OpenStreetMap Nominatim API (free, no key needed) |
-| Auth | Supabase Auth (email/password) |
+| Auth | Supabase Auth (email/password + Google OAuth) |
 | Real-time | Supabase Realtime subscriptions |
 | Payments | Stripe Checkout (listing boost) |
 | Email | Resend via Supabase Edge Functions |
@@ -99,13 +130,17 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 ```
 src/
 ├── components/
-│   ├── Layout.jsx                  # Main layout, header, sidebar, bottom nav
+│   ├── Layout.jsx                  # Main layout, header, sidebar, bottom nav, ban screen
+│   ├── Footer.jsx                  # Footer with categories and static links
+│   ├── SupportWidget.jsx           # Floating 24/7 support button with FAQ + live chat
 │   ├── ListingCard.jsx             # Card used in grids
 │   ├── LocationAutocomplete.jsx    # City search with OpenStreetMap
 │   └── Icons.jsx                   # All icon exports (Heroicons)
 ├── contexts/
-│   ├── AuthContext.jsx             # User session, profile
+│   ├── AuthContext.jsx             # User session, profile, isBanned
 │   └── CurrencyContext.jsx         # USD / EUR switching
+├── hooks/
+│   └── useReportedListings.js      # Filters out listings reported by current user
 ├── lib/
 │   ├── supabase.js                 # Supabase client
 │   ├── categories.js               # All categories + their attributes
@@ -114,15 +149,18 @@ src/
 │   ├── Home.jsx
 │   ├── Search.jsx
 │   ├── Category.jsx
-│   ├── ListingDetails.jsx
+│   ├── ListingDetails.jsx          # Report listing modal
 │   ├── CreateListing.jsx
-│   ├── Chat.jsx
-│   ├── Profile.jsx
+│   ├── Chat.jsx                    # Report user button, sale flow, reviews
+│   ├── Profile.jsx                 # My profile + public seller profile (ban banner)
 │   ├── Settings.jsx
 │   ├── Favorites.jsx
-│   ├── Admin.jsx
+│   ├── Admin.jsx                   # Full admin panel (listings, users, reports, reviews, support, chats)
+│   ├── Static.jsx                  # Privacy, Terms, Help pages
 │   └── Auth.jsx
 └── index.css                       # All styles (CSS variables, components, responsive)
+db/
+└── migrations/                     # SQL migrations — apply in filename order
 ```
 
 ---
@@ -165,11 +203,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ### 4. Apply database migrations
 
-```bash
-npm run supabase:setup
-```
-
-Or apply the SQL files in `db/migrations/` manually via the Supabase SQL editor (run in filename order).
+Run all `.sql` files in `db/migrations/` in filename order via the Supabase SQL editor.
 
 ### 5. Run locally
 
@@ -206,11 +240,9 @@ Listing owners can pay to promote their listings to the top of search and catego
 
 Go to [stripe.com](https://stripe.com) → Sign up.
 
-When asked for a **business name**, enter your brand name (e.g. `Marketplace Platform`). You can change it later in Stripe Dashboard → Settings → Business details.
-
 ### 2. Get your API keys
 
-Stripe Dashboard → **Developers** → **API keys** → copy **Secret key** (`sk_live_...` or `sk_test_...` for testing).
+Stripe Dashboard → **Developers** → **API keys** → copy **Secret key**.
 
 ### 3. Add environment variables to Vercel
 
@@ -229,22 +261,7 @@ Stripe Dashboard → **Developers** → **Webhooks** → **Add endpoint**:
 - Events: `checkout.session.completed`
 - Copy **Signing secret** → add as `STRIPE_WEBHOOK_SECRET` in Vercel
 
-### 5. Run the boost migration
-
-Run this in Supabase SQL Editor (or apply via migrations):
-```sql
-alter table public.listings
-  add column if not exists boosted_until timestamptz;
-
-create index if not exists listings_boosted_until_idx
-  on public.listings (boosted_until desc nulls last);
-```
-
-### 6. Redeploy Vercel
-
-After adding all env vars — trigger a redeploy in Vercel dashboard so they take effect.
-
-### Change boost prices
+### 5. Change boost prices
 
 Edit `api/create-checkout.js` — `PLANS` object:
 ```js
@@ -286,16 +303,19 @@ supabase functions deploy send-notification-email
 
 ---
 
-## Database Schema (key tables)
+## Database Schema
 
 | Table | Description |
 |-------|-------------|
-| `profiles` | User profiles — name, avatar, rating, role |
+| `profiles` | User profiles — name, avatar, rating, role, `is_banned`, `banned_until`, `ban_reason` |
 | `listings` | All ads — title, price, photos, category, location, status, `boosted_until` |
 | `listing_extras` | Key-value attributes per listing (category-specific) |
 | `conversations` | Buyer ↔ seller chat threads, linked to a listing |
-| `messages` | Individual chat messages with read status |
+| `messages` | Individual chat messages with read status and image support |
 | `reviews` | Ratings left after completed deals |
+| `reports` | Listing reports and user reports from chat — pending / dismissed |
+| `support_tickets` | Support chat sessions between users and moderators |
+| `support_messages` | Messages inside support tickets |
 
 ---
 
@@ -303,13 +323,14 @@ supabase functions deploy send-notification-email
 
 | What | Where |
 |------|-------|
-| Brand name | `src/components/Layout.jsx` line 54, `index.html` |
+| Brand name | `src/components/Layout.jsx` line 56, `index.html` |
 | Categories | `src/lib/categories.js` |
 | Colors / fonts | `src/index.css` — `:root` CSS variables |
 | Popular cities | `src/components/LocationAutocomplete.jsx` — `POPULAR` array |
 | Currencies | `src/contexts/CurrencyContext.jsx` — `CURRENCIES` array |
 | Boost prices | `api/create-checkout.js` — `PLANS` object |
 | Email templates | `supabase/functions/send-notification-email/index.ts` |
+| Support FAQ | `src/components/SupportWidget.jsx` — `FAQ` array |
 
 ---
 
