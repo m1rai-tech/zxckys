@@ -1,4 +1,12 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
+// browser doesn't scroll to top on navigation by default — this fixes that
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 import { AuthProvider } from './contexts/AuthContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import Home from './pages/Home';
@@ -41,6 +49,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CurrencyProvider>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Home/>}/>
           <Route path="/login" element={<Login/>}/>

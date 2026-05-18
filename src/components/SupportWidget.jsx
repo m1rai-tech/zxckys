@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { IconMessage, IconClose, IconSend } from './Icons';
 
@@ -31,6 +32,7 @@ const playSound = () => {
 
 export function SupportWidget() {
   const { user } = useAuth();
+  const loc = useLocation();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState('faq');
   const [selected, setSelected] = useState(null);
@@ -42,7 +44,9 @@ export function SupportWidget() {
   const [unread, setUnread] = useState(0);
   const prevIdsRef = useRef(new Set());
   const bottomRef = useRef(null);
+  const hidden = loc.pathname === '/settings' && window.matchMedia('(max-width: 640px)').matches;
 
+  // poll every 4 seconds for new moderator replies while the chat is open
   useEffect(() => {
     if (mode !== 'chat' || !ticketId) return;
     const load = async () => {
@@ -58,6 +62,7 @@ export function SupportWidget() {
     return () => clearInterval(iv);
   }, [mode, ticketId]);
 
+  // play a sound and show a badge when the moderator sends a new message
   useEffect(() => {
     if (messages.length === 0) return;
     const newModMsgs = messages.filter(m => m.is_mod && !prevIdsRef.current.has(m.id));
@@ -76,6 +81,7 @@ export function SupportWidget() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, mode]);
 
+  // reuse the existing open ticket if the user already has one, otherwise create a new one
   const startChat = async () => {
     if (!user) return;
     setLoadingChat(true);
@@ -134,7 +140,7 @@ export function SupportWidget() {
     <>
       {open && (
         <div className="support-panel" style={{
-          position: 'fixed', right: 24, bottom: 88, zIndex: 200,
+          position: 'fixed', right: 24, zIndex: 200,
           width: 340, maxHeight: 520,
           background: '#fff', border: '1px solid var(--border)',
           borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.13)',
@@ -256,7 +262,7 @@ export function SupportWidget() {
         </div>
       )}
 
-      <div className="support-btn" style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 200 }}>
+      <div className="support-btn" style={{ position: 'fixed', right: 24, zIndex: 200, opacity: (!open && hidden) ? 0 : 1, pointerEvents: (!open && hidden) ? 'none' : 'auto', transition: 'opacity .25s, bottom .25s' }}>
         {unread > 0 && !open && (
           <div style={{
             position: 'absolute', top: -4, right: -4,

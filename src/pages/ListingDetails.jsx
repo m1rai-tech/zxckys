@@ -42,12 +42,14 @@ export default function ListingDetails() {
       const { data } = await supabase.from('listings').select('*').eq('id', id).maybeSingle();
       if (!data) return;
       setListing(data);
+      // remember this listing so it shows up in "Recently viewed" on the home page
       const viewed = JSON.parse(localStorage.getItem('recently_viewed') || '[]');
-      localStorage.setItem('recently_viewed', JSON.stringify([id, ...viewed.filter(v => v !== id)].slice(0, 12)));
+      localStorage.setItem('recently_viewed', JSON.stringify([id, ...viewed.filter(v => v !== id)].slice(0, 20)));
       const { data: s } = await supabase.from('profiles').select('*').eq('id', data.user_id).maybeSingle();
       setSeller(s);
       const { data: e } = await supabase.from('listing_extras').select('*').eq('listing_id', id);
       setExtras(e || []);
+      // similar_listings is a postgres function that matches by title keywords and same category
       const { data: sim } = await supabase.rpc('similar_listings', {
         p_id: id,
         p_title: data.title,
@@ -77,6 +79,7 @@ export default function ListingDetails() {
     return `${currency.symbol}${num.toLocaleString('en-US')}`;
   };
 
+  // open or create a conversation between this buyer and the seller
   const startChat = async () => {
     if (!user) { nav('/login'); return; }
     if (isOwner) return;
@@ -120,6 +123,7 @@ export default function ListingDetails() {
     await supabase.from('listings').update({ status: 'sold' }).eq('id', listing.id);
   };
 
+  // sends user to Stripe checkout — on success Stripe webhook updates boosted_until in the DB
   const startBoost = async (plan) => {
     setBoosting(true);
     try {
@@ -138,6 +142,7 @@ export default function ListingDetails() {
 
   const isBoosted = listing?.boosted_until && new Date(listing.boosted_until) > new Date();
 
+  // upsert so the same user can't send duplicate reports for the same listing
   const submitReport = async () => {
     const finalReason = reportReason === 'Other' ? (reportOtherText.trim() || 'Other') : reportReason;
     if (!finalReason) return;
@@ -217,14 +222,6 @@ export default function ListingDetails() {
               </div>
             )}
 
-            {similar.length > 0 && (
-              <div style={{ marginTop: 32 }}>
-                <h2 className="ld-section-title">Similar listings</h2>
-                <div className="listings-grid">
-                  {similar.map((l) => <ListingCard key={l.id} listing={l}/>)}
-                </div>
-              </div>
-            )}
           </div>
 
           <aside className="ld-sidebar">
@@ -344,6 +341,15 @@ export default function ListingDetails() {
               </ul>
             </div>
           </aside>
+
+          {similar.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <h2 className="ld-section-title">Similar listings</h2>
+              <div className="listings-grid">
+                {similar.map((l) => <ListingCard key={l.id} listing={l}/>)}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

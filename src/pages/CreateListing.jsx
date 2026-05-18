@@ -27,6 +27,7 @@ export default function CreateListing({ edit = false }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [tappedPhoto, setTappedPhoto] = useState(null);
 
   useEffect(() => {
     if (loading) return;
@@ -57,6 +58,7 @@ export default function CreateListing({ edit = false }) {
 
   const cat = getCategory(category);
 
+  // uploads photos to Supabase Storage and saves the public URLs in state
   const uploadFiles = async (files) => {
     if (!user || files.length === 0 || uploading) return;
     setUploading(true);
@@ -121,6 +123,7 @@ export default function CreateListing({ edit = false }) {
     }
 
     if (listingId) {
+      // always wipe and re-insert extras so we don't leave stale attributes behind
       await supabase.from('listing_extras').delete().eq('listing_id', listingId);
       const rows = Object.entries(extras).filter(([_, v]) => v).map(([key, value]) => ({ listing_id: listingId, key, value }));
       if (rows.length) await supabase.from('listing_extras').insert(rows);
@@ -174,22 +177,42 @@ export default function CreateListing({ edit = false }) {
                     onChange={(e) => { if (e.target.files) uploadFiles(Array.from(e.target.files)); e.target.value = ''; }}/>
                 </label>
               ) : (
-                <div className="photo-grid-2">
+                <div className="photo-grid-2" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-start' }}>
                   {photos.map((p, i) => (
-                    <div key={p} className={`photo-item-2 ${i===0?'main':''}`} style={{ height: '100px' }}>
-                      <img src={p} alt={`Photo ${i+1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
+                    <div key={p}
+                      // tapped class shows the overlay — needed on mobile where CSS :hover doesn't fire
+      className={`photo-item-2 photo-size-mobile${tappedPhoto === i ? ' tapped' : ''}`}
+                      style={{
+                        position: 'relative', width: 200, height: 200, flexShrink: 0,
+                        borderRadius: 10, overflow: 'hidden', boxSizing: 'border-box',
+                        border: i === 0 ? '2px solid var(--accent)' : '1px solid var(--border)',
+                        backgroundImage: `url(${p})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                      onClick={(e) => {
+                        if (e.target.closest('.overlay-btn')) return;
+                        setTappedPhoto(tappedPhoto === i ? null : i);
+                      }}
+                    >
                       {i === 0 && <span className="main-badge">Main</span>}
                       <div className="photo-overlay">
-                        {i > 0 && <button type="button" onClick={() => movePhoto(i, i-1)} className="overlay-btn" title="Move left">←</button>}
-                        {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i+1)} className="overlay-btn" title="Move right">→</button>}
-                        <button type="button" onClick={() => setPhotos(prev => prev.filter((_,j)=>j!==i))} className="overlay-btn danger" title="Delete">
+                        {i > 0 && <button type="button" onClick={() => { movePhoto(i, i-1); setTappedPhoto(null); }} className="overlay-btn" title="Move left">←</button>}
+                        {i < photos.length - 1 && <button type="button" onClick={() => { movePhoto(i, i+1); setTappedPhoto(null); }} className="overlay-btn" title="Move right">→</button>}
+                        <button type="button" onClick={() => { setPhotos(prev => prev.filter((_,j)=>j!==i)); setTappedPhoto(null); }} className="overlay-btn danger" title="Delete">
                           <IconClose size={14}/>
                         </button>
                       </div>
                     </div>
                   ))}
                   {photos.length < 12 && (
-                    <label className="photo-add-2">
+                    <label className="photo-size-mobile" style={{
+                      width: 200, height: 200, flexShrink: 0, display: 'flex',
+                      flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: 4, border: '1.5px dashed var(--border-strong)', borderRadius: 10,
+                      color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer',
+                      transition: 'all .15s', textAlign: 'center', boxSizing: 'border-box',
+                    }}>
                       <IconPlus size={20}/>
                       <span>{uploading ? 'Uploading...' : `Add (${photos.length}/12)`}</span>
                       <input type="file" accept="image/*" multiple style={{display:'none'}}
@@ -430,13 +453,13 @@ export default function CreateListing({ edit = false }) {
         .upload-icon { width: 56px; height: 56px; border-radius: 14px; background: #fff; color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 1px solid var(--border); }
         .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
         .upload-sub { font-size: 13px; color: var(--text-muted); }
-        .photo-grid-2 { display: flex; flex-wrap: wrap; gap: 10px; }
-        .photo-item-2 { position: relative; width: 100px; height: 100px; flex-shrink: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); box-sizing: border-box; }
+        .photo-grid-2 { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: flex-start; }
+        .photo-item-2 { position: relative; width: 100px; height: 100px; min-height: 100px; flex-shrink: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); box-sizing: border-box; }
         .photo-item-2.main { border: 2px solid var(--accent); }
-        .photo-item-2 > img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block; }
+        .photo-item-2 > img { width: 100% !important; height: 100% !important; max-height: 100px !important; object-fit: cover !important; display: block; }
         .main-badge { position: absolute; top: 6px; left: 6px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; z-index: 2; }
         .photo-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; box-sizing: border-box; }
-        .photo-item-2:hover .photo-overlay { opacity: 1; }
+        .photo-item-2:hover .photo-overlay, .photo-item-2.tapped .photo-overlay { opacity: 1; }
         .overlay-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.95); color: #111; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
         .overlay-btn.danger { background: var(--danger); color: #fff; }
         .photo-add-2 { width: 100px; height: 100px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed var(--border-strong); border-radius: 10px; color: var(--text-muted); font-size: 12px; cursor: pointer; transition: all .15s; text-align: center; box-sizing: border-box; }
@@ -490,6 +513,8 @@ export default function CreateListing({ edit = false }) {
           .price-options { grid-template-columns: 1fr; }
           .cat-picker { grid-template-columns: repeat(2, 1fr); }
           .create-head h1 { font-size: 22px; }
+          .photo-grid-2 { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .photo-size-mobile { width: 100% !important; height: auto !important; aspect-ratio: 1 !important; padding-bottom: 0 !important; }
         }
       `}</style>
     </Layout>

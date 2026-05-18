@@ -105,9 +105,10 @@ export function Layout({ children, full }) {
   const nav = useNavigate();
   const loc = useLocation();
   const [q, setQ] = useState('');
+  // city is remembered between sessions — empty string means "show all cities"
   const [city, setCity] = useState(() => {
     const saved = localStorage.getItem('app_city') || '';
-    return saved === 'All Ukraine' || saved === 'Вся Україна' ? '' : saved;
+    return saved === 'All Ukraine' ? '' : saved;
   });
   const [showUser, setShowUser] = useState(false);
   const [favCount, setFavCount] = useState(getFavorites().length);
@@ -133,7 +134,10 @@ export function Layout({ children, full }) {
   };
 
   const initials = (profile?.name || user?.email || 'U').slice(0, 1).toUpperCase();
+  // these pages have their own layout and don't need the extra search/city row
+  const hideSubbar = loc.pathname === '/chat' || loc.pathname === '/me' || loc.pathname === '/my-listings' || loc.pathname === '/settings' || loc.pathname.startsWith('/u/');
 
+  // fire a custom event so the home/search pages re-fetch without a full reload
   const handleCityChange = (val) => {
     setCity(val);
     localStorage.setItem('app_city', val);
@@ -234,7 +238,7 @@ export function Layout({ children, full }) {
         </div>
       </header>
 
-      <div className="mobile-subbar">
+      {!hideSubbar && <div className="mobile-subbar">
         <div className="mobile-subbar-row1">
           <LocationAutocomplete
             value={city}
@@ -252,7 +256,7 @@ export function Layout({ children, full }) {
             style={{ minWidth: 0, flex: 1 }}
           />
         </form>
-      </div>
+      </div>}
 
       {full ? (
         <div className="main-full">{children}</div>
@@ -317,7 +321,8 @@ export function Layout({ children, full }) {
       )}
 
       <nav className="bottom-nav">
-        <NavLink to="/" end className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/" end className={({isActive}) => `nav-item${isActive ? ' active' : ''}`}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <IconHome size={22}/>
           <span>Home</span>
         </NavLink>

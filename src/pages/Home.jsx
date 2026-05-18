@@ -1,15 +1,115 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+
+// horizontal scroll row with mouse-wheel support and a visual progress bar
+function HScrollRow({ style, children }) {
+  const ref = useRef(null);
+  const [thumb, setThumb] = useState({ width: 0, left: 0 });
+  const [showBar, setShowBar] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      if (scrollWidth <= clientWidth) { setShowBar(false); return; }
+      setShowBar(true);
+      const w = (clientWidth / scrollWidth) * 100;
+      const l = (scrollLeft / (scrollWidth - clientWidth)) * (100 - w);
+      setThumb({ width: w, left: l });
+    };
+
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener('scroll', update);
+      el.removeEventListener('wheel', onWheel);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  return (
+    <div>
+      <div ref={ref} style={style}>{children}</div>
+      {showBar && (
+        <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: 2,
+            background: 'var(--text-muted)',
+            width: `${thumb.width}%`,
+            marginLeft: `${thumb.left}%`,
+            transition: 'margin-left 0.08s, width 0.08s',
+          }} />
+        </div>
+      )}
+    </div>
+  );
+}
+import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ListingCard } from '../components/ListingCard';
 import { Empty } from '../components/Empty';
 import { supabase } from '../lib/supabase';
-import { IconPlus } from '../components/Icons';
+import { IconPlus, IconHeart } from '../components/Icons';
+import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES } from '../lib/categories';
 import { useMeta } from '../hooks/useMeta';
 import { useReportedListings } from '../hooks/useReportedListings';
 import { useCurrency } from '../contexts/CurrencyContext';
+
+// compact horizontal card used in the "Browse by category" rows at the bottom
+function CatCard({ listing }) {
+  const { currency } = useCurrency();
+  const [fav, setFav] = useState(() => isFavorite(listing.id));
+  const isBoosted = listing.boosted_until && new Date(listing.boosted_until) > new Date();
+  const hasPrice = !listing.is_free && listing.price != null && listing.price !== '';
+  const date = new Date(listing.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  return (
+    <Link to={`/listing/${listing.id}`} style={{
+      display: 'block', textDecoration: 'none', color: 'var(--text)',
+      width: 160, flexShrink: 0, borderRadius: 12, overflow: 'hidden',
+      background: 'var(--bg-card)',
+      border: isBoosted ? '2px solid #f59e0b' : '1px solid var(--border)',
+      boxShadow: isBoosted ? '0 0 0 3px #fef3c7' : 'none',
+    }}>
+      <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', background: 'var(--bg-soft)', overflow: 'hidden' }}>
+        {listing.photos?.[0]
+          ? <img src={listing.photos[0]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 24 }}>📷</div>}
+        {isBoosted && (
+          <div style={{ position: 'absolute', top: 7, left: 7, background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.03em' }}>TOP</div>
+        )}
+        <button
+          style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', padding: 0 }}
+          onClick={e => { e.preventDefault(); e.stopPropagation(); setFav(toggleFavorite(listing.id)); }}
+        >
+          <IconHeart size={13} fill={fav} style={{ color: fav ? '#ef4444' : 'var(--text-muted)' }} />
+        </button>
+      </div>
+      <div style={{ padding: '8px 10px 10px' }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', marginBottom: 3 }}>
+          {listing.is_free ? 'Free' : hasPrice ? `${currency.symbol}${Number(listing.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 8 }}>{listing.title}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 4 }}>{listing.location?.split(',')[0]}</span>
+          <span style={{ flexShrink: 0 }}>{date}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
@@ -111,14 +211,14 @@ export default function Home() {
   const [priceMax, setPriceMax] = useState('');
   const [recentListings, setRecentListings] = useState([]);
   const [visibleCount, setVisibleCount] = useState(12);
-  const [catListings, setCatListings] = useState([]);
+  const [catListings, setCatListings] = useState(null);
 
   const { user, profile } = useAuth();
   const { currency } = useCurrency();
-  const navigate = useNavigate();
   const reportedIds = useReportedListings();
   useMeta({ title: 'Home', description: 'Buy and sell anything near you — electronics, vehicles, clothing, jobs and more.' });
 
+  // load listings the user recently viewed, preserving the order they visited them
   useEffect(() => {
     const ids = JSON.parse(localStorage.getItem('recently_viewed') || '[]');
     if (!ids.length) return;
@@ -129,18 +229,20 @@ export default function Home() {
     });
   }, []);
 
+  // separate fetch for the category sections — bigger pool, boosted sort done in JS to avoid DB quirks
   useEffect(() => {
     supabase.from('listings').select('*').eq('status', 'active')
-      .order('boosted_until', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(200)
-      .then(({ data }) => { setCatListings(data || []); });
+      .then(({ data, error }) => {
+        if (!error && data) setCatListings(data);
+      });
   }, []);
 
+  // re-runs whenever city, sort, or price filter changes — tries city match first, falls back to all
   const fetchListings = useCallback(async (headerCity, sort = sortBy, min = priceMin, max = priceMax) => {
     setLoading(true);
-    const headerOrSaved = headerCity ?? (localStorage.getItem('app_city') || '');
-    const filterStr = headerOrSaved || (profile?.city || '');
+    const filterStr = headerCity ?? (localStorage.getItem('app_city') || '');
 
     const applyFilters = (q) => {
       if (min !== '') q = q.gte('price', Number(min));
@@ -175,7 +277,7 @@ export default function Home() {
     );
     setListings(data || []);
     setLoading(false);
-  }, [profile?.city, sortBy, priceMin, priceMax]);
+  }, [sortBy, priceMin, priceMax]);
 
   useEffect(() => {
     fetchListings();
@@ -206,6 +308,7 @@ export default function Home() {
     setPriceMax(limitedInt + (dec !== undefined ? '.' + dec.slice(0, 2) : ''));
   };
 
+  // hide reported listings and float boosted ones to the top
   const now = new Date();
   const filtered = listings
     .filter(l => !reportedIds.has(l.id))
@@ -239,36 +342,12 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mobile-categories" style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
-          Categories
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-          {CATEGORIES.map(c => (
-            <Link key={c.slug} to={`/c/${c.slug}`} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 8, padding: '14px 8px',
-              background: 'var(--bg-card)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)', textDecoration: 'none',
-              color: 'var(--text)', fontSize: 12, fontWeight: 500,
-              textAlign: 'center', transition: 'border-color .15s, background .15s', minHeight: 72,
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-soft)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--bg-card)'; }}
-            >
-              <c.Icon size={24} style={{ color: 'var(--accent)' }} />
-              <span style={{ lineHeight: 1.3 }}>{c.name}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {recentListings.length > 0 && (
         <div style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
             Recently viewed
           </h2>
-          <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+          <HScrollRow style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', touchAction: 'pan-x', overscrollBehaviorX: 'contain' }}>
             {recentListings.filter(l => !reportedIds.has(l.id)).map(l => (
               <Link key={l.id} to={`/listing/${l.id}`} style={{ textDecoration: 'none', color: 'var(--text)', flexShrink: 0, width: 130 }}>
                 <div style={{ width: 130, height: 96, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-soft)', border: '1px solid var(--border)', marginBottom: 6 }}>
@@ -278,22 +357,17 @@ export default function Home() {
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
-                  {l.is_free ? 'Free' : l.price ? `${currency.symbol}${Number(l.price).toLocaleString()}` : '—'}
+                  {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${currency.symbol}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
                 </div>
               </Link>
             ))}
-          </div>
+          </HScrollRow>
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', margin: 0 }}>
-          Recent listings
-        </h2>
-        <Link to="/search" style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 14 }}>
-          All →
-        </Link>
-      </div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', margin: '0 0 12px' }}>
+        Recent listings
+      </h2>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
         <SortSelect value={sortBy} onChange={setSortBy} />
@@ -374,31 +448,37 @@ export default function Home() {
         </>
       )}
 
-      {catListings.length > 0 && (
+      {catListings !== null && (
         <div style={{ marginTop: 40 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 24 }}>
             Browse by category
           </h2>
           {CATEGORIES.map(cat => {
-            const items = catListings.filter(l => l.category === cat.slug && !reportedIds.has(l.id)).slice(0, 6);
+            const now = new Date();
+            const items = catListings
+              .filter(l => l.category === cat.slug && !reportedIds.has(l.id))
+              .sort((a, b) => {
+                const ab = a.boosted_until && new Date(a.boosted_until) > now;
+                const bb = b.boosted_until && new Date(b.boosted_until) > now;
+                if (ab && !bb) return -1;
+                if (!ab && bb) return 1;
+                return 0;
+              })
+              .slice(0, 12);
             if (!items.length) return null;
             return (
-              <div key={cat.slug} style={{ marginBottom: 32 }}>
+              <div key={cat.slug} style={{ marginBottom: 40 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
                     <cat.Icon size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} /> {cat.name}
                   </h3>
-                  <Link to={`/c/${cat.slug}`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 13, whiteSpace: 'nowrap' }}>
+                  <Link to={`/c/${cat.slug}`} className="btn btn-ghost" style={{ fontSize: 13, padding: '6px 16px' }}>
                     See all →
                   </Link>
                 </div>
-                <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
-                  {items.map(l => (
-                    <div key={l.id} style={{ flexShrink: 0, width: 180 }}>
-                      <ListingCard listing={l} />
-                    </div>
-                  ))}
-                </div>
+                <HScrollRow style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none', touchAction: 'pan-x', overscrollBehaviorX: 'contain' }}>
+                  {items.map(l => <CatCard key={l.id} listing={l} />)}
+                </HScrollRow>
               </div>
             );
           })}
@@ -407,8 +487,6 @@ export default function Home() {
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-        .mobile-categories { display: none; }
-        @media (max-width: 900px) { .mobile-categories { display: block; } }
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }

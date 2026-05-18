@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
+// wraps the whole app so any page can ask "who's logged in?" via useAuth()
 const AuthCtx = createContext({});
 export const useAuth = () => useContext(AuthCtx);
 
@@ -9,12 +10,14 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // pull extra user data (name, avatar, ban status) from our profiles table
   const loadProfile = async (uid) => {
     const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
     setProfile(data);
   };
 
   useEffect(() => {
+    // restore session on page load, then stay subscribed to login/logout events
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) loadProfile(session.user.id).finally(() => setLoading(false));
@@ -60,6 +63,7 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
+  // true if banned permanently OR if the temp ban hasn't expired yet
   const isBanned = !!(profile?.is_banned && (!profile?.banned_until || new Date(profile.banned_until) > new Date()));
 
   return (

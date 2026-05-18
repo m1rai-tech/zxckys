@@ -293,8 +293,8 @@ export default function Settings() {
         .danger-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
         @media (max-width: 900px) {
           .settings-grid { grid-template-columns: 1fr; }
-          .settings-tabs { position: static; flex-direction: row; overflow-x: auto; }
-          .stab { flex-shrink: 0; min-width: 200px; }
+          .settings-tabs { position: static; flex-direction: row; overflow-x: hidden; }
+          .stab { flex: 1; min-width: 0; justify-content: center; }
           .set-grid { grid-template-columns: 1fr; }
           .avatar-row { flex-direction: column; align-items: flex-start; gap: 12px; }
         }

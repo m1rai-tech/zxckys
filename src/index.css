@@ -898,7 +898,8 @@ footer { display: block; }
 .hdr-auth-mobile { display: none; }
 
 @media (max-width: 640px) {
-  .app { padding-bottom: 60px; }
+  .header { position: fixed; width: 100%; }
+  .app { padding-top: 64px; padding-bottom: 60px; }
   .header-inner { padding: 0 12px; gap: 8px; }
 
   .bottom-nav {
@@ -964,9 +965,6 @@ footer { display: block; }
     padding: 0 12px;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
-    position: sticky;
-    top: 64px;
-    z-index: 48;
     overflow: visible;
   }
   .mobile-subbar-row1 {
