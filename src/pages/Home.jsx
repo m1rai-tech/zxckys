@@ -342,8 +342,8 @@ export default function Home() {
           <div className="listings-grid">
             {filtered.slice(0, visibleCount).map(l => <ListingCard key={l.id} listing={l} />)}
           </div>
-          {visibleCount < filtered.length && (
-            <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <div style={{ textAlign: 'center', marginTop: 24, display: 'flex', gap: 10, justifyContent: 'center' }}>
+            {visibleCount < filtered.length && (
               <button
                 className="btn btn-ghost"
                 style={{ padding: '10px 32px', fontWeight: 600, fontSize: 14 }}
@@ -351,8 +351,17 @@ export default function Home() {
               >
                 Show more
               </button>
-            </div>
-          )}
+            )}
+            {visibleCount > 12 && (
+              <button
+                className="btn btn-ghost"
+                style={{ padding: '10px 32px', fontWeight: 600, fontSize: 14 }}
+                onClick={() => setVisibleCount(12)}
+              >
+                Hide
+              </button>
+            )}
+          </div>
         </>
       )}
 
