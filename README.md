@@ -1,4 +1,4 @@
-# YOUR BRAND — Modern Classifieds Marketplace
+# Marketplace — Modern Classifieds Platform
 
 A fast, clean, and fully-featured classifieds marketplace built for international buyers and sellers. Post ads, chat in real time, leave reviews, and find anything — from electronics to real estate.
 
@@ -6,11 +6,7 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 
 ## Live Demo
 
-🔗 [zxckys.vercel.app](https://zxckys.vercel.app)
-
-**Test account** (no registration needed):
-- Email: `demo@marketplace.com`
-- Password: `demo1234`
+[https://demo-market-blond.vercel.app/](https://demo-market-blond.vercel.app/)
 
 ---
 
@@ -35,67 +31,68 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 ### For Buyers
 - **Smart search** — fuzzy/typo-tolerant search powered by PostgreSQL `pg_trgm`
 - **Global location filter** — autocomplete powered by OpenStreetMap, works for any city in the world
-- **Currency selector** — switch between USD and EUR, price displayed everywhere accordingly
+- **Currency selector** — switch between USD and EUR, prices displayed everywhere accordingly
 - **Favorites** — save listings locally, count shown in the nav
 - **Similar listings** — shown at the bottom of every listing page
 - **Seller profiles** — rating, number of deals, member since date, suspension status
 - **Price filter** — min/max price range on home and search pages
-- **Sort options** — Newest, Featured first, Price low→high, Price high→low
-- **Recently viewed** — horizontal scroll row of last 12 visited listings, stored locally
+- **Sort options** — Newest, Featured first, Price low to high, Price high to low
+- **Recently viewed** — horizontal scroll strip of last 12 visited listings, stored locally
 
 ### For Sellers
 - **Post ads in minutes** — title, description, photos, price, location, category attributes
-- **Rich category attributes** — structured fields per category (see list below)
-- **Status management** — mark listings as Active / Sold / Archived
+- **Rich category attributes** — structured fields per category
+- **Status management** — mark listings as Active, Sold, or Archived
 - **Sale confirmation flow** — confirm sale via chat with a dedicated button
 - **Photo upload** — multiple photos with square thumbnails
-- **Paid Boost** — promote listings to the top of results for 7 or 30 days (Stripe)
+- **Paid Boost** — promote listings to the top of results for 7 or 30 days via Stripe
 
 ### Real-time Chat
 - Instant messaging between buyer and seller
 - Photo sharing inside chat
 - Delivery confirmation and sale flow built into chat
-- Read receipts (single / double tick)
-- Review & rating system after a completed deal
-- Auto-confirm after 7 days if buyer doesn't respond
-- Pin conversations, hide/delete chat per user
-- **Report user** button in chat header — sends a report to moderation with a reason
+- Read receipts (single and double tick)
+- Review and rating system after a completed deal
+- Auto-confirm after 7 days if buyer does not respond
+- Pin conversations, hide or delete chat per user
+- Report user button in chat header — sends a report to moderation with a reason
 
 ### Support
-- **24/7 Support widget** — floating button on every page
+- 24/7 support widget — floating button on every page
 - FAQ with 6 built-in answers
-- Live chat with moderation if FAQ doesn't help
-- Unread message badge + sound notification for mod replies
+- Live chat with moderation if FAQ does not help
+- Unread message badge and sound notification for moderator replies
 - Admins reply directly from the admin panel
 
-### Admin & Moderation
-- **Overview dashboard** — total listings, users, conversations, reviews
-- **Listings tab** — search, status change, delete any listing
-- **Users tab** — search, role change, ban/unban with duration and reason
-- **Reports tab** — listing reports and user reports from chat, with Dismiss / Delete / Ban actions
-- **Reviews tab** — delete any review
-- **Support tab** — reply to user tickets, close (auto-deletes) tickets
-- **All Chats tab** — view every conversation on the platform, reported ones sorted first with a badge, read-only message history, ban participants directly from the chat view
+### Admin and Moderation
+- Overview dashboard — total listings, users, conversations, reviews
+- Listings tab — search, change status, delete any listing
+- Users tab — search, change role, ban or unban with duration and reason
+- Reports tab — listing reports and user reports from chat, with Dismiss, Delete, and Ban actions
+- Reviews tab — delete any review
+- Support tab — reply to user tickets, close tickets
+- All Chats tab — view every conversation on the platform, reported ones sorted first with a badge, read-only message history, ban participants directly from the chat view
 
 ### Report System
-- Report any listing with a reason (Spam, Scam, Inappropriate, Wrong category, Duplicate, Other)
+- Report any listing with a reason: Spam, Scam, Inappropriate, Wrong category, Duplicate, or Other
 - Report any user from a chat conversation
-- "Other" reason opens a custom text field
-- Reported listings hidden from reporter's feed while pending
+- The "Other" reason opens a custom text field
+- Reported listings are hidden from the reporter's feed while pending
 - Moderation resolves reports: Dismiss or Delete listing / Ban user
 
 ### Ban System
 - Ban duration: 1 hour, 24 hours, 7 days, 30 days, or permanent
 - Optional ban reason stored and shown to the banned user
-- Banned users see a full-screen overlay with reason and expiry — cannot interact with the platform
+- Banned users see a full-screen overlay with reason and expiry and cannot interact with the platform
 - Banned users' listings are hidden from all other users automatically via RLS
 - Listings restore automatically when a temporary ban expires
-- Admins and moderators can always see all listings including from banned users
-- Public profile shows "Account suspended" banner when user is banned
+- Admins and moderators can always see all listings including those from banned users
+- Public profile shows an "Account suspended" banner when a user is banned
 
 ### Categories
+
 | Category | Key Attributes |
-|----------|---------------|
+|----------|----------------|
 | Electronics | Type, Brand, Model, Condition, Storage/RAM, Warranty |
 | Vehicles | Make, Model, Year, Mileage, Fuel, Transmission, Drive, Body |
 | Real Estate | Deal type, Property type, Rooms, Area, Furnished, Parking |
@@ -114,13 +111,13 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|-------|------------|
 | Frontend | React 19 + Vite 7 |
 | Routing | React Router v7 |
-| UI | Custom CSS (no UI library), Heroicons |
+| UI | Custom CSS (no UI library) |
 | Backend | Supabase (PostgreSQL + Auth + Storage + Realtime) |
 | Search | PostgreSQL `pg_trgm` — fuzzy, typo-tolerant |
-| Location | OpenStreetMap Nominatim API (free, no key needed) |
+| Location | OpenStreetMap Nominatim API (free, no key required) |
 | Auth | Supabase Auth (email/password + Google OAuth) |
 | Real-time | Supabase Realtime subscriptions |
 | Payments | Stripe Checkout (listing boost) |
@@ -135,10 +132,10 @@ src/
 ├── components/
 │   ├── Layout.jsx                  # Main layout, header, sidebar, bottom nav, ban screen
 │   ├── Footer.jsx                  # Footer with categories and static links
-│   ├── SupportWidget.jsx           # Floating 24/7 support button with FAQ + live chat
+│   ├── SupportWidget.jsx           # Floating support button with FAQ and live chat
 │   ├── ListingCard.jsx             # Card used in grids
 │   ├── LocationAutocomplete.jsx    # City search with OpenStreetMap
-│   └── Icons.jsx                   # All icon exports (Heroicons)
+│   └── Icons.jsx                   # All icon exports
 ├── contexts/
 │   ├── AuthContext.jsx             # User session, profile, isBanned
 │   └── CurrencyContext.jsx         # USD / EUR switching
@@ -146,20 +143,20 @@ src/
 │   └── useReportedListings.js      # Filters out listings reported by current user
 ├── lib/
 │   ├── supabase.js                 # Supabase client
-│   ├── categories.js               # All categories + their attributes
+│   ├── categories.js               # All categories and their attributes
 │   └── favorites.js                # Local favorites (localStorage)
 ├── pages/
 │   ├── Home.jsx
 │   ├── Search.jsx
 │   ├── Category.jsx
-│   ├── ListingDetails.jsx          # Report listing modal
+│   ├── ListingDetails.jsx
 │   ├── CreateListing.jsx
-│   ├── Chat.jsx                    # Report user button, sale flow, reviews
-│   ├── Profile.jsx                 # My profile + public seller profile (ban banner)
+│   ├── Chat.jsx
+│   ├── Profile.jsx
 │   ├── Settings.jsx
 │   ├── Favorites.jsx
-│   ├── Admin.jsx                   # Full admin panel (listings, users, reports, reviews, support, chats)
-│   ├── Static.jsx                  # Privacy, Terms, Help pages
+│   ├── Admin.jsx
+│   ├── Static.jsx
 │   └── Auth.jsx
 └── index.css                       # All styles (CSS variables, components, responsive)
 db/
@@ -173,15 +170,15 @@ db/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/your-brand.git
-cd your-brand
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
 npm install
 ```
 
 ### 2. Set up Supabase
 
 1. Create a project at [supabase.com](https://supabase.com)
-2. Go to **Settings → API** and copy your URL and anon key
+2. Go to **Settings → API** and copy your project URL and anon key
 
 ### 3. Configure environment
 
@@ -226,7 +223,7 @@ npm run build
 
 ## Deploy to Vercel
 
-1. Push the repo to GitHub
+1. Push the repository to GitHub
 2. Import it on [vercel.com](https://vercel.com)
 3. Add all environment variables from `.env` in **Settings → Environment Variables**
 4. Deploy — Vercel auto-deploys on every push to `main`
@@ -239,15 +236,9 @@ The `api/` directory is automatically served as Vercel serverless functions.
 
 Listing owners can pay to promote their listings to the top of search and category pages for 7 days ($2.99) or 30 days ($7.99).
 
-### 1. Create a Stripe account
-
-Go to [stripe.com](https://stripe.com) → Sign up.
-
-### 2. Get your API keys
-
-Stripe Dashboard → **Developers** → **API keys** → copy **Secret key**.
-
-### 3. Add environment variables to Vercel
+1. Create a [Stripe](https://stripe.com) account
+2. Go to **Developers → API keys** and copy your Secret key
+3. Add the following environment variables to Vercel:
 
 | Variable | Value |
 |----------|-------|
@@ -257,16 +248,13 @@ Stripe Dashboard → **Developers** → **API keys** → copy **Secret key**.
 | `SUPABASE_URL` | your Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role |
 
-### 4. Set up Stripe Webhook
+4. Go to **Developers → Webhooks → Add endpoint**:
+   - URL: `https://your-domain.vercel.app/api/stripe-webhook`
+   - Events: `checkout.session.completed`
+   - Copy the signing secret and add it as `STRIPE_WEBHOOK_SECRET`
 
-Stripe Dashboard → **Developers** → **Webhooks** → **Add endpoint**:
-- URL: `https://your-domain.vercel.app/api/stripe-webhook`
-- Events: `checkout.session.completed`
-- Copy **Signing secret** → add as `STRIPE_WEBHOOK_SECRET` in Vercel
+To change boost prices, edit `api/create-checkout.js`:
 
-### 5. Change boost prices
-
-Edit `api/create-checkout.js` — `PLANS` object:
 ```js
 const PLANS = {
   '7d':  { name: '7-day Boost',  amount: 299,  days: 7  },  // $2.99
@@ -281,14 +269,12 @@ const PLANS = {
 Sellers receive an email when a buyer opens a chat. Buyers receive an email when they get a reply.
 
 1. Create a [Resend](https://resend.com) account and verify your sending domain
-2. Copy your API key
-
-**Deploy the Edge Function:**
+2. Copy your API key and deploy the Edge Function:
 
 ```bash
 npm install -g supabase
 supabase login
-supabase link --project-ref <your-project-ref>
+supabase link --project-ref your-project-ref
 
 supabase secrets set RESEND_API_KEY=re_...
 supabase secrets set FROM_EMAIL=noreply@yourdomain.com
@@ -297,7 +283,7 @@ supabase secrets set APP_URL=https://your-domain.vercel.app
 supabase functions deploy send-notification-email
 ```
 
-**Create Database Webhooks in Supabase → Database → Webhooks:**
+3. Create Database Webhooks in **Supabase → Database → Webhooks**:
 
 | Hook name | Table | Event | Function |
 |-----------|-------|-------|----------|
@@ -310,13 +296,13 @@ supabase functions deploy send-notification-email
 
 | Table | Description |
 |-------|-------------|
-| `profiles` | User profiles — name, avatar, rating, role, `is_banned`, `banned_until`, `ban_reason` |
-| `listings` | All ads — title, price, photos, category, location, status, `boosted_until` |
-| `listing_extras` | Key-value attributes per listing (category-specific) |
-| `conversations` | Buyer ↔ seller chat threads, linked to a listing |
+| `profiles` | User profiles — name, avatar, rating, role, ban status and reason |
+| `listings` | All ads — title, price, photos, category, location, status, boost expiry |
+| `listing_extras` | Key-value attributes per listing (category-specific fields) |
+| `conversations` | Buyer and seller chat threads linked to a listing |
 | `messages` | Individual chat messages with read status and image support |
 | `reviews` | Ratings left after completed deals |
-| `reports` | Listing reports and user reports from chat — pending / dismissed |
+| `reports` | Listing and user reports — pending or dismissed |
 | `support_tickets` | Support chat sessions between users and moderators |
 | `support_messages` | Messages inside support tickets |
 
@@ -326,9 +312,9 @@ supabase functions deploy send-notification-email
 
 | What | Where |
 |------|-------|
-| Brand name | `src/components/Layout.jsx` line 56, `index.html` |
+| Brand name | `src/components/Layout.jsx`, `index.html` |
 | Categories | `src/lib/categories.js` |
-| Colors / fonts | `src/index.css` — `:root` CSS variables |
+| Colors and fonts | `src/index.css` — `:root` CSS variables |
 | Popular cities | `src/components/LocationAutocomplete.jsx` — `POPULAR` array |
 | Currencies | `src/contexts/CurrencyContext.jsx` — `CURRENCIES` array |
 | Boost prices | `api/create-checkout.js` — `PLANS` object |
