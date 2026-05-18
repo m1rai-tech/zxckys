@@ -42,6 +42,8 @@ export default function ListingDetails() {
       const { data } = await supabase.from('listings').select('*').eq('id', id).maybeSingle();
       if (!data) return;
       setListing(data);
+      const viewed = JSON.parse(localStorage.getItem('recently_viewed') || '[]');
+      localStorage.setItem('recently_viewed', JSON.stringify([id, ...viewed.filter(v => v !== id)].slice(0, 12)));
       const { data: s } = await supabase.from('profiles').select('*').eq('id', data.user_id).maybeSingle();
       setSeller(s);
       const { data: e } = await supabase.from('listing_extras').select('*').eq('listing_id', id);

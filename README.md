@@ -39,6 +39,9 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 - **Favorites** — save listings locally, count shown in the nav
 - **Similar listings** — shown at the bottom of every listing page
 - **Seller profiles** — rating, number of deals, member since date, suspension status
+- **Price filter** — min/max price range on home and search pages
+- **Sort options** — Newest, Featured first, Price low→high, Price high→low
+- **Recently viewed** — horizontal scroll row of last 12 visited listings, stored locally
 
 ### For Sellers
 - **Post ads in minutes** — title, description, photos, price, location, category attributes
