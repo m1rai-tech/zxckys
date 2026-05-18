@@ -277,11 +277,13 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   grid-template-columns: 240px 1fr;
   gap: 24px;
   align-items: start;
+  min-height: calc(100vh - 64px);
 }
 .main-full {
   max-width: 1440px;
   margin: 0 auto;
   padding: 24px;
+  min-height: calc(100vh - 64px);
 }
 @media (max-width: 640px) {
   .main-full { padding: 0; }
@@ -856,6 +858,16 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 
 /* ----- bottom nav ----- shown only on mobile, replaces the sidebar */
 .bottom-nav { display: none; }
+footer { display: block; }
+@media (max-width: 640px) { footer { display: none; } }
+
+/* ----- support widget ----- */
+.support-btn   { bottom: 24px; }
+.support-panel { bottom: 88px; }
+@media (max-width: 640px) {
+  .support-btn   { bottom: 76px; }
+  .support-panel { bottom: 140px; }
+}
 .hdr-auth-mobile { display: none; }
 
 @media (max-width: 640px) {

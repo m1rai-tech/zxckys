@@ -431,11 +431,11 @@ export default function CreateListing({ edit = false }) {
         .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
         .upload-sub { font-size: 13px; color: var(--text-muted); }
         .photo-grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; width: 100%; }
-        .photo-item-2 { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); isolation: isolate; }
+        .photo-item-2 { position: relative; width: 100%; padding-top: 100%; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); isolation: isolate; }
         .photo-item-2.main { border: 2px solid var(--accent); }
-        .photo-item-2 > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .photo-item-2 > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
         .main-badge { position: absolute; top: 6px; left: 6px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; z-index: 2; }
-        .photo-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; }
+        .photo-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); opacity: 0; transition: opacity .15s; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 8px; }
         .photo-item-2:hover .photo-overlay { opacity: 1; }
         .overlay-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.95); color: #111; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
         .overlay-btn.danger { background: var(--danger); color: #fff; }

@@ -60,8 +60,10 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
+  const isBanned = !!(profile?.is_banned && (!profile?.banned_until || new Date(profile.banned_until) > new Date()));
+
   return (
-    <AuthCtx.Provider value={{ user, profile, loading, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
+    <AuthCtx.Provider value={{ user, profile, loading, isBanned, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
       {children}
     </AuthCtx.Provider>
   );

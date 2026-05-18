@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import Footer from './Footer';
+import { SupportWidget } from './SupportWidget';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency, CURRENCIES } from '../contexts/CurrencyContext';
 import { CATEGORIES } from '../lib/categories';
@@ -11,7 +13,7 @@ import { getFavorites } from '../lib/favorites';
 import { LocationAutocomplete } from './LocationAutocomplete';
 
 export function Layout({ children, full }) {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, isBanned, signOut } = useAuth();
   const { currency, changeCurrency } = useCurrency();
   const nav = useNavigate();
   const loc = useLocation();
@@ -211,6 +213,37 @@ export function Layout({ children, full }) {
             ))}
           </aside>
           <main className="content">{children}</main>
+        </div>
+      )}
+
+      <Footer/>
+      <SupportWidget/>
+
+      {isBanned && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)', padding: 16 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '36px 32px', maxWidth: 440, width: '100%', textAlign: 'center', boxShadow: '0 30px 80px rgba(0,0,0,0.4)', border: '1px solid #fca5a5' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 30 }}>🚫</div>
+            <h2 style={{ margin: '0 0 10px', fontSize: 22, fontWeight: 700, color: '#b91c1c' }}>Account Banned</h2>
+            <p style={{ margin: '0 0 14px', fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Your account has been suspended by moderation.
+            </p>
+            {profile?.ban_reason && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#7f1d1d' }}>
+                <strong>Reason:</strong> {profile.ban_reason}
+              </div>
+            )}
+            {profile?.banned_until && (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>
+                Ban expires: <strong>{new Date(profile.banned_until).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
+              </p>
+            )}
+            {!profile?.banned_until && (
+              <p style={{ fontSize: 13, color: '#b91c1c', marginBottom: 14, fontWeight: 600 }}>Permanent ban</p>
+            )}
+            <button onClick={signOut} style={{ background: '#dc2626', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 28px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              Sign Out
+            </button>
+          </div>
         </div>
       )}
 

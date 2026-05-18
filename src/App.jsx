@@ -12,6 +12,7 @@ import Settings from './pages/Settings';
 import Favorites from './pages/Favorites';
 import Chat from './pages/Chat';
 import Admin from './pages/Admin';
+import { PrivacyPage, TermsPage, HelpPage } from './pages/Static';
 import { isConfigured } from './lib/supabase';
 
 function ConfigWarning() {
@@ -56,6 +57,9 @@ export default function App() {
           <Route path="/favorites" element={<Favorites/>}/>
           <Route path="/chat" element={<Chat/>}/>
           <Route path="/admin" element={<Admin/>}/>
+          <Route path="/privacy" element={<PrivacyPage/>}/>
+          <Route path="/terms" element={<TermsPage/>}/>
+          <Route path="/help" element={<HelpPage/>}/>
           <Route path="*" element={<Home/>}/>
         </Routes>
         </CurrencyProvider>

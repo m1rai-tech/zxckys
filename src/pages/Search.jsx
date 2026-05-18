@@ -5,6 +5,7 @@ import { ListingCard } from '../components/ListingCard';
 import { Empty } from '../components/Empty';
 import { supabase } from '../lib/supabase';
 import { useMeta } from '../hooks/useMeta';
+import { useReportedListings } from '../hooks/useReportedListings';
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
@@ -25,6 +26,7 @@ export default function SearchPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const reportedIds = useReportedListings();
 
   const subtitle = [q ? `«${q}»` : null, city || null].filter(Boolean).join(' · ');
   useMeta({
@@ -145,7 +147,7 @@ export default function SearchPage() {
         <Empty title="Nothing found" text="Try different filters or a broader search"/>
       ) : (
         <div className="listings-grid">
-          {listings.map(l => <ListingCard key={l.id} listing={l}/>)}
+          {listings.filter(l => !reportedIds.has(l.id)).map(l => <ListingCard key={l.id} listing={l}/>)}
         </div>
       )}
     </Layout>

@@ -8,12 +8,14 @@ import { IconPlus } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES } from '../lib/categories';
 import { useMeta } from '../hooks/useMeta';
+import { useReportedListings } from '../hooks/useReportedListings';
 
 export default function Home() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const reportedIds = useReportedListings();
   useMeta({ title: 'Home', description: 'Buy and sell anything near you — electronics, vehicles, clothing, jobs and more.' });
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function Home() {
         />
       ) : (
         <div className="listings-grid">
-          {listings.map(l => <ListingCard key={l.id} listing={l}/>)}
+          {listings.filter(l => !reportedIds.has(l.id)).map(l => <ListingCard key={l.id} listing={l}/>)}
         </div>
       )}
 

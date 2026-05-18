@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
   IconHeart, IconLocation, IconCalendar, IconPhone, IconMessage,
-  IconEdit, IconTrash, IconStar, IconImage, IconClose, IconCheck
+  IconEdit, IconTrash, IconStar, IconImage, IconClose, IconCheck, IconFlag
 } from '../components/Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useCurrency } from '../contexts/CurrencyContext';
@@ -28,6 +28,11 @@ export default function ListingDetails() {
   const [soldModal, setSoldModal] = useState(false);
   const [boostModal, setBoostModal] = useState(false);
   const [boosting, setBoosting] = useState(false);
+  const [reportModal, setReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportOtherText, setReportOtherText] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -130,6 +135,20 @@ export default function ListingDetails() {
   };
 
   const isBoosted = listing?.boosted_until && new Date(listing.boosted_until) > new Date();
+
+  const submitReport = async () => {
+    const finalReason = reportReason === 'Other' ? (reportOtherText.trim() || 'Other') : reportReason;
+    if (!finalReason) return;
+    setReportSubmitting(true);
+    await supabase.from('reports').upsert({
+      listing_id: id,
+      reporter_id: user.id,
+      reason: finalReason,
+      status: 'pending',
+    }, { onConflict: 'listing_id,reporter_id' });
+    setReportSubmitting(false);
+    setReportDone(true);
+  };
 
   return (
     <Layout full>
@@ -267,6 +286,17 @@ export default function ListingDetails() {
                   <button className="btn btn-ghost btn-block" onClick={() => { if (!user) { nav('/login'); return; } if (id) setFav(toggleFavorite(id)); }}>
                   <IconHeart size={16} fill={fav}/> {fav ? 'In favorites' : 'Add to favorites'}
                   </button>
+                  {user && !reportDone && (
+                    <button className="btn btn-ghost btn-block" style={{ color: '#ef4444', fontSize: 13 }}
+                      onClick={() => setReportModal(true)}>
+                      <IconFlag size={14}/> Report listing
+                    </button>
+                  )}
+                  {reportDone && (
+                    <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', padding: '8px 0' }}>
+                      Report submitted. We'll review it shortly.
+                    </div>
+                  )}
                   {isMod && (
                     <button className="btn btn-danger btn-block" onClick={handleDelete}>
                       <IconTrash size={16}/> Delete (moderator)
@@ -381,6 +411,59 @@ export default function ListingDetails() {
               </button>
             </div>
             <button className="btn btn-ghost btn-block" style={{ marginTop: 10 }} onClick={() => setBoostModal(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Report modal */}
+      {reportModal && (
+        <div className="ld-modal-overlay" onClick={() => { setReportModal(false); setReportReason(''); }}>
+          <div className="ld-modal" onClick={e => e.stopPropagation()}>
+            <div className="ld-modal-head">
+              <div className="ld-modal-icon" style={{ background: '#fee2e2' }}>
+                <IconFlag size={22} style={{ color: '#ef4444' }}/>
+              </div>
+              <h3>Report listing</h3>
+              <p>Tell us what's wrong with this listing.</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '16px 0' }}>
+              {['Spam', 'Scam / fraud', 'Inappropriate content', 'Wrong category', 'Duplicate listing', 'Other'].map(r => (
+                <label key={r} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+                  border: `1.5px solid ${reportReason === r ? 'var(--accent)' : 'var(--border)'}`,
+                  background: reportReason === r ? 'var(--accent-soft)' : '#fff',
+                  transition: 'all .15s',
+                }}>
+                  <input type="radio" name="report_reason" value={r}
+                    checked={reportReason === r}
+                    onChange={() => setReportReason(r)}
+                    style={{ accentColor: 'var(--accent)' }}/>
+                  <span style={{ fontSize: 14 }}>{r}</span>
+                </label>
+              ))}
+              {reportReason === 'Other' && (
+                <textarea
+                  autoFocus
+                  placeholder="Describe the problem..."
+                  value={reportOtherText}
+                  onChange={e => setReportOtherText(e.target.value)}
+                  maxLength={300}
+                  style={{ width: '100%', border: '1.5px solid var(--accent)', borderRadius: 8, padding: '10px 12px', fontSize: 13, resize: 'none', minHeight: 80, outline: 'none', background: 'var(--bg-soft)', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-ghost" style={{ flex: 1 }}
+                onClick={() => { setReportModal(false); setReportReason(''); setReportOtherText(''); }}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" style={{ flex: 1 }}
+                disabled={!reportReason || (reportReason === 'Other' && !reportOtherText.trim()) || reportSubmitting}
+                onClick={async () => { await submitReport(); setReportModal(false); setReportOtherText(''); }}>
+                {reportSubmitting ? 'Sending...' : 'Submit report'}
+              </button>
+            </div>
           </div>
         </div>
       )}

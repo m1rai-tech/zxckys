@@ -4,6 +4,16 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 
 ---
 
+## Live Demo
+
+🔗 [zxckys.vercel.app](https://zxckys.vercel.app)
+
+**Test account** (no registration needed):
+- Email: `demo@marketplace.com`
+- Password: `demo1234`
+
+---
+
 ## Screenshots
 
 | Home | Chat |

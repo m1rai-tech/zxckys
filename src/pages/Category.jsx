@@ -5,6 +5,7 @@ import { ListingCard } from '../components/ListingCard';
 import { Empty } from '../components/Empty';
 import { CATEGORIES, getCategory } from '../lib/categories';
 import { supabase } from '../lib/supabase';
+import { useReportedListings } from '../hooks/useReportedListings';
 
 function FilterField({ attr, value, onChange }) {
   if (attr.filter === 'select') {
@@ -55,6 +56,7 @@ export default function Category() {
   const cat = getCategory(slug);
   const [allListings, setAllListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const reportedIds = useReportedListings();
 
   const [priceFrom, setPriceFrom] = useState('');
   const [priceTo, setPriceTo] = useState('');
@@ -203,7 +205,7 @@ export default function Category() {
           )}/>
       ) : (
         <div className="listings-grid">
-          {filteredListings.map(l => <ListingCard key={l.id} listing={l}/>)}
+          {filteredListings.filter(l => !reportedIds.has(l.id)).map(l => <ListingCard key={l.id} listing={l}/>)}
         </div>
       )}
     </Layout>

@@ -1,145 +1,96 @@
 import { Link } from 'react-router-dom';
-import { categories } from '../data/categories';
+import { CATEGORIES } from '../lib/categories';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   return (
-    <footer style={styles.footer}>
-      <div style={styles.container}>
-        <div style={styles.grid}>
-          <div style={styles.section}>
-            <Link to="/" style={styles.logo}>
-              Marketplace
+    <footer style={{
+      background: 'var(--bg-card)',
+      borderTop: '1px solid var(--border)',
+      marginTop: 'auto',
+      padding: '40px 0 24px',
+    }}>
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 24px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: 32,
+          marginBottom: 32,
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Link to="/" style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', textDecoration: 'none', letterSpacing: '-0.02em' }}>
+              YOUR BRAND
             </Link>
-            <p style={styles.description}>
-              A marketplace for buying and selling goods
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+              Buy and sell anything near you — fast, safe, and free.
             </p>
           </div>
 
-          <div style={styles.section}>
-            <h4 style={styles.title}>Categories</h4>
-            <nav style={styles.links}>
-              {categories.slice(0, 4).map((cat) => (
-                <Link key={cat.id} to={`/category/${cat.slug}`} style={styles.link}>
-                  {cat.icon} {cat.name}
-                </Link>
-              ))}
-            </nav>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-faint)', marginBottom: 4 }}>
+              Categories
+            </div>
+            {CATEGORIES.slice(0, 5).map(c => (
+              <Link key={c.slug} to={`/c/${c.slug}`} style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                {c.name}
+              </Link>
+            ))}
           </div>
 
-          <div style={styles.section}>
-            <h4 style={styles.title}>More</h4>
-            <nav style={styles.links}>
-              {categories.slice(4).map((cat) => (
-                <Link key={cat.id} to={`/category/${cat.slug}`} style={styles.link}>
-                  {cat.icon} {cat.name}
-                </Link>
-              ))}
-            </nav>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-faint)', marginBottom: 4 }}>
+              More
+            </div>
+            {CATEGORIES.slice(5).map(c => (
+              <Link key={c.slug} to={`/c/${c.slug}`} style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                {c.name}
+              </Link>
+            ))}
           </div>
 
-          <div style={styles.section}>
-            <h4 style={styles.title}>Information</h4>
-            <nav style={styles.links}>
-              <Link to="/about" style={styles.link}>About Us</Link>
-              <Link to="/help" style={styles.link}>Help</Link>
-              <Link to="/terms" style={styles.link}>Terms</Link>
-              <Link to="/privacy" style={styles.link}>Privacy</Link>
-            </nav>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-faint)', marginBottom: 4 }}>
+              Account
+            </div>
+            <Link to="/login" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Sign In</Link>
+            <Link to="/register" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Sign Up</Link>
+            <Link to="/create" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>Post Ad</Link>
+            <Link to="/me" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>My Profile</Link>
           </div>
         </div>
 
-        <div style={styles.bottom}>
-          <p style={styles.copyright}>
-            © {currentYear} Marketplace. All rights reserved.
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          paddingTop: 20, borderTop: '1px solid var(--border)',
+          flexWrap: 'wrap', gap: 12,
+        }}>
+          <p style={{ fontSize: 12, color: 'var(--text-faint)', margin: 0 }}>
+            © {year} YOUR BRAND. All rights reserved.
           </p>
-          <div style={styles.social}>
-            <a href="#" style={styles.socialLink}>📘</a>
-            <a href="#" style={styles.socialLink}>📸</a>
-            <a href="#" style={styles.socialLink}>🐦</a>
+          <div style={{ display: 'flex', gap: 16 }}>
+            {[['Privacy', '/privacy'], ['Terms', '/terms'], ['Help', '/help']].map(([label, href]) => (
+              <Link key={label} to={href} style={{ fontSize: 12, color: 'var(--text-faint)', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}>
+                {label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
     </footer>
   );
 }
-
-const styles = {
-  footer: {
-    backgroundColor: 'var(--text)',
-    color: '#fff',
-    marginTop: 'auto',
-    padding: '48px 0 24px',
-  },
-  container: {
-    maxWidth: 1400,
-    margin: '0 auto',
-    padding: '0 24px',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-    gap: '32px',
-    marginBottom: '40px',
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  logo: {
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: '#fff',
-    textDecoration: 'none',
-  },
-  logoAccent: {
-    color: 'var(--accent)',
-  },
-  description: {
-    fontSize: '0.875rem',
-    color: 'rgba(255, 255, 255, 0.7)',
-    lineHeight: 1.5,
-    margin: 0,
-  },
-  title: {
-    fontSize: '0.9375rem',
-    fontWeight: 600,
-    color: '#fff',
-    margin: 0,
-  },
-  links: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  link: {
-    fontSize: '0.875rem',
-    color: 'rgba(255, 255, 255, 0.7)',
-    textDecoration: 'none',
-    transition: 'color 0.2s',
-  },
-  bottom: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: '24px',
-    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-    flexWrap: 'wrap',
-    gap: '16px',
-  },
-  copyright: {
-    fontSize: '0.8125rem',
-    color: 'rgba(255, 255, 255, 0.5)',
-    margin: 0,
-  },
-  social: {
-    display: 'flex',
-    gap: '12px',
-  },
-  socialLink: {
-    fontSize: '1.25rem',
-    textDecoration: 'none',
-  },
-};

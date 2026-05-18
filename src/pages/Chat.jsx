@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { IconSend, IconImage } from '../components/Icons';
+import { IconSend, IconImage, IconFlag } from '../components/Icons';
 import { useCurrency } from '../contexts/CurrencyContext';
 
 const iconBtnStyle = {
@@ -33,18 +33,17 @@ function playNotificationSound() {
 }
 
 function StatusTicks({ isRead }) {
-  const color = isRead ? '#3b82f6' : 'rgba(255,255,255,0.65)';
   if (!isRead) {
     return (
-      <svg width="14" height="10" viewBox="0 0 14 10" fill="none" style={{ flexShrink: 0 }}>
-        <path d="M1 5L5 9L13 1" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <svg width="13" height="10" viewBox="0 0 15 11" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M1.5 5.5L5.5 9.5L13.5 1.5" stroke="rgba(255,255,255,0.55)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     );
   }
   return (
-    <svg width="18" height="10" viewBox="0 0 18 10" fill="none" style={{ flexShrink: 0 }}>
-      <path d="M1 5L5 9L13 1" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M5 5L9 9L17 1" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="17" height="10" viewBox="0 0 20 12" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M1.5 6.5L5 10.5L13 1.5" stroke="#60b4f6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6 6.5L9.5 10.5L17.5 1.5" stroke="#60b4f6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -98,6 +97,12 @@ export default function Chat() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
   const [confirmingReceipt, setConfirmingReceipt] = useState(false);
+
+  const [showReportUserModal, setShowReportUserModal] = useState(false);
+  const [reportUserReason, setReportUserReason] = useState('');
+  const [reportUserOtherText, setReportUserOtherText] = useState('');
+  const [reportUserSubmitting, setReportUserSubmitting] = useState(false);
+  const [reportUserDone, setReportUserDone] = useState(false);
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
   const [mobileView, setMobileView] = useState(() => window.innerWidth <= 640 ? (params.get('c') ? 'chat' : 'list') : 'list');
@@ -250,13 +255,15 @@ export default function Chat() {
       const container = messagesContainerRef.current;
       const nearBottom = !container || container.scrollHeight - container.scrollTop - container.clientHeight < 150;
       if (prevMessagesLength.current === 0 || nearBottom || forceScroll) {
-        messagesEnd.current?.scrollIntoView({ behavior: prevMessagesLength.current === 0 ? 'auto' : 'smooth' });
+        if (container) {
+          container.scrollTo({ top: container.scrollHeight, behavior: prevMessagesLength.current === 0 ? 'auto' : 'smooth' });
+        }
       }
     }
     prevMessagesLength.current = messages.length;
   }, [messages]);
 
-  useEffect(() => { prevMessagesLength.current = 0; }, [active?.id]);
+  useEffect(() => { prevMessagesLength.current = 0; setReportUserDone(false); }, [active?.id]);
 
   // Load listing data + check existing review when chat opens
   useEffect(() => {
@@ -405,6 +412,21 @@ export default function Chat() {
     if (isMobile) setMobileView('list');
   };
 
+  const submitUserReport = async () => {
+    const finalReason = reportUserReason === 'Other' ? (reportUserOtherText.trim() || 'Other') : reportUserReason;
+    if (!finalReason || !active || !user) return;
+    setReportUserSubmitting(true);
+    await supabase.from('reports').insert({
+      reporter_id: user.id,
+      reported_user_id: otherUser(active)?.id,
+      conversation_id: active.id,
+      reason: finalReason,
+    });
+    setReportUserSubmitting(false);
+    setShowReportUserModal(false);
+    setReportUserDone(true);
+  };
+
   const otherUser = (c) => c.buyer_id === user?.id ? c.seller : c.buyer;
   const isPinned = active && user && (active.pinned_by || []).includes(user.id);
 
@@ -517,6 +539,12 @@ export default function Chat() {
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Item discussion</div>
                   </div>
                   <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                    <button title="Report user" onClick={() => { setReportUserReason(''); setShowReportUserModal(true); }}
+                      style={{ ...iconBtnStyle, color: reportUserDone ? '#ef4444' : 'var(--text-muted)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-soft)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                      <IconFlag size={17}/>
+                    </button>
                     <button title={isPinned ? 'Unpin' : 'Pin'} onClick={togglePin}
                       style={{ ...iconBtnStyle, color: isPinned ? 'var(--accent)' : 'var(--text-muted)' }}
                       onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-soft)'}
@@ -775,6 +803,47 @@ export default function Chat() {
               <button onClick={() => { setShowReviewModal(false); setReviewDone(true); }} className="btn btn-ghost" style={{ flex: 1 }}>Skip</button>
               <button onClick={submitReview} className="btn btn-primary" style={{ flex: 1 }} disabled={!reviewRating || submittingReview}>
                 {submittingReview ? 'Submitting...' : 'Submit review'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report user modal */}
+      {showReportUserModal && (
+        <div onClick={() => setShowReportUserModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(2px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '28px 28px 24px', maxWidth: 400, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid var(--border)' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <IconFlag size={22} style={{ color: '#dc2626' }}/>
+            </div>
+            <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 700, textAlign: 'center' }}>Report user</h3>
+            <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
+              Report <strong>{otherUser(active)?.name || 'this user'}</strong> to moderation
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+              {['Threatening behavior', 'Scam / fraud attempt', 'Hate speech or harassment', 'Spam', 'Impersonation', 'Other'].map(r => (
+                <label key={r} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${reportUserReason === r ? 'var(--accent)' : 'var(--border)'}`, background: reportUserReason === r ? 'var(--accent-soft)' : 'var(--bg-soft)', cursor: 'pointer', fontSize: 13 }}>
+                  <input type="radio" name="userReason" value={r} checked={reportUserReason === r} onChange={() => setReportUserReason(r)} style={{ accentColor: 'var(--accent)' }}/>
+                  {r}
+                </label>
+              ))}
+              {reportUserReason === 'Other' && (
+                <textarea
+                  autoFocus
+                  placeholder="Describe the problem..."
+                  value={reportUserOtherText}
+                  onChange={e => setReportUserOtherText(e.target.value)}
+                  maxLength={300}
+                  style={{ width: '100%', border: '1.5px solid var(--accent)', borderRadius: 8, padding: '10px 12px', fontSize: 13, resize: 'none', minHeight: 80, outline: 'none', background: 'var(--bg-soft)', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => { setShowReportUserModal(false); setReportUserOtherText(''); }} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+              <button onClick={submitUserReport}
+                disabled={!reportUserReason || (reportUserReason === 'Other' && !reportUserOtherText.trim()) || reportUserSubmitting}
+                className="btn btn-danger" style={{ flex: 1, opacity: (!reportUserReason || (reportUserReason === 'Other' && !reportUserOtherText.trim()) || reportUserSubmitting) ? 0.6 : 1 }}>
+                {reportUserSubmitting ? 'Sending...' : 'Send report'}
               </button>
             </div>
           </div>

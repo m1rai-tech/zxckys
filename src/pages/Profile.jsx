@@ -98,14 +98,32 @@ export function SellerProfile() {
 
   if (!profile) return <Layout><div className="text-muted">Loading...</div></Layout>;
 
+  const isBannedNow = profile.is_banned && (!profile.banned_until || new Date(profile.banned_until) > new Date());
+
   return (
     <Layout>
+      {isBannedNow && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>🚫</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#b91c1c' }}>Account suspended</div>
+            <div style={{ fontSize: 13, color: '#7f1d1d', marginTop: 2 }}>
+              {profile.banned_until
+                ? `This account has been suspended until ${new Date(profile.banned_until).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                : 'This account has been permanently suspended by moderation'}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="profile-header">
-        <div className="avatar avatar-lg">
+        <div className="avatar avatar-lg" style={{ opacity: isBannedNow ? 0.5 : 1 }}>
           {profile.avatar_url ? <img src={profile.avatar_url} alt=""/> : (profile.name?.[0] || 'U').toUpperCase()}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 22, fontWeight: 700 }}>{profile.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{profile.name}</div>
+            {isBannedNow && <span style={{ fontSize: 12, fontWeight: 700, background: '#fee2e2', color: '#b91c1c', padding: '2px 10px', borderRadius: 20, border: '1px solid #fca5a5' }}>SUSPENDED</span>}
+          </div>
           <div className="text-muted text-sm" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {profile.city && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IconLocation size={12}/> {profile.city}</span>}
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IconCalendar size={12}/> Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
