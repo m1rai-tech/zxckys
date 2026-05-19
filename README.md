@@ -8,7 +8,6 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 
 [https://demo-market-blond.vercel.app/](https://demo-market-blond.vercel.app/)
 
-
 ## Features
 
 ### For Buyers
