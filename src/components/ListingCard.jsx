@@ -63,10 +63,10 @@ export function ListingCard({ listing }) {
         )}
       </div>
       <div className="body">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className={`price ${listing.is_free?'price-free':''}`}>{fmtPrice(listing, currency.symbol)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className={`price ${listing.is_free?'price-free':''}`} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fmtPrice(listing, currency.symbol)}</div>
           {cat && (
-            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--bg-soft)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--bg-soft)', border: '1px solid var(--border)', borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap', flexShrink: 0, maxWidth: '48%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {cat.name}
             </span>
           )}

@@ -3,35 +3,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 // on iOS touch-action: pan-x doesn't work on overflow containers,
 // so we manually detect direction and scroll the page for vertical swipes
 function HRow({ gap = 12, pb = 4, children }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let startX = 0, startY = 0, prevY = 0, dir = null;
-    const onStart = (e) => {
-      startX = e.touches[0].clientX;
-      startY = prevY = e.touches[0].clientY;
-      dir = null;
-    };
-    const onMove = (e) => {
-      const dx = Math.abs(e.touches[0].clientX - startX);
-      const dy = Math.abs(e.touches[0].clientY - startY);
-      if (!dir) dir = dx > dy ? 'h' : 'v';
-      if (dir === 'v') {
-        e.preventDefault();
-        window.scrollBy(0, prevY - e.touches[0].clientY);
-        prevY = e.touches[0].clientY;
-      }
-    };
-    el.addEventListener('touchstart', onStart, { passive: true });
-    el.addEventListener('touchmove', onMove, { passive: false });
-    return () => {
-      el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove', onMove);
-    };
-  }, []);
   return (
-    <div ref={ref} className="hrow" style={{ display: 'flex', gap, overflowX: 'auto', paddingBottom: pb, scrollbarWidth: 'thin', scrollbarColor: 'var(--border) transparent' }}>
+    <div className="hrow" style={{ display: 'flex', gap, overflowX: 'auto', paddingBottom: pb, scrollbarWidth: 'thin', scrollbarColor: 'var(--border) transparent' }}>
       {children}
     </div>
   );
