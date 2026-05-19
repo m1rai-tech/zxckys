@@ -62,33 +62,26 @@ function AuthPage({ children }) {
       </div>
       <style>{`
         .auth-wrap {
-          min-height: calc(100dvh - 64px);
-          background: var(--bg-soft);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px 16px;
-          box-sizing: border-box;
-        }
-
-        @media (max-width: 768px) {
-        .auth-wrap {
-           min-height: unset;
-           align-items: flex-start;
-           padding-top: 16px;
-          }
-        }
-
-        .a-card {
-          width: 100%;
-          max-width: 420px;
-          background: #fff;
-          border-radius: 20px;
-          padding: 36px;
-          border: 1px solid var(--border);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.07);
-          box-sizing: border-box;
-        }
+  min-height: calc(100dvh - 64px - 56px);
+  background: var(--bg-soft);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+          
+      .a-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.07);
+  box-sizing: border-box;
+  margin: auto 0; /* центрування по вертикалі на десктопі */
+}
 
         @media (max-width: 480px) {
           .a-card {
@@ -180,11 +173,6 @@ export function Login() {
     <Layout full>
       <AuthPage>
         <div style={{ marginBottom: 24 }}>
-          <Link to="/" style={{
-            display: 'inline-block', marginBottom: 18,
-            color: 'var(--accent, #2d6a4f)', fontWeight: 800,
-            fontSize: 15, letterSpacing: '-0.02em', textDecoration: 'none',
-          }}>YOUR BRAND</Link>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 3px' }}>Welcome back</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>Sign in to continue</p>
         </div>
@@ -277,11 +265,6 @@ export function Register() {
     <Layout full>
       <AuthPage>
         <div style={{ marginBottom: 20 }}>
-          <Link to="/" style={{
-            display: 'inline-block', marginBottom: 16,
-            color: 'var(--accent, #2d6a4f)', fontWeight: 800,
-            fontSize: 15, letterSpacing: '-0.02em', textDecoration: 'none',
-          }}>YOUR BRAND</Link>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 3px' }}>Create account</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>Free forever. No credit card needed.</p>
         </div>

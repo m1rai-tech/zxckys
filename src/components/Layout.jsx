@@ -238,7 +238,7 @@ export function Layout({ children, full }) {
         </div>
       </header>
 
-      {!hideSubbar && <div className="mobile-subbar">
+      {!hideSubbar && !full && <div className="mobile-subbar">
         <div className="mobile-subbar-row1">
           <LocationAutocomplete
             value={city}

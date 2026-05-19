@@ -7,40 +7,40 @@ function HScrollRow({ style, children }) {
   const [showBar, setShowBar] = useState(false);
 
   useEffect(() => {
-  const el = ref.current;
-  if (!el) return;
+    const el = ref.current;
+    if (!el) return;
 
-  const update = () => {
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    if (scrollWidth <= clientWidth) { setShowBar(false); return; }
-    setShowBar(true);
-    const w = (clientWidth / scrollWidth) * 100;
-    const l = (scrollLeft / (scrollWidth - clientWidth)) * (100 - w);
-    setThumb({ width: w, left: l });
-  };
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      if (scrollWidth <= clientWidth) { setShowBar(false); return; }
+      setShowBar(true);
+      const w = (clientWidth / scrollWidth) * 100;
+      const l = (scrollLeft / (scrollWidth - clientWidth)) * (100 - w);
+      setThumb({ width: w, left: l });
+    };
 
-  update();
-  el.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', update);
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
 
-  // тільки для ПК мишки
-  const onWheel = (e) => {
-    if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    const atStart = scrollLeft === 0;
-    const atEnd = scrollLeft >= scrollWidth - clientWidth - 1;
-    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
-    e.preventDefault();
-    el.scrollLeft += e.deltaY;
-  };
-  el.addEventListener('wheel', onWheel, { passive: false });
+    // тільки для ПК мишки
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      const atStart = scrollLeft === 0;
+      const atEnd = scrollLeft >= scrollWidth - clientWidth - 1;
+      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
 
-  return () => {
-    el.removeEventListener('scroll', update);
-    el.removeEventListener('wheel', onWheel);
-    window.removeEventListener('resize', update);
-  };
-}, []);
+    return () => {
+      el.removeEventListener('scroll', update);
+      el.removeEventListener('wheel', onWheel);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
 
   return (
     <div>
@@ -86,8 +86,9 @@ function CatCard({ listing }) {
       background: 'var(--bg-card)',
       border: isBoosted ? '2px solid #f59e0b' : '1px solid var(--border)',
       boxShadow: isBoosted ? '0 0 0 3px #fef3c7' : 'none',
+      touchAction: 'pan-x',
     }}>
-      <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', background: 'var(--bg-soft)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', background: 'var(--bg-soft)', overflow: 'hidden', touchAction: 'pan-x' }}>
         {listing.photos?.[0]
           ? <img src={listing.photos[0]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 24 }}>📷</div>}
