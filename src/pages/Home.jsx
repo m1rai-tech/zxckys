@@ -7,39 +7,44 @@ function HScrollRow({ style, children }) {
   const [showBar, setShowBar] = useState(false);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  const el = ref.current;
+  if (!el) return;
 
-    const update = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = el;
-      if (scrollWidth <= clientWidth) { setShowBar(false); return; }
-      setShowBar(true);
-      const w = (clientWidth / scrollWidth) * 100;
-      const l = (scrollLeft / (scrollWidth - clientWidth)) * (100 - w);
-      setThumb({ width: w, left: l });
-    };
+  const update = () => {
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    if (scrollWidth <= clientWidth) { setShowBar(false); return; }
+    setShowBar(true);
+    const w = (clientWidth / scrollWidth) * 100;
+    const l = (scrollLeft / (scrollWidth - clientWidth)) * (100 - w);
+    setThumb({ width: w, left: l });
+  };
 
-    update();
-    el.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
+  update();
+  el.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
 
-    const onWheel = (e) => {
-      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
-      e.stopPropagation();
-      el.scrollLeft += e.deltaY;
-    };
-    el.addEventListener('wheel', onWheel, { passive: true });
+  // тільки для ПК мишки
+  const onWheel = (e) => {
+    if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const atStart = scrollLeft === 0;
+    const atEnd = scrollLeft >= scrollWidth - clientWidth - 1;
+    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  };
+  el.addEventListener('wheel', onWheel, { passive: false });
 
-    return () => {
-      el.removeEventListener('scroll', update);
-      el.removeEventListener('wheel', onWheel);
-      window.removeEventListener('resize', update);
-    };
-  }, []);
+  return () => {
+    el.removeEventListener('scroll', update);
+    el.removeEventListener('wheel', onWheel);
+    window.removeEventListener('resize', update);
+  };
+}, []);
 
   return (
     <div>
-      <div ref={ref} style={{ ...style, touchAction: 'pan-y' }}>{children}</div>
+      <div ref={ref} style={{ ...style, touchAction: 'pan-x' }}>{children}</div>
       {showBar && (
         <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
           <div style={{
