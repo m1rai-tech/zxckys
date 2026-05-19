@@ -295,6 +295,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   padding: 24px;
   min-height: calc(100vh - 64px);
 }
+
 @media (max-width: 640px) {
   .main-full { padding: 0; }
 }

@@ -24,12 +24,11 @@ function HScrollRow({ style, children }) {
     window.addEventListener('resize', update);
 
     const onWheel = (e) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
+      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      e.stopPropagation();
+      el.scrollLeft += e.deltaY;
     };
-    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('wheel', onWheel, { passive: true });
 
     return () => {
       el.removeEventListener('scroll', update);
@@ -40,7 +39,7 @@ function HScrollRow({ style, children }) {
 
   return (
     <div>
-      <div ref={ref} style={style}>{children}</div>
+      <div ref={ref} style={{ ...style, touchAction: 'pan-y' }}>{children}</div>
       {showBar && (
         <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
           <div style={{
