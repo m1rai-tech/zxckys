@@ -192,7 +192,6 @@ Run all `.sql` files in `db/migrations/` in filename order via the Supabase SQL 
 ```bash
 npm run dev
 ```
-
 Open [http://localhost:5173](http://localhost:5173)
 
 ### 6. Build for production
