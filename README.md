@@ -1,6 +1,6 @@
-# Marketplace — Modern Classifieds Platform
+# Marketplace — Classifieds Platform
 
-A fast, clean, and fully-featured classifieds marketplace built for international buyers and sellers. Post ads, chat in real time, leave reviews, and find anything — from electronics to real estate.
+A clean, fast marketplace where people can buy and sell anything — electronics, cars, real estate, clothes, you name it. Real-time chat, reviews, moderation, paid boosts, email notifications. Everything a real classifieds platform needs, ready to deploy.
 
 ---
 
@@ -8,72 +8,78 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 
 [https://demo-market-blond.vercel.app/](https://demo-market-blond.vercel.app/)
 
-## Features
+---
 
-### For Buyers
-- **Smart search** — fuzzy/typo-tolerant search powered by PostgreSQL `pg_trgm`
-- **Global location filter** — autocomplete powered by OpenStreetMap, works for any city in the world
-- **Currency selector** — switch between USD and EUR, prices displayed everywhere accordingly
-- **Favorites** — save listings locally, count shown in the nav
-- **Similar listings** — shown at the bottom of every listing page
-- **Seller profiles** — rating, number of deals, member since date, suspension status
-- **Price filter** — min/max price range on home and search pages
-- **Sort options** — Newest, Featured first, Price low to high, Price high to low
-- **Recently viewed** — horizontal scroll strip of last 12 visited listings, stored locally
+## What's inside
 
-### For Sellers
-- **Post ads in minutes** — title, description, photos, price, location, category attributes
-- **Rich category attributes** — structured fields per category
-- **Status management** — mark listings as Active, Sold, or Archived
-- **Sale confirmation flow** — confirm sale via chat with a dedicated button
-- **Photo upload** — multiple photos with square thumbnails
-- **Paid Boost** — promote listings to the top of results for 7 or 30 days via Stripe
+### For buyers
+- **Smart search** — typo-tolerant, powered by PostgreSQL `pg_trgm`, finds results even if you mistype
+- **Location filter** — autocomplete via OpenStreetMap, works for any city in the world, no API key needed
+- **Currency selector** — switch between USD and EUR, prices update everywhere instantly
+- **Favorites** — save listings locally, counter shows in the nav
+- **Recently viewed** — last 8 visited listings; swipe strip on mobile, grid on desktop
+- **Similar listings** — shown full-width at the bottom of each listing, up to 12 cards, "See all" links to category
+- **Seller profiles** — rating, number of deals, member since, suspension status
+- **Price filter + sorting** — min/max range, sort by newest / featured / price
+- **Delivery badge** — listings with delivery show a badge on the photo in every card view
+- **Category chip** — each card in Recent listings shows what category it belongs to
 
-### Real-time Chat
-- Instant messaging between buyer and seller
+### For sellers
+- **Post in minutes** — title, description, photos, price, location, category-specific fields
+- **Status management** — mark as Active, Sold, or Archived
+- **Sale confirmation** — confirm a deal directly in chat
+- **Photo upload** — multiple photos, square thumbnails
+- **Paid Boost** — pay to push a listing to the top for 7 or 30 days via Stripe
+
+### Real-time chat
+- Instant messages between buyer and seller
 - Photo sharing inside chat
-- Delivery confirmation and sale flow built into chat
+- Sale confirmation flow built into chat
 - Read receipts (single and double tick)
-- Review and rating system after a completed deal
-- Auto-confirm after 7 days if buyer does not respond
-- Pin conversations, hide or delete chat per user
-- Report user button in chat header — sends a report to moderation with a reason
+- Reviews and ratings after a completed deal
+- Auto-confirm after 7 days if buyer doesn't respond
+- Pin, hide, or delete conversations per user
+- Report user button — sends a report to moderation with a reason
 
 ### Support
-- 24/7 support widget — floating button on every page
+- Floating support widget on every page, always visible
 - FAQ with 6 built-in answers
-- Live chat with moderation if FAQ does not help
-- Unread message badge and sound notification for moderator replies
-- Admins reply directly from the admin panel
+- Live chat with a moderator if FAQ doesn't cover it
+- Unread badge and sound notification when moderator replies
+- Admins reply from the admin panel
 
-### Admin and Moderation
-- Overview dashboard — total listings, users, conversations, reviews
-- Listings tab — search, change status, delete any listing
-- Users tab — search, change role, ban or unban with duration and reason
-- Reports tab — listing reports and user reports from chat, with Dismiss, Delete, and Ban actions
+### Admin & moderation
+- Dashboard — total listings, users, conversations, reviews
+- Listings tab — search, change status, delete anything
+- Users tab — search, change role, ban/unban with duration and reason
+- Reports tab — listing and user reports with Dismiss, Delete, and Ban actions
 - Reviews tab — delete any review
-- Support tab — reply to user tickets, close tickets
-- All Chats tab — view every conversation on the platform, reported ones sorted first with a badge, read-only message history, ban participants directly from the chat view
+- Support tab — reply to tickets, close them
+- All Chats tab — read-only view of every conversation, reported ones sorted first, ban users directly from chat
 
-### Report System
-- Report any listing with a reason: Spam, Scam, Inappropriate, Wrong category, Duplicate, or Other
-- Report any user from a chat conversation
-- The "Other" reason opens a custom text field
-- Reported listings are hidden from the reporter's feed while pending
-- Moderation resolves reports: Dismiss or Delete listing / Ban user
+### Report system
+- Report any listing: Spam, Scam, Inappropriate, Wrong category, Duplicate, or Other
+- Report any user from a chat
+- "Other" opens a custom text field
+- Reported listings are hidden from the reporter's feed while under review
+- Moderation resolves: Dismiss or Delete listing / Ban user
 
-### Ban System
+### Ban system
 - Ban duration: 1 hour, 24 hours, 7 days, 30 days, or permanent
-- Optional ban reason stored and shown to the banned user
-- Banned users see a full-screen overlay with reason and expiry and cannot interact with the platform
-- Banned users' listings are hidden from all other users automatically via RLS
-- Listings restore automatically when a temporary ban expires
-- Admins and moderators can always see all listings including those from banned users
-- Public profile shows an "Account suspended" banner when a user is banned
+- Optional reason stored and shown to the banned user
+- Banned users see a full-screen block with reason and expiry, can't do anything
+- Their listings are hidden from everyone via RLS
+- Listings come back automatically when a temporary ban expires
+- Admins always see all listings including from banned users
+- Public profiles show an "Account suspended" banner
+
+### Browse by category
+
+Home page has a **Browse by category** section — up to 24 listings per category, boosted ones always first. Each row scrolls horizontally via trackpad or scrollbar on desktop, swipe on mobile. Vertical page scroll always works even when your finger is on a category row.
 
 ### Categories
 
-| Category | Key Attributes |
+| Category | Key attributes |
 |----------|----------------|
 | Electronics | Type, Brand, Model, Condition, Storage/RAM, Warranty |
 | Vehicles | Make, Model, Year, Mileage, Fuel, Transmission, Drive, Body |
@@ -90,43 +96,43 @@ A fast, clean, and fully-featured classifieds marketplace built for internationa
 
 ---
 
-## Tech Stack
+## Tech stack
 
-| Layer | Technology |
-|-------|------------|
+| Layer | What |
+|-------|------|
 | Frontend | React 19 + Vite 7 |
 | Routing | React Router v7 |
-| UI | Custom CSS (no UI library) |
+| UI | Custom CSS — no UI library, no bloat |
 | Backend | Supabase (PostgreSQL + Auth + Storage + Realtime) |
 | Search | PostgreSQL `pg_trgm` — fuzzy, typo-tolerant |
-| Location | OpenStreetMap Nominatim API (free, no key required) |
-| Auth | Supabase Auth (email/password + Google OAuth) |
+| Location | OpenStreetMap Nominatim — free, no key needed |
+| Auth | Supabase Auth — email/password + Google OAuth |
 | Real-time | Supabase Realtime subscriptions |
-| Payments | Stripe Checkout (listing boost) |
-| Email | Resend via Supabase Edge Functions |
+| Payments | Stripe Checkout — listing boost |
+| Emails | Resend via Supabase Edge Functions |
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── components/
-│   ├── Layout.jsx                  # Main layout, header, sidebar, bottom nav, ban screen
-│   ├── Footer.jsx                  # Footer with categories and static links
-│   ├── SupportWidget.jsx           # Floating support button with FAQ and live chat
-│   ├── ListingCard.jsx             # Card used in grids
-│   ├── LocationAutocomplete.jsx    # City search with OpenStreetMap
-│   └── Icons.jsx                   # All icon exports
+│   ├── Layout.jsx                  # header, sidebar, bottom nav, ban screen
+│   ├── Footer.jsx                  # footer with categories and static links
+│   ├── SupportWidget.jsx           # floating support button with FAQ and live chat
+│   ├── ListingCard.jsx             # card used in grids
+│   ├── LocationAutocomplete.jsx    # city search with OpenStreetMap
+│   └── Icons.jsx                   # all icon exports
 ├── contexts/
-│   ├── AuthContext.jsx             # User session, profile, isBanned
+│   ├── AuthContext.jsx             # session, profile, ban status
 │   └── CurrencyContext.jsx         # USD / EUR switching
 ├── hooks/
-│   └── useReportedListings.js      # Filters out listings reported by current user
+│   └── useReportedListings.js      # hides listings reported by current user
 ├── lib/
 │   ├── supabase.js                 # Supabase client
-│   ├── categories.js               # All categories and their attributes
-│   └── favorites.js                # Local favorites (localStorage)
+│   ├── categories.js               # all categories and their attributes
+│   └── favorites.js                # local favorites via localStorage
 ├── pages/
 │   ├── Home.jsx
 │   ├── Search.jsx
@@ -140,16 +146,18 @@ src/
 │   ├── Admin.jsx
 │   ├── Static.jsx
 │   └── Auth.jsx
-└── index.css                       # All styles (CSS variables, components, responsive)
+└── index.css                       # all styles — CSS variables, components, responsive
 db/
-└── migrations/                     # SQL migrations — apply in filename order
+└── migrations/                     # SQL files — run in filename order to set up the DB
 ```
 
 ---
 
-## Getting Started
+## Getting started
 
-### 1. Clone the repository
+> Only Supabase is required to run the app. Stripe and Resend are optional — everything works fine without them, you just won't have paid boosts or email notifications until you add those keys.
+
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/your-username/your-repo.git
@@ -157,42 +165,41 @@ cd your-repo
 npm install
 ```
 
-### 2. Set up Supabase
+### 2. Create a Supabase project
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Go to **Settings → API** and copy your project URL and anon key
+1. Go to [supabase.com](https://supabase.com) and create a free project
+2. Open **Settings → API** and copy your **Project URL** and **anon public** key
 
-### 3. Configure environment
+### 3. Run the migrations
 
-Create a `.env` file in the project root:
+1. In Supabase open **SQL Editor**
+2. Go through each file in `db/migrations/` in filename order (01, 02, 03…)
+3. Paste and run each one — this sets up all tables, functions, and row-level security
+
+### 4. Set up environment variables
+
+Create a `.env` file in the root of the project:
 
 ```env
-# Supabase (required)
+# Supabase — required
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 
-# App URL — used by Stripe redirects (required for boost feature)
+# Required only if you're using Stripe boost
 APP_URL=https://your-domain.vercel.app
-
-# Stripe (optional — only needed for paid listing boost)
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-
-# Supabase service role — used by Stripe webhook to update listings
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
-
-### 4. Apply database migrations
-
-Run all `.sql` files in `db/migrations/` in filename order via the Supabase SQL editor.
 
 ### 5. Run locally
 
 ```bash
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173)
+
+Open [http://localhost:5173](http://localhost:5173) — that's it.
 
 ### 6. Build for production
 
@@ -204,37 +211,37 @@ npm run build
 
 ## Deploy to Vercel
 
-1. Push the repository to GitHub
-2. Import it on [vercel.com](https://vercel.com)
-3. Add all environment variables from `.env` in **Settings → Environment Variables**
-4. Deploy — Vercel auto-deploys on every push to `main`
+1. Push to GitHub
+2. Import the repo on [vercel.com](https://vercel.com)
+3. Add your environment variables in **Settings → Environment Variables**
+4. Hit deploy — Vercel picks up every push to `main` automatically
 
-The `api/` directory is automatically served as Vercel serverless functions.
+The `api/` folder is served as Vercel serverless functions out of the box.
 
 ---
 
-## Stripe Setup (Paid Boost)
+## Stripe setup (paid boost)
 
-Listing owners can pay to promote their listings to the top of search and category pages for 7 days ($2.99) or 30 days ($7.99).
+Sellers can pay to bump their listing to the top of search and category pages for 7 days ($2.99) or 30 days ($7.99).
 
 1. Create a [Stripe](https://stripe.com) account
-2. Go to **Developers → API keys** and copy your Secret key
-3. Add the following environment variables to Vercel:
+2. Go to **Developers → API keys**, copy the Secret key
+3. Add these to Vercel environment variables:
 
 | Variable | Value |
 |----------|-------|
 | `STRIPE_SECRET_KEY` | `sk_live_...` |
-| `STRIPE_WEBHOOK_SECRET` | from step 4 below |
+| `STRIPE_WEBHOOK_SECRET` | from step 4 |
 | `APP_URL` | `https://your-domain.vercel.app` |
 | `SUPABASE_URL` | your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → service_role |
 
 4. Go to **Developers → Webhooks → Add endpoint**:
    - URL: `https://your-domain.vercel.app/api/stripe-webhook`
    - Events: `checkout.session.completed`
-   - Copy the signing secret and add it as `STRIPE_WEBHOOK_SECRET`
+   - Copy the signing secret → add as `STRIPE_WEBHOOK_SECRET`
 
-To change boost prices, edit `api/create-checkout.js`:
+Want to change the prices? Edit `api/create-checkout.js`:
 
 ```js
 const PLANS = {
@@ -245,12 +252,12 @@ const PLANS = {
 
 ---
 
-## Email Notifications Setup (Resend)
+## Email notifications (Resend)
 
-Sellers receive an email when a buyer opens a chat. Buyers receive an email when they get a reply.
+Sellers get an email when someone opens a chat. Buyers get one when they receive a reply.
 
 1. Create a [Resend](https://resend.com) account and verify your sending domain
-2. Copy your API key and deploy the Edge Function:
+2. Deploy the Edge Function:
 
 ```bash
 npm install -g supabase
@@ -264,7 +271,7 @@ supabase secrets set APP_URL=https://your-domain.vercel.app
 supabase functions deploy send-notification-email
 ```
 
-3. Create Database Webhooks in **Supabase → Database → Webhooks**:
+3. Set up Database Webhooks in **Supabase → Database → Webhooks**:
 
 | Hook name | Table | Event | Function |
 |-----------|-------|-------|----------|
@@ -273,27 +280,53 @@ supabase functions deploy send-notification-email
 
 ---
 
-## Database Schema
+## Database schema
 
-| Table | Description |
-|-------|-------------|
-| `profiles` | User profiles — name, avatar, rating, role, ban status and reason |
-| `listings` | All ads — title, price, photos, category, location, status, boost expiry |
-| `listing_extras` | Key-value attributes per listing (category-specific fields) |
-| `conversations` | Buyer and seller chat threads linked to a listing |
-| `messages` | Individual chat messages with read status and image support |
-| `reviews` | Ratings left after completed deals |
-| `reports` | Listing and user reports — pending or dismissed |
-| `support_tickets` | Support chat sessions between users and moderators |
-| `support_messages` | Messages inside support tickets |
+| Table | What it stores |
+|-------|----------------|
+| `profiles` | name, avatar, rating, role, ban status and reason |
+| `listings` | all ads — title, price, photos, category, location, status, boost expiry |
+| `listing_extras` | category-specific attributes per listing (key-value) |
+| `conversations` | chat threads between buyer and seller, linked to a listing |
+| `messages` | individual messages with read status and image support |
+| `reviews` | ratings left after completed deals |
+| `reports` | listing and user reports — pending or dismissed |
+| `support_tickets` | support sessions between users and moderators |
+| `support_messages` | messages inside support tickets |
+
+---
+
+## Security & production readiness
+
+The code was audited before release — here's what was checked:
+
+| What | Status |
+|------|--------|
+| `.env` in git | ✅ not tracked — excluded by `.gitignore` |
+| Stripe secret key | ✅ server-side only (`api/`) — never reaches the browser |
+| Resend API key | ✅ Edge Function only — never exposed to client |
+| Supabase service role key | ✅ server-side only — not in frontend code |
+| Admin access | ✅ role-based — no hardcoded user IDs |
+| Database migrations | ✅ self-contained — no project-specific IDs |
+| Missing `APP_URL` in production | ✅ both `api/sitemap.js` and `api/create-checkout.js` throw a clear error instead of silently falling back to wrong values |
+
+**Before going live, make sure you have:**
+
+1. `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` — from Supabase → Settings → API
+2. `APP_URL` — your production domain, needed for Stripe redirects and sitemap
+3. `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` — needed for the Stripe webhook to update listings
+4. `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` — only if you want paid boosts
+5. `RESEND_API_KEY` + `FROM_EMAIL` — only if you want email notifications
+
+Stripe and Resend are fully optional. The app runs fine without them — those features just stay disabled until the keys are there.
 
 ---
 
 ## Customization
 
-| What | Where |
-|------|-------|
-| Brand name | `src/components/Layout.jsx`, `index.html` |
+| What to change | Where to find it |
+|----------------|-----------------|
+| Brand name | `src/components/Layout.jsx` and `index.html` |
 | Categories | `src/lib/categories.js` |
 | Colors and fonts | `src/index.css` — `:root` CSS variables |
 | Popular cities | `src/components/LocationAutocomplete.jsx` — `POPULAR` array |
@@ -306,4 +339,4 @@ supabase functions deploy send-notification-email
 
 ## License
 
-MIT — free to use, modify, and sell.
+MIT — use it, modify it, sell it, whatever you want.

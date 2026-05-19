@@ -4,6 +4,7 @@ import { IconHeart, IconImage, IconLocation } from './Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { getCategory } from '../lib/categories';
 
 const fmtPrice = (l, symbol) => {
   if (l.is_free) return 'Free';
@@ -38,6 +39,7 @@ export function ListingCard({ listing }) {
   const photo = listing.photos?.[0];
 
   const isBoosted = listing.boosted_until && new Date(listing.boosted_until) > new Date();
+  const cat = getCategory(listing.category);
 
   return (
     <Link to={`/listing/${listing.id}`} className={`listing-card${isBoosted ? ' listing-card-boosted' : ''}`}>
@@ -56,9 +58,19 @@ export function ListingCard({ listing }) {
         {photo ? <img src={photo} alt={listing.title} loading="lazy"/> : (
           <div className="img-empty"><IconImage size={40}/></div>
         )}
+        {listing.delivery && (
+          <div style={{ position: 'absolute', bottom: 7, left: 7, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4 }}>Delivery</div>
+        )}
       </div>
       <div className="body">
-        <div className={`price ${listing.is_free?'price-free':''}`}>{fmtPrice(listing, currency.symbol)}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className={`price ${listing.is_free?'price-free':''}`}>{fmtPrice(listing, currency.symbol)}</div>
+          {cat && (
+            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--bg-soft)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+              {cat.name}
+            </span>
+          )}
+        </div>
         <div className="title">{listing.title}</div>
         <div className="meta">
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SITE_URL = process.env.APP_URL || 'https://YOURDOMAIN.com';
+const SITE_URL = process.env.APP_URL;
+if (!SITE_URL) throw new Error('APP_URL environment variable is not set');
 
 // static pages that should always be in the sitemap
 const STATIC_PATHS = [

@@ -1,64 +1,42 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
-// horizontal scroll row with mouse-wheel support and a visual progress bar
-function HScrollRow({ style, children }) {
+// on iOS touch-action: pan-x doesn't work on overflow containers,
+// so we manually detect direction and scroll the page for vertical swipes
+function HRow({ gap = 12, pb = 4, children }) {
   const ref = useRef(null);
-  const [thumb, setThumb] = useState({ width: 0, left: 0 });
-  const [showBar, setShowBar] = useState(false);
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    const update = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = el;
-      if (scrollWidth <= clientWidth) { setShowBar(false); return; }
-      setShowBar(true);
-      const w = (clientWidth / scrollWidth) * 100;
-      const l = (scrollLeft / (scrollWidth - clientWidth)) * (100 - w);
-      setThumb({ width: w, left: l });
+    let startX = 0, startY = 0, prevY = 0, dir = null;
+    const onStart = (e) => {
+      startX = e.touches[0].clientX;
+      startY = prevY = e.touches[0].clientY;
+      dir = null;
     };
-
-    update();
-    el.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-
-    // тільки для ПК мишки
-    const onWheel = (e) => {
-      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
-      const { scrollLeft, scrollWidth, clientWidth } = el;
-      const atStart = scrollLeft === 0;
-      const atEnd = scrollLeft >= scrollWidth - clientWidth - 1;
-      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
+    const onMove = (e) => {
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (!dir) dir = dx > dy ? 'h' : 'v';
+      if (dir === 'v') {
+        e.preventDefault();
+        window.scrollBy(0, prevY - e.touches[0].clientY);
+        prevY = e.touches[0].clientY;
+      }
     };
-    el.addEventListener('wheel', onWheel, { passive: false });
-
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
     return () => {
-      el.removeEventListener('scroll', update);
-      el.removeEventListener('wheel', onWheel);
-      window.removeEventListener('resize', update);
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
     };
   }, []);
-
   return (
-    <div>
-      <div ref={ref} style={{ ...style, touchAction: 'pan-x' }}>{children}</div>
-      {showBar && (
-        <div style={{ height: 3, background: 'var(--border)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', borderRadius: 2,
-            background: 'var(--text-muted)',
-            width: `${thumb.width}%`,
-            marginLeft: `${thumb.left}%`,
-            transition: 'margin-left 0.08s, width 0.08s',
-          }} />
-        </div>
-      )}
+    <div ref={ref} className="hrow" style={{ display: 'flex', gap, overflowX: 'auto', paddingBottom: pb, scrollbarWidth: 'thin', scrollbarColor: 'var(--border) transparent' }}>
+      {children}
     </div>
   );
 }
+
 import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ListingCard } from '../components/ListingCard';
@@ -94,6 +72,9 @@ function CatCard({ listing }) {
           : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 24 }}>📷</div>}
         {isBoosted && (
           <div style={{ position: 'absolute', top: 7, left: 7, background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.03em' }}>TOP</div>
+        )}
+        {listing.delivery && (
+          <div style={{ position: 'absolute', bottom: 7, left: 7, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4 }}>Delivery</div>
         )}
         <button
           style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', padding: 0 }}
@@ -217,11 +198,18 @@ export default function Home() {
   const [recentListings, setRecentListings] = useState([]);
   const [visibleCount, setVisibleCount] = useState(12);
   const [catListings, setCatListings] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
 
   const { user, profile } = useAuth();
   const { currency } = useCurrency();
   const reportedIds = useReportedListings();
   useMeta({ title: 'Home', description: 'Buy and sell anything near you — electronics, vehicles, clothing, jobs and more.' });
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
 
   // load listings the user recently viewed, preserving the order they visited them
   useEffect(() => {
@@ -238,7 +226,7 @@ export default function Home() {
   useEffect(() => {
     supabase.from('listings').select('*').eq('status', 'active')
       .order('created_at', { ascending: false })
-      .limit(200)
+      .limit(500)
       .then(({ data, error }) => {
         if (!error && data) setCatListings(data);
       });
@@ -352,21 +340,41 @@ export default function Home() {
           <h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
             Recently viewed
           </h2>
-          <HScrollRow style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', touchAction: 'pan-x', overscrollBehaviorX: 'contain' }}>
-            {recentListings.filter(l => !reportedIds.has(l.id)).map(l => (
-              <Link key={l.id} to={`/listing/${l.id}`} style={{ textDecoration: 'none', color: 'var(--text)', flexShrink: 0, width: 130 }}>
-                <div style={{ width: 130, height: 96, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-soft)', border: '1px solid var(--border)', marginBottom: 6 }}>
-                  {l.photos?.[0]
-                    ? <img src={l.photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 28 }}>📷</div>}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
-                  {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${currency.symbol}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
-                </div>
-              </Link>
-            ))}
-          </HScrollRow>
+          {isMobile ? (
+            <HRow gap={10} pb={10}>
+              {recentListings.filter(l => !reportedIds.has(l.id)).slice(0, 8).map(l => (
+                <Link key={l.id} to={`/listing/${l.id}`} style={{ textDecoration: 'none', color: 'var(--text)', flexShrink: 0, width: 130 }}>
+                  <div style={{ width: 130, height: 96, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-soft)', border: '1px solid var(--border)', marginBottom: 6, position: 'relative' }}>
+                    {l.photos?.[0]
+                      ? <img src={l.photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 28 }}>📷</div>}
+                    {l.delivery && <div style={{ position: 'absolute', bottom: 5, left: 5, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>Delivery</div>}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
+                    {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${currency.symbol}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
+                  </div>
+                </Link>
+              ))}
+            </HRow>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+              {recentListings.filter(l => !reportedIds.has(l.id)).slice(0, 8).map(l => (
+                <Link key={l.id} to={`/listing/${l.id}`} style={{ textDecoration: 'none', color: 'var(--text)' }}>
+                  <div style={{ width: '100%', aspectRatio: '130 / 96', borderRadius: 10, overflow: 'hidden', background: 'var(--bg-soft)', border: '1px solid var(--border)', marginBottom: 6, position: 'relative' }}>
+                    {l.photos?.[0]
+                      ? <img src={l.photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 28 }}>📷</div>}
+                    {l.delivery && <div style={{ position: 'absolute', bottom: 5, left: 5, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>Delivery</div>}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
+                    {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${currency.symbol}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -462,14 +470,15 @@ export default function Home() {
             const now = new Date();
             const items = catListings
               .filter(l => l.category === cat.slug && !reportedIds.has(l.id))
+              // boosted listings always come first, then newest
               .sort((a, b) => {
                 const ab = a.boosted_until && new Date(a.boosted_until) > now;
                 const bb = b.boosted_until && new Date(b.boosted_until) > now;
                 if (ab && !bb) return -1;
                 if (!ab && bb) return 1;
-                return 0;
+                return new Date(b.created_at) - new Date(a.created_at);
               })
-              .slice(0, 12);
+              .slice(0, 24);
             if (!items.length) return null;
             return (
               <div key={cat.slug} style={{ marginBottom: 40 }}>
@@ -481,9 +490,9 @@ export default function Home() {
                     See all →
                   </Link>
                 </div>
-                <HScrollRow style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none', touchAction: 'pan-x', overscrollBehaviorX: 'contain' }}>
+                <HRow gap={12} pb={isMobile ? 10 : 4}>
                   {items.map(l => <CatCard key={l.id} listing={l} />)}
-                </HScrollRow>
+                </HRow>
               </div>
             );
           })}
@@ -491,6 +500,10 @@ export default function Home() {
       )}
 
       <style>{`
+        .hrow::-webkit-scrollbar { height: 4px; }
+        .hrow::-webkit-scrollbar-track { background: transparent; border-radius: 2px; }
+        .hrow::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; transition: background 0.2s; }
+        .hrow::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

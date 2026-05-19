@@ -13,7 +13,8 @@ export default async function handler(req, res) {
   const { listingId, listingTitle, plan } = req.body;
   if (!listingId || !PLANS[plan]) return res.status(400).json({ error: 'Invalid request' });
 
-  const appUrl = process.env.APP_URL || 'http://localhost:5173';
+  const appUrl = process.env.APP_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:5173' : null);
+  if (!appUrl) return res.status(500).json({ error: 'APP_URL environment variable is not set' });
   const { name, amount } = PLANS[plan];
 
   try {

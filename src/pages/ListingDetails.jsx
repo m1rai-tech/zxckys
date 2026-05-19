@@ -44,7 +44,7 @@ export default function ListingDetails() {
       setListing(data);
       // remember this listing so it shows up in "Recently viewed" on the home page
       const viewed = JSON.parse(localStorage.getItem('recently_viewed') || '[]');
-      localStorage.setItem('recently_viewed', JSON.stringify([id, ...viewed.filter(v => v !== id)].slice(0, 20)));
+      localStorage.setItem('recently_viewed', JSON.stringify([id, ...viewed.filter(v => v !== id)].slice(0, 8)));
       const { data: s } = await supabase.from('profiles').select('*').eq('id', data.user_id).maybeSingle();
       setSeller(s);
       const { data: e } = await supabase.from('listing_extras').select('*').eq('listing_id', id);
@@ -343,10 +343,15 @@ export default function ListingDetails() {
           </aside>
 
           {similar.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              <h2 className="ld-section-title">Similar listings</h2>
+            <div style={{ marginTop: 8, gridColumn: '1 / -1' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <h2 className="ld-section-title" style={{ margin: 0 }}>Similar listings</h2>
+                <Link to={`/c/${listing.category}`} className="btn btn-ghost" style={{ fontSize: 13, padding: '6px 16px' }}>
+                  See all →
+                </Link>
+              </div>
               <div className="listings-grid">
-                {similar.map((l) => <ListingCard key={l.id} listing={l}/>)}
+                {similar.slice(0, 12).map((l) => <ListingCard key={l.id} listing={l}/>)}
               </div>
             </div>
           )}
