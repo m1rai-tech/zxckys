@@ -26,10 +26,17 @@ A clean, fast marketplace where people can buy and sell anything — electronics
 
 ### For sellers
 - **Post in minutes** — title, description, photos, price, location, category-specific fields
+- **Edit anytime** — update any field on your listing after publishing
 - **Status management** — mark as Active, Sold, or Archived
 - **Sale confirmation** — confirm a deal directly in chat
 - **Photo upload** — multiple photos, square thumbnails
 - **Paid Boost** — pay to push a listing to the top for 7 or 30 days via Stripe
+
+### Account settings
+- **Profile** — update name, bio, city, and avatar photo (up to 5 MB, stored in Supabase Storage)
+- **Phone number** — international dial code selector with 60+ countries; number is visible on your public profile
+- **Password** — change it anytime; minimum 6 characters
+- **Sign out everywhere** — ends all active sessions across all devices at once
 
 ### Real-time chat
 - Instant messages between buyer and seller
@@ -72,6 +79,14 @@ A clean, fast marketplace where people can buy and sell anything — electronics
 - Listings come back automatically when a temporary ban expires
 - Admins always see all listings including from banned users
 - Public profiles show an "Account suspended" banner
+
+### Static pages
+
+The footer links to three built-in pages — they use the same accordion layout and are easy to customize:
+
+- **Privacy Policy** — `/privacy`
+- **Terms of Service** — `/terms`
+- **Help** — `/help`
 
 ### Browse by category
 
@@ -122,7 +137,9 @@ src/
 │   ├── Footer.jsx                  # footer with categories and static links
 │   ├── SupportWidget.jsx           # floating support button with FAQ and live chat
 │   ├── ListingCard.jsx             # card used in grids
+│   ├── CategoryBar.jsx             # horizontal category nav strip below the header
 │   ├── LocationAutocomplete.jsx    # city search with OpenStreetMap
+│   ├── PhoneCodeSelect.jsx         # international dial code dropdown (60+ countries)
 │   └── Icons.jsx                   # all icon exports
 ├── contexts/
 │   ├── AuthContext.jsx             # session, profile, ban status
@@ -134,18 +151,18 @@ src/
 │   ├── categories.js               # all categories and their attributes
 │   └── favorites.js                # local favorites via localStorage
 ├── pages/
-│   ├── Home.jsx
-│   ├── Search.jsx
-│   ├── Category.jsx
-│   ├── ListingDetails.jsx
-│   ├── CreateListing.jsx
-│   ├── Chat.jsx
-│   ├── Profile.jsx
-│   ├── Settings.jsx
-│   ├── Favorites.jsx
-│   ├── Admin.jsx
-│   ├── Static.jsx
-│   └── Auth.jsx
+│   ├── Home.jsx           # feed, filters, sort, recently viewed, browse by category rows
+│   ├── Search.jsx         # fuzzy search results with location filter
+│   ├── Category.jsx       # single category page with filters and sort
+│   ├── ListingDetails.jsx # full listing view with similar listings
+│   ├── CreateListing.jsx  # create and edit listings (shared component)
+│   ├── Chat.jsx           # real-time chat with sale confirmation and reviews
+│   ├── Profile.jsx        # my profile and public seller profiles
+│   ├── Settings.jsx       # profile editor, password change, sign out all devices
+│   ├── Favorites.jsx      # saved listings from localStorage
+│   ├── Admin.jsx          # moderation panel — listings, users, reports, reviews, support, chats
+│   ├── Static.jsx         # privacy policy, terms, help — accordion layout
+│   └── Auth.jsx           # login and registration
 └── index.css                       # all styles — CSS variables, components, responsive
 db/
 └── migrations/                     # SQL files — run in filename order to set up the DB
@@ -334,6 +351,8 @@ Stripe and Resend are fully optional. The app runs fine without them — those f
 | Boost prices | `api/create-checkout.js` — `PLANS` object |
 | Email templates | `supabase/functions/send-notification-email/index.ts` |
 | Support FAQ | `src/components/SupportWidget.jsx` — `FAQ` array |
+| Static pages (Privacy, Terms, Help) | `src/pages/Static.jsx` — edit the `sections` arrays |
+| Phone country list | `src/components/PhoneCodeSelect.jsx` — `PHONE_CODES` array |
 
 ---
 
