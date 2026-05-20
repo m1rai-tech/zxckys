@@ -37,9 +37,9 @@ function CatCard({ listing }) {
       background: 'var(--bg-card)',
       border: isBoosted ? '2px solid #f59e0b' : '1px solid var(--border)',
       boxShadow: isBoosted ? '0 0 0 3px #fef3c7' : 'none',
-      touchAction: 'pan-x',
+      touchAction: 'pan-x pan-y',
     }}>
-      <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', background: 'var(--bg-soft)', overflow: 'hidden', touchAction: 'pan-x' }}>
+      <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', background: 'var(--bg-soft)', overflow: 'hidden', touchAction: 'pan-x pan-y' }}>
         {listing.photos?.[0]
           ? <img src={listing.photos[0]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 24 }}>📷</div>}
@@ -307,6 +307,33 @@ export default function Home() {
           <IconPlus size={16} /> Post Ad
         </Link>
       </div>
+
+      {isMobile && (
+        <div style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
+            Categories
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {CATEGORIES.map(cat => (
+              <Link
+                key={cat.slug}
+                to={`/c/${cat.slug}`}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 6, padding: '12px 4px', borderRadius: 12,
+                  border: '1px solid var(--border)', background: '#fff',
+                  textDecoration: 'none', color: 'var(--text)',
+                  fontSize: 11, fontWeight: 500, textAlign: 'center',
+                  lineHeight: 1.3, minHeight: 72,
+                }}
+              >
+                <cat.Icon size={22} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                <span>{cat.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {recentListings.length > 0 && (
         <div style={{ marginBottom: 28 }}>

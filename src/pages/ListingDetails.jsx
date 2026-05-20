@@ -199,7 +199,7 @@ export default function ListingDetails() {
               )}
             </div>
 
-            <div className="ld-block">
+            <div className="ld-block ld-desc-desktop">
               <h2 className="ld-block-title">Description</h2>
               {listing.description ? (
                 <div className="ld-desc">{listing.description}</div>
@@ -285,6 +285,14 @@ export default function ListingDetails() {
                   <button className="btn btn-ghost btn-block" onClick={() => { if (!user) { nav('/login'); return; } if (id) setFav(toggleFavorite(id)); }}>
                   <IconHeart size={16} fill={fav}/> {fav ? 'In favorites' : 'Add to favorites'}
                   </button>
+                  <div className="ld-desc-mobile" style={{ padding: '12px 0 4px' }}>
+                    <h2 className="ld-block-title">Description</h2>
+                    {listing.description ? (
+                      <div className="ld-desc">{listing.description}</div>
+                    ) : (
+                      <div className="text-muted">No description</div>
+                    )}
+                  </div>
                   {user && !reportDone && (
                     <button className="btn btn-ghost btn-block" style={{ color: '#ef4444', fontSize: 13 }}
                       onClick={() => setReportModal(true)}>

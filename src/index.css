@@ -356,6 +356,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
 }
 
 .listing-card {
+  touch-action: pan-y;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -384,6 +385,8 @@ input, textarea, select { font-family: inherit; font-size: inherit; color: inher
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
+  touch-action: pan-y;
+  -webkit-user-drag: none;
 }
 .listing-card .img-empty {
   width: 100%; height: 100%;
@@ -1083,21 +1086,25 @@ footer { display: block; }
 .ld-modal-icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
 .ld-modal-head h3 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
 .ld-modal-head p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+.ld-desc-mobile { display: none; }
 @media (max-width: 900px) {
-  .ld-grid { grid-template-columns: 1fr; }
+  .ld-grid { grid-template-columns: 1fr; gap: 0; }
   .ld-sidebar { position: static; }
   .ld-title { font-size: 20px; }
   .ld-price { font-size: 28px; }
+  .ld-desc-desktop { display: none; }
+  .ld-desc-mobile { display: block; }
 }
 @media (max-width: 640px) {
   .ld-page { padding: 0; }
   .ld-breadcrumbs { padding: 12px 16px 8px; }
-  .ld-gallery { border-radius: 0; border-left: none; border-right: none; }
+  .ld-gallery { border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
   .ld-main-photo { height: 260px; }
   .ld-block { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
   .ld-price-card { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
   .ld-seller-card { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
   .ld-tips-card { border-radius: 0; border-left: none; border-right: none; padding: 16px; }
+  .ld-sidebar { gap: 0; }
   .ld-title { word-break: break-word; }
   .ld-desc { word-break: break-word; }
 }

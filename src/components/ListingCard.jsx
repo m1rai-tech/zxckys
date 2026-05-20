@@ -55,7 +55,7 @@ export function ListingCard({ listing }) {
         }}>⚡ TOP</span>
       )}
       <div className="img">
-        {photo ? <img src={photo} alt={listing.title} loading="lazy"/> : (
+        {photo ? <img src={photo} alt={listing.title} loading="lazy" draggable={false}/> : (
           <div className="img-empty"><IconImage size={40}/></div>
         )}
         {listing.delivery && (
