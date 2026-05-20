@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IconHeart, IconImage, IconLocation } from './Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useAuth } from '../contexts/AuthContext';
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useCurrency, getCurrencySymbol } from '../contexts/CurrencyContext';
 import { getCategory } from '../lib/categories';
 
 const fmtPrice = (l, symbol) => {
@@ -27,6 +27,7 @@ export function ListingCard({ listing }) {
   const { user } = useAuth();
   const { currency } = useCurrency();
   const navigate = useNavigate();
+  const priceSymbol = getCurrencySymbol(listing.currency) || currency?.symbol || '';
   const [fav, setFav] = useState(false);
   useEffect(() => { setFav(isFavorite(listing.id)); }, [listing.id]);
 
@@ -64,7 +65,7 @@ export function ListingCard({ listing }) {
       </div>
       <div className="body">
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div className={`price ${listing.is_free?'price-free':''}`} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fmtPrice(listing, currency.symbol)}</div>
+          <div className={`price ${listing.is_free?'price-free':''}`} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fmtPrice(listing, priceSymbol)}</div>
           {cat && (
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--bg-soft)', border: '1px solid var(--border)', borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap', flexShrink: 0, maxWidth: '48%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {cat.name}

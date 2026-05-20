@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { IconSend, IconImage, IconFlag } from '../components/Icons';
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useCurrency, getCurrencySymbol } from '../contexts/CurrencyContext';
 
 const iconBtnStyle = {
   background: 'none', border: 'none', cursor: 'pointer', padding: 8,
@@ -578,7 +578,7 @@ export default function Chat() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.listing?.title}</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: activeListing?.status === 'sold' ? 'var(--text-muted)' : 'var(--accent)', marginTop: 1 }}>
-                      {activeListing?.is_free ? 'Free' : active.listing?.price ? `${currency.symbol}${Number(active.listing.price).toLocaleString('en-US')}` : ''}
+                      {activeListing?.is_free ? 'Free' : active.listing?.price ? `${getCurrencySymbol(activeListing?.currency) || currency?.symbol || ''}${Number(active.listing.price).toLocaleString('en-US')}` : ''}
                     </div>
                   </div>
                   {/* Status badge / action button */}

@@ -47,7 +47,18 @@ function CurrencySelect({ currency, changeCurrency }) {
           minWidth: 86,
         }}
       >
-        <span style={{ flex: 1 }}>{currency.symbol} {currency.code}</span>
+        <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {currency ? `${currency.symbol} ${currency.code}` : (
+            <>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              All
+            </>
+          )}
+        </span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
           style={{
@@ -73,26 +84,41 @@ function CurrencySelect({ currency, changeCurrency }) {
           minWidth: '100%',
           overflow: 'hidden',
         }}>
-          {CURRENCIES.map(c => (
-            <div
-              key={c.code}
-              onClick={() => { changeCurrency(c.code); setOpen(false); }}
-              style={{
-                padding: '9px 12px',
-                cursor: 'pointer',
-                fontSize: 13,
-                background: currency.code === c.code ? 'var(--accent-soft)' : 'transparent',
-                color: currency.code === c.code ? 'var(--accent)' : 'var(--text)',
-                fontWeight: currency.code === c.code ? 600 : 400,
-                transition: 'background .1s',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => { if (currency.code !== c.code) e.currentTarget.style.background = 'var(--bg-soft)'; }}
-              onMouseLeave={e => { if (currency.code !== c.code) e.currentTarget.style.background = 'transparent'; }}
-            >
-              {c.symbol} {c.label}
-            </div>
-          ))}
+          {[{ code: '', symbol: '', label: 'All' }, ...CURRENCIES].map(c => {
+            const isSelected = c.code === '' ? currency === null : currency?.code === c.code;
+            return (
+              <div
+                key={c.code || '__any__'}
+                onClick={() => { changeCurrency(c.code); setOpen(false); }}
+                style={{
+                  padding: '9px 12px',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  background: isSelected ? 'var(--accent-soft)' : 'transparent',
+                  color: isSelected ? 'var(--accent)' : 'var(--text)',
+                  fontWeight: isSelected ? 600 : 400,
+                  transition: 'background .1s',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-soft)'; }}
+                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {c.code === '' ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    All
+                  </>
+                ) : `${c.symbol} ${c.label}`}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

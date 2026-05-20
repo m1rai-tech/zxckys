@@ -33,7 +33,7 @@ export function MyProfile() {
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 22, fontWeight: 700 }}>{profile.name}</div>
           <div className="text-muted text-sm">{profile.email}</div>
-          {profile.bio && <div style={{ marginTop: 8 }}>{profile.bio}</div>}
+          {profile.bio && <div style={{ marginTop: 8, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{profile.bio}</div>}
           <div className="profile-stats">
             <div className="profile-stat">
               <div className="num">{profile.deals_count || 0}</div>
@@ -128,7 +128,7 @@ export function SellerProfile() {
             {profile.city && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IconLocation size={12}/> {profile.city}</span>}
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IconCalendar size={12}/> Member since {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
           </div>
-          {profile.bio && <div style={{ marginTop: 8 }}>{profile.bio}</div>}
+          {profile.bio && <div style={{ marginTop: 8, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{profile.bio}</div>}
           <div className="profile-stats">
             <div className="profile-stat">
               <div className="num">{profile.deals_count || 0}</div>
@@ -176,7 +176,7 @@ export function SellerProfile() {
                     {[1,2,3,4,5].map(i => <IconStar key={i} size={16} fill={i <= r.rating}/>)}
                   </div>
                 </div>
-                {r.comment && <div>{r.comment}</div>}
+                {r.comment && <div style={{ marginTop: 4, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{r.comment}</div>}
               </div>
             ))}
           </div>

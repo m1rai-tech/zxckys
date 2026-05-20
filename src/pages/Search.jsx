@@ -6,6 +6,7 @@ import { Empty } from '../components/Empty';
 import { supabase } from '../lib/supabase';
 import { useMeta } from '../hooks/useMeta';
 import { useReportedListings } from '../hooks/useReportedListings';
+import { useCurrency } from '../contexts/CurrencyContext';
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
@@ -27,6 +28,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const reportedIds = useReportedListings();
+  const { currency } = useCurrency();
 
   const subtitle = [q ? `«${q}»` : null, city || null].filter(Boolean).join(' · ');
   useMeta({
@@ -147,7 +149,18 @@ export default function SearchPage() {
         <Empty title="Nothing found" text="Try different filters or a broader search"/>
       ) : (
         <div className="listings-grid">
-          {listings.filter(l => !reportedIds.has(l.id)).map(l => <ListingCard key={l.id} listing={l}/>)}
+          {listings
+            .filter(l => !reportedIds.has(l.id))
+            .sort((a, b) => {
+              const code = currency?.code;
+              if (!code) return 0;
+              const aMatch = a.currency === code;
+              const bMatch = b.currency === code;
+              if (aMatch && !bMatch) return -1;
+              if (!aMatch && bMatch) return 1;
+              return 0;
+            })
+            .map(l => <ListingCard key={l.id} listing={l}/>)}
         </div>
       )}
     </Layout>

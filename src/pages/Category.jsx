@@ -6,6 +6,7 @@ import { Empty } from '../components/Empty';
 import { CATEGORIES, getCategory } from '../lib/categories';
 import { supabase } from '../lib/supabase';
 import { useReportedListings } from '../hooks/useReportedListings';
+import { useCurrency } from '../contexts/CurrencyContext';
 
 function FilterField({ attr, value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -134,6 +135,7 @@ export default function Category() {
   const [allListings, setAllListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const reportedIds = useReportedListings();
+  const { currency } = useCurrency();
 
   const [priceFrom, setPriceFrom] = useState('');
   const [priceTo, setPriceTo] = useState('');
@@ -341,7 +343,18 @@ export default function Category() {
           )} />
       ) : (
         <div className="listings-grid">
-          {filteredListings.filter(l => !reportedIds.has(l.id)).map(l => <ListingCard key={l.id} listing={l} />)}
+          {filteredListings
+            .filter(l => !reportedIds.has(l.id))
+            .sort((a, b) => {
+              const code = currency?.code;
+              if (!code) return 0;
+              const aMatch = a.currency === code;
+              const bMatch = b.currency === code;
+              if (aMatch && !bMatch) return -1;
+              if (!aMatch && bMatch) return 1;
+              return 0;
+            })
+            .map(l => <ListingCard key={l.id} listing={l} />)}
         </div>
       )}
       <style>{`

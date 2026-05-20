@@ -220,6 +220,7 @@ export function SupportWidget() {
                     border: m.is_mod ? '1px solid var(--border)' : 'none',
                     borderRadius: 10, padding: '8px 12px',
                     fontSize: 13, maxWidth: '85%', lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word',
                   }}>
                     {m.is_mod && (
                       <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 3, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.04em' }}>

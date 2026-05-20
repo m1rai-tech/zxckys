@@ -45,6 +45,8 @@ function StaticPage({ title, subtitle, sections }) {
                 lineHeight: 1.75,
                 color: 'var(--text-muted)',
                 borderTop: '1px solid var(--border)',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
               }}>
                 {s.content}
               </div>
@@ -115,9 +117,9 @@ const TERMS_SECTIONS = [
     title: 'Acceptance of Terms',
     content: (
       <>
-        <p>By accessing or using the ZXC KYS platform ("Platform", "Service", "we", "us", or "our"), you confirm that you have read, understood, and agree to be bound by these Terms of Use ("Terms"). If you do not agree with any part of these Terms, you must not access or use the Platform.</p>
-        <p>These Terms apply to all visitors, users, buyers, sellers, and anyone else who accesses or uses the Service. By creating an account, posting a listing, or simply browsing the Platform, you enter into a legally binding agreement with us.</p>
-        <p>You must be at least 16 years of age to use this Service. If you are under 18, you confirm that a parent or legal guardian has reviewed and agreed to these Terms on your behalf.</p>
+        <p>Using [YOUR_PLATFORM_NAME] means you agree to these Terms. That includes browsing, posting a listing, messaging someone — all of it. If anything here doesn't work for you, please don't use the platform.</p>
+        <p>These Terms apply to everyone: visitors, buyers, sellers, and anyone else who shows up. We've kept the language as plain as we can — if something isn't clear, just reach out and ask.</p>
+        <p>You need to be at least 16 to use this platform. If you're under 18, a parent or guardian should review these Terms with you.</p>
       </>
     ),
   },
@@ -127,16 +129,15 @@ const TERMS_SECTIONS = [
     title: 'Account Registration & Security',
     content: (
       <>
-        <p>To access certain features of the Platform, you must register for an account. When creating an account, you agree to:</p>
+        <p>Some features require an account. When you sign up, you agree to:</p>
         <ul>
-          <li>Provide accurate, current, and complete information (name, email, and optional phone number)</li>
-          <li>Maintain and promptly update your account information to keep it accurate</li>
-          <li>Keep your password confidential and not share it with any third party</li>
-          <li>Be responsible for all activities that occur under your account</li>
-          <li>Notify us immediately at <a href="mailto:support@zxckys.com">support@zxckys.com</a> if you suspect any unauthorized access</li>
+          <li>Give us accurate info — your name, email, and optionally a phone number</li>
+          <li>Keep that info up to date if anything changes</li>
+          <li>Keep your password to yourself</li>
+          <li>Take responsibility for everything that happens under your account</li>
+          <li>Let us know at <a href="mailto:support@[YOUR_DOMAIN]">support@[YOUR_DOMAIN]</a> if you think someone got into your account without permission</li>
         </ul>
-        <p>You may only create one account per person. Multiple accounts for the same individual are not permitted. We reserve the right to verify your identity and suspend accounts we believe to be duplicates.</p>
-        <p>We are not liable for any loss or damage arising from your failure to safeguard your account credentials. You are solely responsible for maintaining the security of your login information.</p>
+        <p>One account per person — that's it. If we spot duplicates, we'll suspend the extras. If your account gets compromised because your password leaked, that's on you — keep it safe.</p>
       </>
     ),
   },
@@ -146,15 +147,14 @@ const TERMS_SECTIONS = [
     title: 'Permitted Use of the Platform',
     content: (
       <>
-        <p>The Platform is provided as a marketplace for individuals to buy and sell personal property. You may use the Platform only for its intended purpose and in compliance with all applicable laws and regulations.</p>
-        <p>You agree to use the Platform in a manner that is:</p>
+        <p>This is a platform for regular people to buy and sell things. Use it for that. Don't try to repurpose it for something else.</p>
+        <p>Whatever you do here, keep it:</p>
         <ul>
-          <li>Lawful and compliant with all local, national, and international laws</li>
-          <li>Honest, transparent, and fair toward other users</li>
-          <li>Respectful of the rights of other users and third parties</li>
-          <li>Free from deceptive, misleading, or fraudulent intent</li>
+          <li>Legal — don't break local or national laws</li>
+          <li>Honest — no misleading listings, fake prices, or shady tactics</li>
+          <li>Respectful — treat other users the way you'd want to be treated</li>
         </ul>
-        <p>The Platform is intended for personal transactions only. Commercial use, mass listing by businesses, or automated bulk posting requires explicit written permission from us.</p>
+        <p>This is a personal marketplace. If you're a business that wants to mass-post listings or run automated tools, talk to us first — otherwise we'll consider it a violation.</p>
       </>
     ),
   },
@@ -164,7 +164,7 @@ const TERMS_SECTIONS = [
     title: 'Prohibited Content & Conduct',
     content: (
       <>
-        <p>You agree that you will NOT post, transmit, or engage in any of the following on the Platform:</p>
+        <p>Don't post, send, or do any of the following:</p>
         <ul>
           <li><strong>Illegal items:</strong> weapons, controlled substances, stolen goods, counterfeit products, or any item whose sale is prohibited by applicable law</li>
           <li><strong>Adult content:</strong> sexually explicit material, adult services, or content inappropriate for minors</li>
@@ -175,7 +175,7 @@ const TERMS_SECTIONS = [
           <li><strong>Impersonation:</strong> pretending to be another person, business, or entity</li>
           <li><strong>Malware:</strong> uploading or transmitting viruses, malicious code, or any software designed to harm users or the Platform</li>
         </ul>
-        <p>Violation of these rules may result in immediate account suspension or permanent ban, removal of all listings, and potential legal action where applicable.</p>
+        <p>Break these rules and your account gets suspended or banned, your listings get removed, and if something is serious enough — we'll involve the authorities.</p>
       </>
     ),
   },
@@ -185,7 +185,7 @@ const TERMS_SECTIONS = [
     title: 'Listings & Content Responsibility',
     content: (
       <>
-        <p>You are solely responsible for the content of any listing, message, photo, or other material you post on the Platform. By submitting content, you represent and warrant that:</p>
+        <p>Whatever you post here — listings, photos, messages — is your responsibility. When you submit something, you're saying:</p>
         <ul>
           <li>You own or have the right to sell the item described</li>
           <li>The listing accurately describes the item's condition, contents, and any known defects</li>
@@ -193,8 +193,8 @@ const TERMS_SECTIONS = [
           <li>The listing does not infringe on any third-party intellectual property, trademark, or copyright</li>
           <li>The content does not violate these Terms or any applicable law</li>
         </ul>
-        <p>By posting content, you grant us a non-exclusive, worldwide, royalty-free license to display, store, reproduce, and distribute that content solely for the purpose of operating and improving the Platform.</p>
-        <p>We reserve the right to remove any listing or content at our sole discretion, without prior notice, if we determine it violates these Terms or our community guidelines. Repeated violations may result in permanent account termination.</p>
+        <p>By posting, you give us permission to display and store your content — only for running the platform. We're not taking ownership of anything you post.</p>
+        <p>We can remove a listing at any time if it breaks these Terms, usually without warning. Repeat offenders get their accounts closed.</p>
       </>
     ),
   },
@@ -204,16 +204,16 @@ const TERMS_SECTIONS = [
     title: 'Transactions & Payments',
     content: (
       <>
-        <p>ZXC KYS is a classifieds marketplace — we connect buyers and sellers but are <strong>not a party to any transaction</strong>. We do not process payments, hold funds in escrow, or facilitate shipping on behalf of users.</p>
-        <p>All sales and agreements are made directly between buyers and sellers. As such:</p>
+        <p>[YOUR_PLATFORM_NAME] is a classifieds platform — we bring buyers and sellers together, but we're <strong>not part of the deal itself</strong>. We don't handle payments, hold money, or arrange shipping.</p>
+        <p>Everything happens directly between users, which means:</p>
         <ul>
-          <li>We are not responsible for the quality, safety, legality, or delivery of any item</li>
-          <li>We do not guarantee the accuracy of any listing</li>
-          <li>We are not liable for any dispute, loss, or damage arising from a transaction</li>
-          <li>We do not offer buyer or seller protection programs</li>
+          <li>We can't vouch for item quality, condition, or whether it actually ships</li>
+          <li>We don't guarantee any listing is accurate</li>
+          <li>We're not on the hook for disputes, losses, or anything that goes wrong in a transaction</li>
+          <li>There's no buyer or seller protection — be careful out there</li>
         </ul>
-        <p>We strongly recommend meeting in safe, public locations for in-person exchanges, inspecting items before payment, and using common sense. If a deal seems too good to be true, it probably is.</p>
-        <p>Any optional paid features (such as listing boosts or promotions) are billed directly and are non-refundable once used. Pricing for paid features is displayed clearly before purchase.</p>
+        <p>Use common sense: meet in public places, inspect items before you pay, and trust your gut. If an offer feels off, it probably is.</p>
+        <p>Paid features like listing boosts are charged upfront and non-refundable once used. You'll see exactly what you're paying before you confirm.</p>
       </>
     ),
   },
@@ -223,11 +223,11 @@ const TERMS_SECTIONS = [
     title: 'Privacy & Personal Data',
     content: (
       <>
-        <p>Your privacy matters to us. When you register, we collect your name, email address, and optionally a phone number. This information is used exclusively to operate the Platform — enabling buyers to contact you, sending notifications, and managing your account.</p>
-        <p>We do not sell, rent, or share your personal data with third parties for marketing purposes. Data is stored securely on Supabase infrastructure. Your password is hashed and never stored in plain text.</p>
-        <p>We use browser local storage (not tracking cookies) to remember your preferences such as city, currency, and saved favorites. We do not use advertising trackers or analytics that follow you across other websites.</p>
-        <p>You may request deletion of your account and all associated data at any time via Settings or by contacting us at <a href="mailto:support@zxckys.com">support@zxckys.com</a>. Certain data may be retained for a limited period as required by law or for legitimate business purposes (e.g., fraud prevention).</p>
-        <p>For full details, please review our <a href="/privacy">Privacy Policy</a>.</p>
+        <p>We collect your name, email, and optionally a phone number when you register. That's it. We use it to run the platform — letting buyers reach you, sending notifications, keeping your account working.</p>
+        <p>We don't sell your data. We don't rent it. We don't hand it to advertisers. Your password is hashed before it's stored — we never see it in plain text.</p>
+        <p>We use browser local storage (not tracking cookies) to remember things like your city, currency, and favorites. There are no analytics pixels following you around the web.</p>
+        <p>Want your data deleted? Go to Settings → Delete Account, or email <a href="mailto:support@[YOUR_DOMAIN]">support@[YOUR_DOMAIN]</a>. We'll take care of it within 30 days. Some data may be kept a bit longer if the law requires it (like fraud records).</p>
+        <p>Full details are in our <a href="/privacy">Privacy Policy</a>.</p>
       </>
     ),
   },
@@ -237,15 +237,15 @@ const TERMS_SECTIONS = [
     title: 'Intellectual Property',
     content: (
       <>
-        <p>All elements of the Platform — including but not limited to the design, layout, logo, trademarks, source code, icons, and proprietary content — are owned by or licensed to ZXC KYS and are protected by applicable intellectual property laws.</p>
-        <p>You may not:</p>
+        <p>The platform design, logo, code, and everything built by us belongs to [YOUR_PLATFORM_NAME]. Don't copy it, rebrand it, or reverse-engineer it without asking first.</p>
+        <p>Specifically, please don't:</p>
         <ul>
-          <li>Copy, reproduce, or redistribute any part of the Platform's design or code</li>
-          <li>Use our trademarks, logo, or brand name without prior written consent</li>
-          <li>Create derivative works based on our Platform without permission</li>
-          <li>Reverse-engineer, decompile, or attempt to extract the source code</li>
+          <li>Copy or redistribute our design or code</li>
+          <li>Use our logo or brand name without permission</li>
+          <li>Build derivative products based on this platform</li>
+          <li>Try to extract or decompile the source code</li>
         </ul>
-        <p>Content you post (listings, photos, descriptions) remains your property. We claim no ownership over user-generated content beyond the license described in Section 5.</p>
+        <p>Your content — your listings, photos, descriptions — stays yours. We only use it to run the platform, as described in Section 5.</p>
       </>
     ),
   },
@@ -255,16 +255,16 @@ const TERMS_SECTIONS = [
     title: 'Moderation & Enforcement',
     content: (
       <>
-        <p>We are committed to maintaining a safe and trustworthy marketplace. Our moderation team reviews reported content and may take the following actions:</p>
+        <p>We want this to be a place people can actually trust. When something gets reported, our team reviews it and decides what to do:</p>
         <ul>
-          <li>Remove listings or content that violate these Terms</li>
-          <li>Issue warnings to users who breach the rules</li>
-          <li>Temporarily suspend accounts pending investigation</li>
-          <li>Permanently ban users who repeatedly or severely violate these Terms</li>
-          <li>Report illegal activity to relevant authorities</li>
+          <li>Remove the listing or content</li>
+          <li>Send the user a warning</li>
+          <li>Temporarily suspend an account while we look into it</li>
+          <li>Permanently ban repeat offenders or serious violations</li>
+          <li>Pass illegal activity to the appropriate authorities</li>
         </ul>
-        <p>Any user can report a listing using the "Report" button on the listing page. Reports are reviewed by our team, typically within 24 hours. We do not reveal the identity of users who submit reports.</p>
-        <p>Moderation decisions are made at our sole discretion. You may appeal a decision by contacting <a href="mailto:support@zxckys.com">support@zxckys.com</a> with a clear explanation of your case.</p>
+        <p>Hit the "Report" button on any listing to flag it. We review reports within 24 hours and keep reporter identities private.</p>
+        <p>We make the final call on moderation. If you think we got it wrong, email <a href="mailto:support@[YOUR_DOMAIN]">support@[YOUR_DOMAIN]</a> and we'll take another look.</p>
       </>
     ),
   },
@@ -274,21 +274,15 @@ const TERMS_SECTIONS = [
     title: 'Disclaimers & Limitation of Liability',
     content: (
       <>
-        <p>The Platform is provided on an <strong>"as is" and "as available"</strong> basis, without warranties of any kind — express, implied, or statutory. We make no guarantees regarding:</p>
+        <p>The platform is provided <strong>as is</strong>. We do our best to keep things running smoothly, but we can't make guarantees about:</p>
         <ul>
-          <li>The accuracy, completeness, or reliability of any listing or user-submitted content</li>
-          <li>Uninterrupted, error-free, or secure access to the Platform</li>
-          <li>The outcome of any transaction between users</li>
-          <li>The conduct, identity, or trustworthiness of any user</li>
+          <li>Whether any listing is accurate or the item is as described</li>
+          <li>The platform being available 24/7 without bugs or downtime</li>
+          <li>How a deal between two users turns out</li>
+          <li>Who the person on the other side of a chat actually is</li>
         </ul>
-        <p>To the fullest extent permitted by applicable law, ZXC KYS and its team shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from:</p>
-        <ul>
-          <li>Your use of or inability to use the Platform</li>
-          <li>Any transaction carried out through the Platform</li>
-          <li>Unauthorized access to your account or data</li>
-          <li>Any content posted by other users</li>
-        </ul>
-        <p>In no event shall our total liability to you exceed the amount you have paid us (if any) in the 12 months preceding the event giving rise to the claim.</p>
+        <p>To the extent the law allows, [YOUR_PLATFORM_NAME] isn't liable for losses you experience from using the platform — whether that's a bad deal, a hacked account, or content posted by someone else.</p>
+        <p>If we ever are found liable, the most we'd owe you is what you actually paid us in the 12 months before the issue happened.</p>
       </>
     ),
   },
@@ -298,14 +292,14 @@ const TERMS_SECTIONS = [
     title: 'Termination',
     content: (
       <>
-        <p>We may suspend or terminate your account and access to the Platform at any time, with or without notice, if we reasonably believe you have violated these Terms or engaged in conduct that is harmful to the Platform, other users, or third parties.</p>
-        <p>Upon termination:</p>
+        <p>We can suspend or close your account if we believe you've broken these Terms or harmed other users — with or without advance notice, depending on the situation.</p>
+        <p>When an account is terminated:</p>
         <ul>
-          <li>Your right to use the Platform ceases immediately</li>
-          <li>Your listings and public profile will be removed</li>
-          <li>You remain bound by any provisions of these Terms that by their nature should survive termination (including Sections 7, 8, 10)</li>
+          <li>Access stops immediately</li>
+          <li>Your listings and public profile are removed</li>
+          <li>Sections 7, 8, and 10 of these Terms still apply to you after the fact</li>
         </ul>
-        <p>You may delete your account at any time by going to Settings → Delete Account, or by contacting us at <a href="mailto:support@zxckys.com">support@zxckys.com</a>. We will process your request within 30 days.</p>
+        <p>Want to leave on your own terms? Go to Settings → Delete Account, or email <a href="mailto:support@[YOUR_DOMAIN]">support@[YOUR_DOMAIN]</a>. We'll process it within 30 days.</p>
       </>
     ),
   },
@@ -315,14 +309,13 @@ const TERMS_SECTIONS = [
     title: 'Changes to These Terms',
     content: (
       <>
-        <p>We may revise these Terms from time to time to reflect changes in the law, our services, or our business practices. When we make material changes, we will:</p>
+        <p>These Terms will change sometimes — when laws change, when we add features, or when something needs clarifying. When we make a meaningful update, we'll:</p>
         <ul>
           <li>Update the "Last updated" date at the top of this page</li>
-          <li>Send a notification to your registered email address</li>
-          <li>Display a prominent notice on the Platform for at least 14 days</li>
+          <li>Email you about it</li>
+          <li>Show a notice on the platform for at least 14 days</li>
         </ul>
-        <p>Your continued use of the Platform after the effective date of any changes constitutes your acceptance of the revised Terms. If you do not agree with the updated Terms, you must stop using the Platform and may delete your account.</p>
-        <p>We encourage you to review these Terms periodically to stay informed of your rights and obligations.</p>
+        <p>If you keep using the platform after an update goes live, that means you're okay with the new Terms. If you're not, you can delete your account — no hard feelings.</p>
       </>
     ),
   },
@@ -332,13 +325,13 @@ const TERMS_SECTIONS = [
     title: 'Contact & Governing Law',
     content: (
       <>
-        <p>If you have any questions, concerns, or feedback about these Terms or the Platform, please do not hesitate to contact us:</p>
+        <p>Got questions about these Terms? Something that doesn't make sense? Just reach out:</p>
         <ul>
-          <li><strong>Email:</strong> <a href="mailto:support@zxckys.com">support@zxckys.com</a></li>
-          <li><strong>Response time:</strong> We aim to respond to all inquiries within 2 business days</li>
+          <li><strong>Email:</strong> <a href="mailto:support@[YOUR_DOMAIN]">support@[YOUR_DOMAIN]</a></li>
+          <li><strong>Response time:</strong> We aim to get back to you within 2 business days</li>
         </ul>
-        <p>These Terms are governed by and construed in accordance with applicable law. Any disputes arising from these Terms or your use of the Platform shall be resolved through good-faith negotiation. If a dispute cannot be resolved amicably, it shall be submitted to binding arbitration or the jurisdiction of the competent courts.</p>
-        <p>If any provision of these Terms is found to be unenforceable, the remaining provisions will continue in full force and effect.</p>
+        <p>These Terms are governed by applicable law. If a dispute comes up, we'd rather sort it out through honest conversation first. If that doesn't work, we'll go through the proper legal channels.</p>
+        <p>If one part of these Terms turns out to be unenforceable, everything else still stands.</p>
       </>
     ),
   },
@@ -350,13 +343,13 @@ export function TermsPage() {
       <div className="tos-page">
         <div className="tos-page-hero">
           <h1 className="tos-page-title">Terms of Use</h1>
-          <p className="tos-page-sub">Please read these terms carefully before using ZXC KYS. By accessing our platform, you agree to be bound by the following terms and conditions.</p>
+          <p className="tos-page-sub">The short version: be honest, don't post illegal stuff, and treat other people the way you'd want to be treated. The long version is below.</p>
           <div className="tos-page-meta">
-            <span>Effective: <strong>May 20, 2026</strong></span>
+            <span>Effective: <strong>[EFFECTIVE_DATE]</strong></span>
             <span className="tos-page-dot">·</span>
-            <span>Last updated: <strong>May 20, 2026</strong></span>
+            <span>Last updated: <strong>[EFFECTIVE_DATE]</strong></span>
             <span className="tos-page-dot">·</span>
-            <a href="mailto:support@zxckys.com">Questions? Contact us</a>
+            <a href="mailto:support@[YOUR_DOMAIN]">Questions? Contact us</a>
           </div>
         </div>
 

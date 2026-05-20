@@ -9,7 +9,7 @@ import {
   IconEdit, IconTrash, IconStar, IconImage, IconClose, IconCheck, IconFlag
 } from '../components/Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useCurrency, getCurrencySymbol } from '../contexts/CurrencyContext';
 import { useMeta } from '../hooks/useMeta';
 
 export default function ListingDetails() {
@@ -76,7 +76,8 @@ export default function ListingDetails() {
     if (listing.price == null || listing.price === '') return 'Negotiable';
     const num = Number(listing.price);
     if (isNaN(num)) return 'Negotiable';
-    return `${currency.symbol}${num.toLocaleString('en-US')}`;
+    const sym = getCurrencySymbol(listing.currency) || currency?.symbol || '';
+    return `${sym}${num.toLocaleString('en-US')}`;
   };
 
   // open or create a conversation between this buyer and the seller
@@ -285,14 +286,6 @@ export default function ListingDetails() {
                   <button className="btn btn-ghost btn-block" onClick={() => { if (!user) { nav('/login'); return; } if (id) setFav(toggleFavorite(id)); }}>
                   <IconHeart size={16} fill={fav}/> {fav ? 'In favorites' : 'Add to favorites'}
                   </button>
-                  <div className="ld-desc-mobile" style={{ padding: '12px 0 4px' }}>
-                    <h2 className="ld-block-title">Description</h2>
-                    {listing.description ? (
-                      <div className="ld-desc">{listing.description}</div>
-                    ) : (
-                      <div className="text-muted">No description</div>
-                    )}
-                  </div>
                   {user && !reportDone && (
                     <button className="btn btn-ghost btn-block" style={{ color: '#ef4444', fontSize: 13 }}
                       onClick={() => setReportModal(true)}>
@@ -310,6 +303,15 @@ export default function ListingDetails() {
                     </button>
                   )}
                 </div>
+              )}
+            </div>
+
+            <div className="ld-block ld-desc-mobile">
+              <h2 className="ld-block-title">Description</h2>
+              {listing.description ? (
+                <div className="ld-desc">{listing.description}</div>
+              ) : (
+                <div className="text-muted">No description</div>
               )}
             </div>
 

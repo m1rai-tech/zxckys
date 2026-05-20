@@ -347,12 +347,56 @@ Stripe and Resend are fully optional. The app runs fine without them — those f
 | Categories | `src/lib/categories.js` |
 | Colors and fonts | `src/index.css` — `:root` CSS variables |
 | Popular cities | `src/components/LocationAutocomplete.jsx` — `POPULAR` array |
-| Currencies | `src/contexts/CurrencyContext.jsx` — `CURRENCIES` array |
+| Currencies | `src/contexts/CurrencyContext.jsx` — `CURRENCIES` array — see currency section below |
 | Boost prices | `api/create-checkout.js` — `PLANS` object |
 | Email templates | `supabase/functions/send-notification-email/index.ts` |
 | Support FAQ | `src/components/SupportWidget.jsx` — `FAQ` array |
-| Static pages (Privacy, Terms, Help) | `src/pages/Static.jsx` — edit the `sections` arrays |
+| Static pages (Privacy, Terms, Help) | `src/pages/Static.jsx` — see placeholders section below |
 | Phone country list | `src/components/PhoneCodeSelect.jsx` — `PHONE_CODES` array |
+
+### Currency
+
+The platform has a per-listing currency system:
+
+- **Sellers** pick a currency (USD or EUR) when creating a listing — it's stored alongside the price.
+- **Buyers** choose a preferred currency in the header (All / $ USD / € EUR). Selecting one sorts matching listings to the top; it does **not** convert prices.
+- **Default** is "All" — no preference, listings shown in their original currency.
+
+**Required migration** — run this once in Supabase → SQL Editor before the feature works:
+
+```sql
+ALTER TABLE listings ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT NULL;
+```
+
+This file is already included as `db/migrations/20260520000000_add_listing_currency.sql`.
+
+**Adding more currencies** — edit the `CURRENCIES` array in `src/contexts/CurrencyContext.jsx`:
+
+```js
+export const CURRENCIES = [
+  { code: 'USD', symbol: '$', label: 'USD' },
+  { code: 'EUR', symbol: '€', label: 'EUR' },
+  { code: 'GBP', symbol: '£', label: 'GBP' }, // add more here
+];
+```
+
+Each entry needs a `code` (used in the DB), a `symbol` (shown next to prices), and a `label` (shown in the selector).
+
+---
+
+### Legal pages (Terms, Privacy, Help)
+
+All legal content lives in `src/pages/Static.jsx`. The Terms of Use and Privacy Policy use placeholders so you can fill in your details without hunting through paragraphs of legal text.
+
+Search for these strings and replace them with your own values:
+
+| Placeholder | Replace with |
+|-------------|-------------|
+| `[YOUR_PLATFORM_NAME]` | Your product or company name, e.g. `Sellify` |
+| `[YOUR_DOMAIN]` | Your domain, e.g. `sellify.com` — used in the support email `support@[YOUR_DOMAIN]` |
+| `[EFFECTIVE_DATE]` | The date these terms go into effect, e.g. `June 1, 2026` |
+
+The Help page (`/help`) and Privacy Policy (`/privacy`) don't use brand-specific names in the text — just update the support email placeholder and you're done.
 
 ---
 

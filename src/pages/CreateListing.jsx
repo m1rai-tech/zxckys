@@ -3,18 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES, getCategory } from '../lib/categories';
+import { CURRENCIES, useCurrency } from '../contexts/CurrencyContext';
 import { supabase } from '../lib/supabase';
 import { IconClose, IconPlus, IconImage, IconCheck, IconLocation } from '../components/Icons';
 import { LocationAutocomplete } from '../components/LocationAutocomplete';
 
 export default function CreateListing({ edit = false }) {
   const { user, loading } = useAuth();
+  const { currency: buyerCurrency } = useCurrency();
   const nav = useNavigate();
   const { id } = useParams();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [listingCurrency, setListingCurrency] = useState(() => buyerCurrency?.code ?? 'USD');
   const [isFree, setIsFree] = useState(false);
   const [negotiable, setNegotiable] = useState(false);
   const [category, setCategory] = useState('');
@@ -45,6 +48,7 @@ export default function CreateListing({ edit = false }) {
           setCategory(data.category); setLocation(data.location);
           setDelivery(data.delivery); setShowPhone(data.show_phone);
           setPhotos(data.photos || []);
+          if (data.currency) setListingCurrency(data.currency);
         }
         const { data: ex } = await supabase.from('listing_extras').select('*').eq('listing_id', id);
         if (ex) {
@@ -108,6 +112,7 @@ export default function CreateListing({ edit = false }) {
     const payload = {
       user_id: user.id, title, description,
       price: isFree || negotiable ? null : (price ? Number(price) : null),
+      currency: isFree || negotiable ? null : listingCurrency,
       is_free: isFree, category, location, photos,
       delivery, show_phone: showPhone,
     };
@@ -134,11 +139,12 @@ export default function CreateListing({ edit = false }) {
   };
 
   const fmtPrice = () => {
-  if (isFree) return 'Free';
-  if (negotiable) return 'Negotiable';
-  if (!price) return 'Enter price';
-  return `${Number(price).toLocaleString('en-US')}`;
-};
+    if (isFree) return 'Free';
+    if (negotiable) return 'Negotiable';
+    if (!price) return 'Enter price';
+    const sym = CURRENCIES.find(c => c.code === listingCurrency)?.symbol ?? '$';
+    return `${sym}${Number(price).toLocaleString('en-US')}`;
+  };
 
   if (loading) return <Layout><div className="text-muted">Loading...</div></Layout>;
 
@@ -290,21 +296,41 @@ export default function CreateListing({ edit = false }) {
               </div>
 
               {!isFree && !negotiable && (
-                <div className="field" style={{ marginTop: 16 }}>
-                  <label>Amount *</label>
-                  <div className="price-input">
-                    <input
-                      className="input"
-                      type="number"
-                      min="0"
-                      value={price}
-                      onChange={(e) => { const val = e.target.value; if (val === '' || Number(val) >= 0) setPrice(val); }}
-                      onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
-                      placeholder="0"
-                    />
-                    <span className="price-currency">$</span>
+                <>
+                  <div className="field" style={{ marginTop: 16 }}>
+                    <label>Currency</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {CURRENCIES.map(c => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          className={`price-opt${listingCurrency === c.code ? ' selected' : ''}`}
+                          style={{ flex: 1, padding: '10px 14px' }}
+                          onClick={() => setListingCurrency(c.code)}
+                        >
+                          <div className="price-opt-title">{c.symbol} {c.label}</div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                  <div className="field" style={{ marginTop: 12 }}>
+                    <label>Amount *</label>
+                    <div className="price-input">
+                      <input
+                        className="input"
+                        type="number"
+                        min="0"
+                        value={price}
+                        onChange={(e) => { const val = e.target.value; if (val === '' || Number(val) >= 0) setPrice(val); }}
+                        onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
+                        placeholder="0"
+                      />
+                      <span className="price-currency">
+                        {CURRENCIES.find(c => c.code === listingCurrency)?.symbol ?? '$'}
+                      </span>
+                    </div>
+                  </div>
+                </>
               )}
             </section>
 

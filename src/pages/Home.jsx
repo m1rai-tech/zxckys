@@ -21,7 +21,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES } from '../lib/categories';
 import { useMeta } from '../hooks/useMeta';
 import { useReportedListings } from '../hooks/useReportedListings';
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useCurrency, getCurrencySymbol } from '../contexts/CurrencyContext';
 
 // compact horizontal card used in the "Browse by category" rows at the bottom
 function CatCard({ listing }) {
@@ -57,8 +57,8 @@ function CatCard({ listing }) {
         </button>
       </div>
       <div style={{ padding: '8px 10px 10px' }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--accent)', marginBottom: 3 }}>
-          {listing.is_free ? 'Free' : hasPrice ? `${currency.symbol}${Number(listing.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>
+          {listing.is_free ? 'Free' : hasPrice ? `${getCurrencySymbol(listing.currency) || currency?.symbol || ''}${Number(listing.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
         </div>
         <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 8 }}>{listing.title}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
@@ -215,8 +215,7 @@ export default function Home() {
       if (max !== '') q = q.lte('price', Number(max));
       if (sort === 'price_asc') q = q.order('price', { ascending: true });
       else if (sort === 'price_desc') q = q.order('price', { ascending: false });
-      else if (sort === 'boosted') q = q.order('boosted_until', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
-      else q = q.order('created_at', { ascending: false });
+      else q = q.order('created_at', { ascending: false }); // 'boosted' handled client-side
       return q.limit(48);
     };
 
@@ -274,15 +273,25 @@ export default function Home() {
     setPriceMax(limitedInt + (dec !== undefined ? '.' + dec.slice(0, 2) : ''));
   };
 
-  // hide reported listings and float boosted ones to the top
   const now = new Date();
   const filtered = listings
     .filter(l => !reportedIds.has(l.id))
     .sort((a, b) => {
-      const aBoosted = a.boosted_until && new Date(a.boosted_until) > now;
-      const bBoosted = b.boosted_until && new Date(b.boosted_until) > now;
-      if (aBoosted && !bBoosted) return -1;
-      if (!aBoosted && bBoosted) return 1;
+      // currency match always floats first
+      const code = currency?.code;
+      if (code) {
+        const aMatch = a.currency === code;
+        const bMatch = b.currency === code;
+        if (aMatch && !bMatch) return -1;
+        if (!aMatch && bMatch) return 1;
+      }
+      // boosted sort: float active boosts to top
+      if (sortBy === 'boosted' || sortBy === 'newest') {
+        const aBoosted = a.boosted_until && new Date(a.boosted_until) > now;
+        const bBoosted = b.boosted_until && new Date(b.boosted_until) > now;
+        if (aBoosted && !bBoosted) return -1;
+        if (!aBoosted && bBoosted) return 1;
+      }
       return 0;
     });
   useEffect(() => { setVisibleCount(12); }, [listings]);
@@ -351,8 +360,8 @@ export default function Home() {
                     {l.delivery && <div style={{ position: 'absolute', bottom: 5, left: 5, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>Delivery</div>}
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
-                    {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${currency.symbol}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
+                    {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${getCurrencySymbol(l.currency) || currency?.symbol || ''}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
                   </div>
                 </Link>
               ))}
@@ -368,8 +377,8 @@ export default function Home() {
                     {l.delivery && <div style={{ position: 'absolute', bottom: 5, left: 5, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>Delivery</div>}
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
-                    {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${currency.symbol}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
+                    {l.is_free ? 'Free' : (l.price != null && l.price !== '') ? `${getCurrencySymbol(l.currency) || currency?.symbol || ''}${Number(l.price).toLocaleString()}` : <span style={{ color: 'var(--text)', fontWeight: 500 }}>Negotiable</span>}
                   </div>
                 </Link>
               ))}
@@ -387,7 +396,7 @@ export default function Home() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--text-muted)', pointerEvents: 'none' }}>{currency.symbol}</span>
+            {currency && <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--text-muted)', pointerEvents: 'none' }}>{currency.symbol}</span>}
             <input
               type="text"
               placeholder="Min"
@@ -398,7 +407,7 @@ export default function Home() {
           </div>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>—</span>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--text-muted)', pointerEvents: 'none' }}>{currency.symbol}</span>
+            {currency && <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--text-muted)', pointerEvents: 'none' }}>{currency.symbol}</span>}
             <input
               type="text"
               placeholder="Max"
@@ -468,10 +477,16 @@ export default function Home() {
           </h2>
           {CATEGORIES.map(cat => {
             const now = new Date();
+            const code = currency?.code;
             const items = catListings
               .filter(l => l.category === cat.slug && !reportedIds.has(l.id))
-              // boosted listings always come first, then newest
               .sort((a, b) => {
+                if (code) {
+                  const aMatch = a.currency === code;
+                  const bMatch = b.currency === code;
+                  if (aMatch && !bMatch) return -1;
+                  if (!aMatch && bMatch) return 1;
+                }
                 const ab = a.boosted_until && new Date(a.boosted_until) > now;
                 const bb = b.boosted_until && new Date(b.boosted_until) > now;
                 if (ab && !bb) return -1;

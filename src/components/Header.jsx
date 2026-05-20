@@ -51,9 +51,10 @@ export default function Header() {
         <div style={styles.cityWrap}>
           <select
             style={styles.citySelect}
-            value={currency.code}
+            value={currency?.code ?? ''}
             onChange={e => changeCurrency(e.target.value)}
           >
+            <option value="">All</option>
             {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
           </select>
         </div>
