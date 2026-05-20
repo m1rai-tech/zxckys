@@ -6,7 +6,7 @@ A clean, fast marketplace where people can buy and sell anything — electronics
 
 ## Live Demo
 
-[https://demo-market-blond.vercel.app/](https://market-demo-omega.vercel.app/)
+[https://market-demo-omega.vercel.app/](https://market-demo-omega.vercel.app/)
 
 ---
 
