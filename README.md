@@ -237,7 +237,7 @@ The `api/` folder is served as Vercel serverless functions out of the box.
 
 ---
 
-## Stripe setup (paid boost)
+## Stripe setup (paid boost).
 
 Sellers can pay to bump their listing to the top of search and category pages for 7 days ($2.99) or 30 days ($7.99).
 
