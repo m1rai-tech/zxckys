@@ -121,7 +121,8 @@ function FilterField({ attr, value, onChange }) {
       <div className="field" style={{ margin: 0 }}>
         <label>{attr.label}</label>
         <input className="input" placeholder={attr.placeholder || 'Search...'} value={value || ''}
-          onChange={e => onChange(attr.key, e.target.value.slice(0, 50))} />
+          maxLength={60}
+          onChange={e => onChange(attr.key, e.target.value.slice(0, 60))} />
       </div>
     );
   }
@@ -246,7 +247,7 @@ export default function Category() {
           </div>
           <div className="field" style={{ margin: 0 }}>
             <label>City</label>
-            <input className="input" value={location} onChange={e => setLocation(e.target.value)} placeholder="Any" />
+            <input className="input" value={location} maxLength={60} onChange={e => setLocation(e.target.value.slice(0, 60))} placeholder="Any" />
           </div>
           <div className="field" style={{ margin: 0 }}>
             <label>Sort</label>
@@ -306,7 +307,7 @@ export default function Category() {
             })()}
           </div>
           <div className="checkbox-row">
-            <input type="checkbox" id="delivery" checked={delivery} onChange={e => setDelivery(e.target.checked)} />
+            <input type="checkbox" id="delivery" checked={delivery} onChange={e => setDelivery(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
             <label htmlFor="delivery" style={{ margin: 0 }}>With delivery only</label>
           </div>
         </div>

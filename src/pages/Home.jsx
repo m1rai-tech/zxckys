@@ -15,7 +15,7 @@ import { Layout } from '../components/Layout';
 import { ListingCard } from '../components/ListingCard';
 import { Empty } from '../components/Empty';
 import { supabase } from '../lib/supabase';
-import { IconPlus, IconHeart } from '../components/Icons';
+import { IconHeart } from '../components/Icons';
 import { isFavorite, toggleFavorite } from '../lib/favorites';
 import { useAuth } from '../contexts/AuthContext';
 import { CATEGORIES } from '../lib/categories';
@@ -298,26 +298,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="post-banner" style={{
-        background: 'var(--accent-soft)', border: '1px solid #c8e0d4',
-        borderRadius: 'var(--radius-lg)', padding: '20px 24px', marginBottom: 20,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        gap: 16, flexWrap: 'wrap',
-      }}>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)', marginBottom: 2 }}>
-            Post a listing for free
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            Thousands of buyers waiting
-          </div>
-        </div>
-        <Link to={user ? '/create' : '/login'} className="btn btn-primary">
-          <IconPlus size={16} /> Post Ad
-        </Link>
-      </div>
-
-      {isMobile && (
+{isMobile && (
         <div style={{ marginBottom: 24 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>
             Categories
@@ -402,7 +383,7 @@ export default function Home() {
               placeholder="Min"
               value={priceMin}
               onChange={handlePriceMin}
-              style={{ width: 80, height: 36, border: '1.5px solid var(--border)', borderRadius: 8, paddingLeft: 22, paddingRight: 6, fontSize: 13, background: 'var(--bg-card)', outline: 'none' }}
+              style={{ width: 80, height: 36, border: '1.5px solid var(--border)', borderRadius: 8, paddingLeft: currency ? 22 : 10, paddingRight: 6, fontSize: 13, background: 'var(--bg-card)', outline: 'none' }}
             />
           </div>
           <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>—</span>
@@ -413,7 +394,7 @@ export default function Home() {
               placeholder="Max"
               value={priceMax}
               onChange={handlePriceMax}
-              style={{ width: 80, height: 36, border: '1.5px solid var(--border)', borderRadius: 8, paddingLeft: 22, paddingRight: 6, fontSize: 13, background: 'var(--bg-card)', outline: 'none' }}
+              style={{ width: 80, height: 36, border: '1.5px solid var(--border)', borderRadius: 8, paddingLeft: currency ? 22 : 10, paddingRight: 6, fontSize: 13, background: 'var(--bg-card)', outline: 'none' }}
             />
           </div>
         </div>
@@ -470,7 +451,7 @@ export default function Home() {
         </>
       )}
 
-      {catListings !== null && (
+      {catListings !== null && catListings.length > 0 && (
         <div style={{ marginTop: 40 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 24 }}>
             Browse by category

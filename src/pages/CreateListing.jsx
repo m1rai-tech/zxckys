@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,6 +7,77 @@ import { CURRENCIES, useCurrency } from '../contexts/CurrencyContext';
 import { supabase } from '../lib/supabase';
 import { IconClose, IconPlus, IconImage, IconCheck, IconLocation } from '../components/Icons';
 import { LocationAutocomplete } from '../components/LocationAutocomplete';
+
+function CustomSelect({ value, onChange, options, placeholder = '—' }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', height: 40, padding: '0 12px',
+          background: '#fff',
+          border: '1px solid',
+          borderColor: open ? 'var(--accent)' : 'var(--border)',
+          borderRadius: 'var(--radius)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: 'pointer', fontSize: 14,
+          color: value ? 'var(--text)' : 'var(--text-muted)',
+          transition: 'border-color .15s',
+        }}
+      >
+        <span>{value || placeholder}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+          style={{ color: 'var(--text-muted)', flexShrink: 0, transition: 'transform .15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: '#fff', border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)', boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          zIndex: 1000, maxHeight: 220, overflowY: 'auto',
+          scrollbarWidth: 'thin', scrollbarColor: 'var(--border) transparent',
+        }}>
+          {['', ...options].map(o => {
+            const isSelected = (value || '') === o;
+            return (
+              <div
+                key={o || '__empty__'}
+                onClick={() => { onChange(o); setOpen(false); }}
+                style={{
+                  padding: '9px 12px', cursor: 'pointer', fontSize: 13,
+                  background: isSelected ? 'var(--accent-soft)' : 'transparent',
+                  color: isSelected ? 'var(--accent)' : 'var(--text)',
+                  fontWeight: isSelected ? 600 : 400, transition: 'background .1s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--bg-soft)'; }}
+                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span>{o || '—'}</span>
+                {isSelected && value && <IconCheck size={13} style={{ flexShrink: 0, color: 'var(--accent)' }} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CreateListing({ edit = false }) {
   const { user, loading } = useAuth();
@@ -104,6 +175,7 @@ export default function CreateListing({ edit = false }) {
     if (!user) return;
     if (!isFree && !negotiable && Number(price) < 0) { setErr('Price cannot be negative'); return; }
     setErr('');
+    if (photos.length === 0) { setErr('Add at least one photo'); return; }
     if (!title.trim()) { setErr('Enter a listing title'); return; }
     if (!category) { setErr('Select a category'); return; }
     if (!location) { setErr('Select a city'); return; }
@@ -318,11 +390,14 @@ export default function CreateListing({ edit = false }) {
                     <div className="price-input">
                       <input
                         className="input"
-                        type="number"
-                        min="0"
+                        type="text"
                         value={price}
-                        onChange={(e) => { const val = e.target.value; if (val === '' || Number(val) >= 0) setPrice(val); }}
-                        onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                          const [int, dec] = val.split('.');
+                          const limitedInt = int.slice(0, dec !== undefined ? 7 : 9);
+                          setPrice(limitedInt + (dec !== undefined ? '.' + dec.slice(0, 2) : ''));
+                        }}
                         placeholder="0"
                       />
                       <span className="price-currency">
@@ -377,14 +452,15 @@ export default function CreateListing({ edit = false }) {
                     <div key={a.key} className="field" style={{ margin: 0 }}>
                       <label>{a.label}</label>
                       {a.type === 'select' ? (
-                        <select className="select" value={extras[a.key] || ''}
-                          onChange={e=>setExtras({ ...extras, [a.key]: e.target.value })}>
-                          <option value="">—</option>
-                          {a.options?.map(o => <option key={o}>{o}</option>)}
-                        </select>
+                        <CustomSelect
+                          value={extras[a.key] || ''}
+                          options={a.options || []}
+                          onChange={v => setExtras({ ...extras, [a.key]: v })}
+                        />
                       ) : (
                         <input className="input" value={extras[a.key] || ''}
-                          onChange={e=>setExtras({ ...extras, [a.key]: e.target.value })}/>
+                          maxLength={60}
+                          onChange={e=>setExtras({ ...extras, [a.key]: e.target.value.slice(0, 60) })}/>
                       )}
                     </div>
                   ))}
@@ -468,7 +544,7 @@ export default function CreateListing({ edit = false }) {
         .create-head h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
         .create-head p { color: var(--text-muted); }
         .create-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
-        .create-form { display: flex; flex-direction: column; gap: 16px; }
+        .create-form { display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; }
         .create-section { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
         .section-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
         .section-num { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
@@ -506,7 +582,7 @@ export default function CreateListing({ edit = false }) {
         .price-opt-sub { font-size: 12px; color: var(--text-muted); }
         .price-input { position: relative; }
         .price-input input { padding-right: 50px; font-size: 16px; font-weight: 600; }
-        .price-currency { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; font-weight: 500; }
+        .price-currency { position: absolute; right: 15px; top: 50%; transform: translateY(calc(-50% + 1px)); color: var(--text-muted); font-size: 13px; font-weight: 500; }
         .toggle-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: border-color .15s; }
         .toggle-row:hover { border-color: var(--border-strong); }
         .toggle-row input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }

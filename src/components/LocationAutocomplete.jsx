@@ -44,6 +44,7 @@ export function LocationAutocomplete({ value, onChange, placeholder = 'City', cl
 
   const search = (q) => {
     clearTimeout(timer.current);
+    q = q.slice(0, 60);
     setQuery(q);
     setActive(-1);
     if (!q.trim() || q.length < 2) {
@@ -134,6 +135,7 @@ export function LocationAutocomplete({ value, onChange, placeholder = 'City', cl
           placeholder={placeholder}
           className="location-input"
           autoComplete="off"
+          maxLength={60}
         />
         {loading && <span className="location-spinner"/>}
         {query && !loading && (
