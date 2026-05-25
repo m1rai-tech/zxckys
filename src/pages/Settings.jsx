@@ -265,7 +265,7 @@ export default function Settings() {
       </div>
 
       <style>{`
-        .settings-page { max-width: 1100px; margin: 0 auto; padding: 0 8px; }
+        .settings-page { max-width: 1100px; margin: 0 auto; padding: 0 8px 40px; }
         .settings-head { padding: 24px 8px 8px; }
         .settings-head h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
         .settings-head p { color: var(--text-muted); }
