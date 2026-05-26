@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { IconSend, IconImage, IconFlag } from '../components/Icons';
 import { useCurrency, getCurrencySymbol } from '../contexts/CurrencyContext';
+import { compressImage } from '../lib/imageUtils';
 
 const iconBtnStyle = {
   background: 'none', border: 'none', cursor: 'pointer', padding: 8,
@@ -382,8 +383,16 @@ export default function Chat() {
 
   const sendImage = async (file) => {
     if (!active || !user) return;
-    const path = `${user.id}/${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage.from('chat-media').upload(path, file);
+    let blob;
+    try {
+      blob = await compressImage(file, { maxWidth: 1280, maxHeight: 1280, quality: 0.82 });
+    } catch {
+      return;
+    }
+    const path = `${user.id}/${Date.now()}.jpg`;
+    const { error } = await supabase.storage
+      .from('chat-media')
+      .upload(path, blob, { contentType: 'image/jpeg' });
     if (!error) {
       const { data } = supabase.storage.from('chat-media').getPublicUrl(path);
       justSentRef.current = true;

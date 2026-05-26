@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { IconUser, IconSettings, IconCheck, IconClose, IconImage } from '../components/Icons';
 import { LocationAutocomplete } from '../components/LocationAutocomplete';
 import { PhoneInput, PHONE_CODES } from '../components/PhoneCodeSelect';
+import { compressImage } from '../lib/imageUtils';
 
 
 export default function Settings() {
@@ -62,10 +63,18 @@ export default function Settings() {
   const onAvatarFile = async (file) => {
     if (!user) return;
     if (!file.type.startsWith('image/')) { flash('err', 'Please select an image'); return; }
-    if (file.size > 5 * 1024 * 1024) { flash('err', 'Maximum 5 MB'); return; }
     setUploadingAva(true);
-    const path = `${user.id}/avatar-${Date.now()}.${file.name.split('.').pop()}`;
-    const { error } = await supabase.storage.from('listing-media').upload(path, file, { upsert: true });
+    let blob;
+    try {
+      // Avatars only need 400px — keeps file tiny for fast loads everywhere.
+      blob = await compressImage(file, { maxWidth: 400, maxHeight: 400, quality: 0.85 });
+    } catch {
+      flash('err', 'Could not process image'); setUploadingAva(false); return;
+    }
+    const path = `${user.id}/avatar-${Date.now()}.jpg`;
+    const { error } = await supabase.storage
+      .from('listing-media')
+      .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
     if (error) { flash('err', error.message); setUploadingAva(false); return; }
     const { data } = supabase.storage.from('listing-media').getPublicUrl(path);
     setAvatar(data.publicUrl);

@@ -174,7 +174,7 @@ export default function ListingDetails() {
             <div className="ld-gallery">
               <div className="ld-main-photo" onClick={() => photos.length && setLightbox(true)}>
                 {photos[photoIdx] ? (
-                  <img src={photos[photoIdx]} alt={listing.title}/>
+                  <img src={photos[photoIdx]} alt={listing.title} loading="lazy"/>
                 ) : (
                   <div className="ld-no-photo">
                     <IconImage size={48}/>
@@ -193,7 +193,7 @@ export default function ListingDetails() {
                 <div className="ld-thumbs">
                   {photos.map((p, i) => (
                     <button key={i} className={`ld-thumb ${i === photoIdx ? 'active' : ''}`} onClick={() => setPhotoIdx(i)}>
-                      <img src={p} alt=""/>
+                      <img src={p} alt="" loading="lazy"/>
                     </button>
                   ))}
                 </div>

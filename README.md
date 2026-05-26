@@ -149,7 +149,8 @@ src/
 ├── lib/
 │   ├── supabase.js                 # Supabase client
 │   ├── categories.js               # all categories and their attributes
-│   └── favorites.js                # local favorites via localStorage
+│   ├── favorites.js                # local favorites via localStorage
+│   └── imageUtils.js               # in-browser image resize + JPEG compression via canvas
 ├── pages/
 │   ├── Home.jsx           # feed, filters, sort, recently viewed, browse by category rows
 │   ├── Search.jsx         # fuzzy search results with location filter
@@ -310,6 +311,41 @@ supabase functions deploy send-notification-email
 | `reports` | listing and user reports — pending or dismissed |
 | `support_tickets` | support sessions between users and moderators |
 | `support_messages` | messages inside support tickets |
+
+---
+
+## Performance
+
+The app is built to stay fast even as the number of listings and photos grows.
+
+### Images
+
+Photos are the biggest culprit when it comes to slow pages — someone uploads a 4K photo from their phone and suddenly your listing page is loading 8 MB of images. To prevent that:
+
+- **Automatic compression on upload** — every photo goes through an in-browser canvas resize before it ever touches the server. Listing photos are capped at 1920×1920 px, chat images at 1280×1280 px, and avatars at 400×400 px. All output is JPEG at ~82% quality regardless of what format was originally uploaded (PNG, HEIC, WEBP, etc.). Real-world savings: 3–4 MB raw → 100–400 KB on disk.
+- **Lazy loading everywhere** — images in cards, thumbnails, and gallery strips use `loading="lazy"` so the browser only fetches what's actually on screen.
+
+If you already have photos uploaded before compression was added, there's a one-time migration script:
+
+```bash
+node scripts/compress-existing-photos.js
+```
+
+It walks every file in `listing-media` and `chat-media`, skips anything already under 100 KB, and re-uploads compressed versions in place. The public URLs in the database stay exactly the same — no listing data needs updating.
+
+The script uses a `service_role` key to bypass storage RLS. Set it as an env variable before running:
+
+```bash
+SUPABASE_SERVICE_KEY=eyJ... node scripts/compress-existing-photos.js
+```
+
+### Code splitting
+
+All pages load on demand — the browser only downloads the code for the page the user is actually on. The initial bundle is ~430 KB (vs 679 KB without splitting), and each page chunk is 10–30 KB. Navigation to a new page fetches its chunk in the background, usually before the user even clicks.
+
+### Database queries
+
+Listing cards only need a handful of fields — title, price, photos, location, a couple of flags. Instead of fetching every column with `select('*')` and sending `description` and other heavy text over the wire for every card in the feed, all list-view queries select only the columns they actually display. Cuts the response payload noticeably once you have a few hundred listings.
 
 ---
 

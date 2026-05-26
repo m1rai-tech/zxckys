@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 
 // browser doesn't scroll to top on navigation by default — this fixes that
 function ScrollToTop() {
@@ -9,19 +9,25 @@ function ScrollToTop() {
 }
 import { AuthProvider } from './contexts/AuthContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
-import Home from './pages/Home';
-import { Login, Register } from './pages/Auth';
-import Category from './pages/Category';
-import SearchPage from './pages/Search';
-import CreateListing from './pages/CreateListing';
-import ListingDetails from './pages/ListingDetails';
-import { MyProfile, SellerProfile } from './pages/Profile';
-import Settings from './pages/Settings';
-import Favorites from './pages/Favorites';
-import Chat from './pages/Chat';
-import Admin from './pages/Admin';
-import { PrivacyPage, TermsPage, HelpPage } from './pages/Static';
 import { isConfigured } from './lib/supabase';
+
+// Each page loads only when first visited — keeps the initial bundle small.
+const Home          = lazy(() => import('./pages/Home'));
+const Login         = lazy(() => import('./pages/Auth').then(m => ({ default: m.Login })));
+const Register      = lazy(() => import('./pages/Auth').then(m => ({ default: m.Register })));
+const Category      = lazy(() => import('./pages/Category'));
+const SearchPage    = lazy(() => import('./pages/Search'));
+const CreateListing = lazy(() => import('./pages/CreateListing'));
+const ListingDetails= lazy(() => import('./pages/ListingDetails'));
+const MyProfile     = lazy(() => import('./pages/Profile').then(m => ({ default: m.MyProfile })));
+const SellerProfile = lazy(() => import('./pages/Profile').then(m => ({ default: m.SellerProfile })));
+const Settings      = lazy(() => import('./pages/Settings'));
+const Favorites     = lazy(() => import('./pages/Favorites'));
+const Chat          = lazy(() => import('./pages/Chat'));
+const Admin         = lazy(() => import('./pages/Admin'));
+const PrivacyPage   = lazy(() => import('./pages/Static').then(m => ({ default: m.PrivacyPage })));
+const TermsPage     = lazy(() => import('./pages/Static').then(m => ({ default: m.TermsPage })));
+const HelpPage      = lazy(() => import('./pages/Static').then(m => ({ default: m.HelpPage })));
 
 function ConfigWarning() {
   return (
@@ -49,28 +55,30 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CurrencyProvider>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Home/>}/>
-          <Route path="/login" element={<Login/>}/>
-          <Route path="/register" element={<Register/>}/>
-          <Route path="/c/:slug" element={<Category/>}/>
-          <Route path="/search" element={<SearchPage/>}/>
-          <Route path="/create" element={<CreateListing/>}/>
-          <Route path="/edit/:id" element={<CreateListing edit/>}/>
-          <Route path="/listing/:id" element={<ListingDetails/>}/>
-          <Route path="/me" element={<MyProfile/>}/>
-          <Route path="/my-listings" element={<MyProfile/>}/>
-          <Route path="/u/:id" element={<SellerProfile/>}/>
-          <Route path="/settings" element={<Settings/>}/>
-          <Route path="/favorites" element={<Favorites/>}/>
-          <Route path="/chat" element={<Chat/>}/>
-          <Route path="/admin" element={<Admin/>}/>
-          <Route path="/privacy" element={<PrivacyPage/>}/>
-          <Route path="/terms" element={<TermsPage/>}/>
-          <Route path="/help" element={<HelpPage/>}/>
-          <Route path="*" element={<Home/>}/>
-        </Routes>
+          <ScrollToTop />
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/" element={<Home/>}/>
+              <Route path="/login" element={<Login/>}/>
+              <Route path="/register" element={<Register/>}/>
+              <Route path="/c/:slug" element={<Category/>}/>
+              <Route path="/search" element={<SearchPage/>}/>
+              <Route path="/create" element={<CreateListing/>}/>
+              <Route path="/edit/:id" element={<CreateListing edit/>}/>
+              <Route path="/listing/:id" element={<ListingDetails/>}/>
+              <Route path="/me" element={<MyProfile/>}/>
+              <Route path="/my-listings" element={<MyProfile/>}/>
+              <Route path="/u/:id" element={<SellerProfile/>}/>
+              <Route path="/settings" element={<Settings/>}/>
+              <Route path="/favorites" element={<Favorites/>}/>
+              <Route path="/chat" element={<Chat/>}/>
+              <Route path="/admin" element={<Admin/>}/>
+              <Route path="/privacy" element={<PrivacyPage/>}/>
+              <Route path="/terms" element={<TermsPage/>}/>
+              <Route path="/help" element={<HelpPage/>}/>
+              <Route path="*" element={<Home/>}/>
+            </Routes>
+          </Suspense>
         </CurrencyProvider>
       </AuthProvider>
     </BrowserRouter>

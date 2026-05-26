@@ -41,7 +41,7 @@ function CatCard({ listing }) {
     }}>
       <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', background: 'var(--bg-soft)', overflow: 'hidden', touchAction: 'pan-x pan-y' }}>
         {listing.photos?.[0]
-          ? <img src={listing.photos[0]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={listing.photos[0]} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: 24 }}>📷</div>}
         {isBoosted && (
           <div style={{ position: 'absolute', top: 7, left: 7, background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.03em' }}>TOP</div>
@@ -188,18 +188,22 @@ export default function Home() {
   useEffect(() => {
     const ids = JSON.parse(localStorage.getItem('recently_viewed') || '[]');
     if (!ids.length) return;
-    supabase.from('listings').select('*').in('id', ids).eq('status', 'active').then(({ data }) => {
-      if (!data?.length) return;
-      const sorted = ids.map(id => data.find(l => l.id === id)).filter(Boolean);
-      setRecentListings(sorted);
-    });
+    supabase.from('listings')
+      .select('id,title,price,is_free,photos,location,created_at,category,delivery,currency,status')
+      .in('id', ids).eq('status', 'active').then(({ data }) => {
+        if (!data?.length) return;
+        const sorted = ids.map(id => data.find(l => l.id === id)).filter(Boolean);
+        setRecentListings(sorted);
+      });
   }, []);
 
   // separate fetch for the category sections — bigger pool, boosted sort done in JS to avoid DB quirks
   useEffect(() => {
-    supabase.from('listings').select('*').eq('status', 'active')
+    supabase.from('listings')
+      .select('id,title,price,is_free,photos,location,created_at,category,delivery,currency,status')
+      .eq('status', 'active')
       .order('created_at', { ascending: false })
-      .limit(500)
+      .limit(120)
       .then(({ data, error }) => {
         if (!error && data) setCatListings(data);
       });
@@ -225,20 +229,20 @@ export default function Home() {
       const country = parts.length > 1 ? parts[parts.length - 1] : '';
 
       const { data: cityData } = await applyFilters(
-        supabase.from('listings').select('*').eq('status', 'active').ilike('location', `%${cityName}%`)
+        supabase.from('listings').select('id,title,price,is_free,photos,location,created_at,category,delivery,currency,status').eq('status', 'active').ilike('location', `%${cityName}%`)
       );
       if (cityData?.length) { setListings(cityData); setLoading(false); return; }
 
       if (country) {
         const { data: countryData } = await applyFilters(
-          supabase.from('listings').select('*').eq('status', 'active').ilike('location', `%${country}%`)
+          supabase.from('listings').select('id,title,price,is_free,photos,location,created_at,category,delivery,currency,status').eq('status', 'active').ilike('location', `%${country}%`)
         );
         if (countryData?.length) { setListings(countryData); setLoading(false); return; }
       }
     }
 
     const { data } = await applyFilters(
-      supabase.from('listings').select('*').eq('status', 'active')
+      supabase.from('listings').select('id,title,price,is_free,photos,location,created_at,category,delivery,currency,status').eq('status', 'active')
     );
     setListings(data || []);
     setLoading(false);

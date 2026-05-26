@@ -7,6 +7,7 @@ import { CURRENCIES, useCurrency } from '../contexts/CurrencyContext';
 import { supabase } from '../lib/supabase';
 import { IconClose, IconPlus, IconImage, IconCheck, IconLocation } from '../components/Icons';
 import { LocationAutocomplete } from '../components/LocationAutocomplete';
+import { compressImage } from '../lib/imageUtils';
 
 function CustomSelect({ value, onChange, options, placeholder = '—' }) {
   const [open, setOpen] = useState(false);
@@ -133,7 +134,7 @@ export default function CreateListing({ edit = false }) {
 
   const cat = getCategory(category);
 
-  // uploads photos to Supabase Storage and saves the public URLs in state
+  // Compress then upload photos; always stores as JPEG capped at 1920px.
   const uploadFiles = async (files) => {
     if (!user || files.length === 0 || uploading) return;
     setUploading(true);
@@ -144,16 +145,24 @@ export default function CreateListing({ edit = false }) {
 
     let failed = 0;
     for (const f of toUpload) {
-      const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
-      const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+      let blob;
+      try {
+        blob = await compressImage(f, { maxWidth: 1920, maxHeight: 1920, quality: 0.82 });
+      } catch {
+        failed++;
+        continue;
+      }
+      const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.jpg`;
       const path = `${user.id}/${safe}`;
-      const { error } = await supabase.storage.from('listing-media').upload(path, f, { cacheControl: '3600', upsert: false });
+      const { error } = await supabase.storage
+        .from('listing-media')
+        .upload(path, blob, { contentType: 'image/jpeg', cacheControl: '3600', upsert: false });
       if (error) { failed++; continue; }
       const { data } = supabase.storage.from('listing-media').getPublicUrl(path);
       setPhotos((prev) => [...prev, data.publicUrl].slice(0, 12));
     }
 
-    if (failed > 0) setErr(`Failed to upload ${failed} photo(s). Check file size and format.`);
+    if (failed > 0) setErr(`Failed to upload ${failed} photo(s). Check file format.`);
     setUploading(false);
   };
 
