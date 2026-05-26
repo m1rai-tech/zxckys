@@ -16,7 +16,7 @@ A clean, fast marketplace where people can buy and sell anything — electronics
 - **Smart search** — typo-tolerant, powered by PostgreSQL `pg_trgm`, finds results even if you mistype
 - **Location filter** — autocomplete via OpenStreetMap, works for any city in the world, no API key needed
 - **Currency selector** — switch between USD and EUR, prices update everywhere instantly
-- **Favorites** — save listings locally, counter shows in the nav
+- **Favorites** — save listings locally, counter shows in the nav.
 - **Recently viewed** — last 8 visited listings; swipe strip on mobile, grid on desktop
 - **Similar listings** — shown full-width at the bottom of each listing, up to 12 cards, "See all" links to category
 - **Seller profiles** — rating, number of deals, member since, suspension status
