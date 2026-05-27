@@ -46,6 +46,10 @@ export function SupportWidget() {
   const bottomRef = useRef(null);
   const hidden = loc.pathname === '/settings' && window.matchMedia('(max-width: 640px)').matches;
 
+  const [aiMessages, setAiMessages] = useState([]);
+  const [aiInput, setAiInput] = useState('');
+  const [aiTyping, setAiTyping] = useState(false);
+
   // poll every 4 seconds for new moderator replies while the chat is open
   useEffect(() => {
     if (mode !== 'chat' || !ticketId) return;
@@ -79,7 +83,7 @@ export function SupportWidget() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, mode]);
+  }, [messages, aiMessages, aiTyping, mode]);
 
   // reuse the existing open ticket if the user already has one, otherwise create a new one
   const startChat = async () => {
@@ -118,8 +122,36 @@ export function SupportWidget() {
     setSending(false);
   };
 
+  const sendAi = async () => {
+    const q = aiInput.trim();
+    if (!q || aiTyping) return;
+    const updated = [...aiMessages, { role: 'user', content: q }];
+    setAiMessages(updated);
+    setAiInput('');
+    setAiTyping(true);
+    try {
+      const res = await fetch('/api/ai-support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: updated }),
+      });
+      const data = await res.json();
+      setAiMessages(prev => [...prev, { role: 'assistant', content: data.reply || 'Something went wrong, try again.' }]);
+    } catch {
+      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong, try again.' }]);
+    }
+    setAiTyping(false);
+  };
+
   const contactBtn = (
-    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <button onClick={() => { setMode('ai'); setSelected(null); }} style={{
+        width: '100%', padding: '10px 14px', borderRadius: 8,
+        background: 'var(--accent)', border: 'none',
+        color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+      }}>
+        Ask AI — instant reply ✦
+      </button>
       {user ? (
         <button onClick={startChat} disabled={loadingChat} style={{
           width: '100%', padding: '10px 14px', borderRadius: 8,
@@ -153,7 +185,7 @@ export function SupportWidget() {
             <div>
               <div style={{ fontWeight: 700, fontSize: 15 }}>Support 24/7</div>
               <div style={{ fontSize: 12, opacity: 0.85 }}>
-                {mode === 'chat' ? 'Chat with moderation' : 'How can we help?'}
+                {mode === 'chat' ? 'Chat with moderation' : mode === 'ai' ? 'AI Support · instant reply' : 'How can we help?'}
               </div>
             </div>
             <button onClick={() => setOpen(false)}
@@ -257,6 +289,76 @@ export function SupportWidget() {
                   background: 'none', border: 'none', color: 'var(--text-faint)',
                   fontSize: 12, cursor: 'pointer', padding: 0,
                 }}>← Back to FAQ</button>
+              </div>
+            </>
+          )}
+
+          {mode === 'ai' && (
+            <>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 12px 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{
+                  alignSelf: 'flex-start', background: 'var(--bg-soft)',
+                  border: '1px solid var(--border)', borderRadius: 10,
+                  padding: '8px 12px', fontSize: 13, maxWidth: '85%', lineHeight: 1.5,
+                }}>
+                  Hey! Ask me anything about the site — I'll reply right away.
+                </div>
+                {aiMessages.map((m, i) => (
+                  <div key={i} style={{
+                    alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                    background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-soft)',
+                    color: m.role === 'user' ? '#fff' : 'var(--text)',
+                    border: m.role === 'user' ? 'none' : '1px solid var(--border)',
+                    borderRadius: 10, padding: '8px 12px',
+                    fontSize: 13, maxWidth: '85%', lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  }}>
+                    {m.content}
+                  </div>
+                ))}
+                {aiTyping && (
+                  <div style={{
+                    alignSelf: 'flex-start', background: 'var(--bg-soft)',
+                    border: '1px solid var(--border)', borderRadius: 10,
+                    padding: '8px 14px', fontSize: 18, color: 'var(--text-muted)',
+                    letterSpacing: 2,
+                  }}>
+                    •••
+                  </div>
+                )}
+                <div ref={bottomRef}/>
+              </div>
+              <div style={{ padding: '8px 10px', borderTop: '1px solid var(--border)', display: 'flex', gap: 6, flexShrink: 0 }}>
+                <input
+                  value={aiInput}
+                  onChange={e => setAiInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendAi()}
+                  placeholder="Ask a question..."
+                  style={{
+                    flex: 1, height: 36, border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '0 10px', fontSize: 13, outline: 'none', background: 'var(--bg-soft)',
+                  }}
+                />
+                <button onClick={sendAi} disabled={!aiInput.trim() || aiTyping} style={{
+                  width: 36, height: 36, borderRadius: 8, background: 'var(--accent)',
+                  color: '#fff', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  opacity: (!aiInput.trim() || aiTyping) ? 0.5 : 1,
+                }}>
+                  <IconSend size={15}/>
+                </button>
+              </div>
+              <div style={{ padding: '6px 12px 10px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button onClick={() => { setMode('faq'); setSelected(null); }} style={{
+                  background: 'none', border: 'none', color: 'var(--text-faint)',
+                  fontSize: 12, cursor: 'pointer', padding: 0,
+                }}>← Back to FAQ</button>
+                {user && (
+                  <button onClick={startChat} style={{
+                    background: 'none', border: 'none', color: 'var(--accent)',
+                    fontSize: 12, cursor: 'pointer', padding: 0,
+                  }}>Talk to a person →</button>
+                )}
               </div>
             </>
           )}
