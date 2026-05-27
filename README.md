@@ -11,7 +11,6 @@ A clean, fast marketplace where people can buy and sell anything — electronics
 ---
 
 ## What's inside
-
 ### For buyers
 - **Smart search** — typo-tolerant, powered by PostgreSQL `pg_trgm`, finds results even if you mistype
 - **Location filter** — autocomplete via OpenStreetMap, works for any city in the world, no API key needed
