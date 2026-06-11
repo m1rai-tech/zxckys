@@ -437,4 +437,6 @@ The Help page (`/help`) and Privacy Policy (`/privacy`) don't use brand-specific
 
 ## License
 
-MIT — use it, modify it, sell it, whatever you want.
+Copyright (c) 2026 
+
+All Rights Reserved.
